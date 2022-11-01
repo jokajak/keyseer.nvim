@@ -1,16 +1,9 @@
-# plugin-template.nvim
+# keymaster.nvim
 
 [![Integration][integration-badge]][integration-runs]
 
-A template to create Neovim plugins written in [Lua][lua].
-
-## Using
-
-Clone/download it locally and change the references to `my_awesome_plugin`, 
-`my_cool_module` accordingly to your new plugin name. Don't forget to edit the
-[help][help] file accordingly.
-
-You'll need to install [Lua][lua] and [LuaRocks][luarocks] to run the linter.
+A Neovim plugin written in [Lua][lua] that displays a keyboard displaying which
+keys have assigned actions.
 
 ## Testing
 
@@ -51,7 +44,7 @@ $ make watch SPEC=spec/my_awesome_plugin/my_cool_module_spec.lua
 ## Github actions
 
 An Action will run all the tests and the linter on every commit on the main
-branch and also on Pull Request. Tests will be run using 
+branch and also on Pull Request. Tests will be run using
 [stable and nightly][neovim-test-versions] versions of Neovim.
 
 [lua]: https://www.lua.org/
@@ -61,7 +54,7 @@ branch and also on Pull Request. Tests will be run using
 [luassert]: https://github.com/Olivine-Labs/luassert
 [plenary]: https://github.com/nvim-lua/plenary.nvim
 [matcher_combinators]: https://github.com/m00qek/matcher_combinators.lua
-[integration-badge]: https://github.com/m00qek/plugin-template.nvim/actions/workflows/integration.yml/badge.svg
-[integration-runs]: https://github.com/m00qek/plugin-template.nvim/actions/workflows/integration.yml
+[integration-badge]: https://github.com/jokajak/keymaster.nvim/actions/workflows/integration.yml/badge.svg
+[integration-runs]: https://github.com/jokajak/keymaster.nvim/actions/workflows/integration.yml
 [neovim-test-versions]: .github/workflows/integration.yml#L17
-[help]: doc/my-awesome-plugin.txt
+[help]: doc/keymaster.txt

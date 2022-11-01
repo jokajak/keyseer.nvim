@@ -37,22 +37,6 @@ local function open_window()
 end
 
 local position = 0
-local charset = {
-  -- [ up down left right ] = char
-  --      s : single
-  [" s s"] = "┌",
-  ["ss  "] = "│",
-  ["sss "] = "┤",
-  [" ss "] = "┐",
-  ["s  s"] = "└",
-  ["s ss"] = "┴",
-  [" sss"] = "┬",
-  ["ss s"] = "├",
-  ["  ss"] = "─",
-  ["ssss"] = "┼",
-  ["s s "] = "┘",
-  ["topleft"] = "┌",
-}
 
 local function center(str)
   local width = api.nvim_win_get_width(0)
@@ -60,10 +44,7 @@ local function center(str)
   return string.rep(' ', shift) .. str
 end
 
-local function render()
-end
-
-local function update_view()
+local function update_view(lines)
   -- Is nice to prevent user from editing interface, so
   -- we should enabled it before updating view and disabled after it.
   api.nvim_buf_set_option(buf, 'modifiable', true)
@@ -78,31 +59,10 @@ end
 function M.display()
   return "Hello " .. name
 end
-function M.render(layout_keys)
-  -- layout_keys is a table of key fronts where:
-  -- the left hand side (lhs) is the qwerty keyboard label
-  -- the right hand side (rhs) is the label on the key
-  -- the order from left to right, top to bottom
+function M.render(layout_lines)
+  -- layout is a table of strings for each row on a keyboard
 
-  -- top row: 14 keys
-  -- second row: 14 keys
-  -- third row: 13 keys
-  -- bottom row: 12 keys
-
-  -- render the first line
-  local lines = {
-
-    "┌─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┐",
-    "│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│",
-    "├─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┤",
-    "│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│",
-    "├─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┤",
-    "│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│",
-    "├─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┤",
-    "│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│",
-    "└─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┘",
-  }
-  update_view()
+  update_view(layout_lines)
 end
 
 return M
