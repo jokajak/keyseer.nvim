@@ -136,10 +136,10 @@ local dvorak_keys = {
 }
 
 -- list of supported layouts
---[[ M.layouts = {
-    "qwerty" = qwerty_keys,
-    "dvorak" = dvorak_keys
-} ]]
+M.layouts = {
+    ["qwerty"] = qwerty_keys,
+    ["dvorak"] = dvorak_keys
+}
 
 local function center(str, width, shift_left)
   local small_shift = math.floor(width / 2) - math.floor(strlen(str) / 2)
@@ -167,7 +167,7 @@ local function stringify_row_at_col(row, col)
   return stringify_row(t)
 end
 
--- generate a strrepresentation of the layout, e.g.
+-- generate a string representation of the layout, e.g.
 -- ┌──────┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬──────┐
 -- │  `   │1│2│3│4│5│6│7│8│9│0│-│=│ <BS> │
 -- ├──────┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼──────┤
@@ -199,7 +199,7 @@ function M.render(layout)
     if (table_index) > row_sizes[row_index] then
       table_index = 1
       rows[row_index] = key_strings
-      key_strings = {""}
+      key_strings = {}
       row_index = row_index + 1
     end
   end
@@ -316,7 +316,7 @@ function M.render(layout)
     table.insert(final_rows, table.concat(new_row, ""))
   end
 
-  print(table.concat(final_rows, "\n"))
+  return final_rows
 end
 
 return M
