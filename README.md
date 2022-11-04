@@ -2,7 +2,7 @@
 
 [![Integration][integration-badge]][integration-runs]
 
-A Neovim plugin written in [Lua][lua] that displays a keyboard displaying which
+A Neovim plugin written in [Lua][lua] that renders a keyboard displaying which
 keys have assigned actions.
 
 ## Testing

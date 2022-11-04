@@ -1,5 +1,7 @@
 local strlen = string.len
 local strrep = string.rep
+local strformat = string.format
+local max = math.max
 
 local M = {}
 
@@ -21,6 +23,14 @@ local charset = {
 
 local function get_line(opts)
   return charset[table.concat(opts, "")]
+end
+
+local Layout = {}
+
+function Layout:new()
+  local newObj = {row_length = 0}
+  self.__index = self
+  return setmetatable(newObj, self)
 end
 
 local qwerty_keys = {
@@ -142,12 +152,13 @@ M.layouts = {
 }
 
 local function center(str, width, shift_left)
-  local small_shift = math.floor(width / 2) - math.floor(strlen(str) / 2)
-  local big_shift = math.floor(width / 2) - math.ceil(strlen(str) / 2)
+  local total_padding = width - strlen(str)
+  local small_pad = math.floor(total_padding / 2)
+  local big_pad = math.ceil(total_padding / 2)
   if shift_left then
-    return strrep(' ', small_shift) .. str .. strrep(' ', big_shift)
+    return strrep(' ', small_pad) .. str .. strrep(' ', big_pad)
   else
-    return strrep(' ', big_shift) .. str .. strrep(' ', small_shift)
+    return strrep(' ', big_pad) .. str .. strrep(' ', small_pad)
   end
 end
 
@@ -177,6 +188,15 @@ end
 -- ├──────┴─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼────────┤
 -- │<LSHIFT>│z│x│c│v│b│n│m│,│.│/│<RSHIFT>│
 -- └────────┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴────────┘
+--  ┌───────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬──────┐
+--  │   `   │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ - │ = │ <BS> │
+--  ├───────┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼──────┤
+--  │ <TAB> │ q │ w │ e │ r │ t │ y │ u │ i │ o │ p │ [ │ ] │   \  │
+--  ├───────┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴──────┤
+--  │ <CAPS> │ a │ s │ d │ f │ g │ h │ j │ k │ l │ ; │ ' │ <ENTER> │
+--  ├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴─────────┤
+--  │ <LSHIFT>  │ z │ x │ c │ v │ b │ n │ m │ , │ . │ / │ <RSHIFT> │
+--  └───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴──────────┘
 function M.render(layout)
   local row_sizes = {}
   row_sizes[1] = 14
@@ -185,75 +205,68 @@ function M.render(layout)
   row_sizes[4] = 12
   row_sizes[5] = 9
   local rows = {}
-  local longest_row = 0
-  local column_sizes = {0}
+  local keycap_separator_columns = {}
+  keycap_separator_columns[1] = {}
+  keycap_separator_columns[2] = {}
+  keycap_separator_columns[3] = {}
+  keycap_separator_columns[4] = {}
+  keycap_separator_columns[5] = {}
+  local row_lengths = {}
 
-  -- place pipes around each of the keys
+  local ret = Layout:new()
+
+  -- prepare a table to hold the keycaps
   local key_strings = {}
-  local table_index = 1
+  -- keep track of the column within each row for the keycap
+  local column_index = 1
+  -- keep track of the row on the keyboard display
   local row_index = 1
+  -- keep track of the longest row
+  local longest_row_length = 0
   -- place keys in rows
   for i=1, #layout do
-    key_strings[table_index] = layout[i][2]
-    table_index = table_index + 1
-    if (table_index) > row_sizes[row_index] then
-      table_index = 1
+    local keycap = strformat(" %s ", layout[i][2])
+    -- store the keycap label
+    key_strings[column_index] = keycap
+    -- this is more efficient than using `table.insert`
+    column_index = column_index + 1
+    local row_len = row_lengths[row_index] or 0
+    -- add 1 for counting the separator
+    row_lengths[row_index] = row_len + strlen(keycap) + 1
+    longest_row_length = max(longest_row_length, row_lengths[row_index])
+    if (column_index) > row_sizes[row_index] then
+      -- restart the column and row index
+      column_index = 1
       rows[row_index] = key_strings
       key_strings = {}
       row_index = row_index + 1
     end
   end
 
-  -- determine column sizes
-  for i=1, #rows do  -- for each row
-    local row = rows[i]  -- get a local reference
-    local current_row_size = #row
-    local prev_row_size = #(rows[i-1] or {})
-    local offsets = 0
-    for col=1, #row do  -- for each column in the row
-      local current_column_size = strlen(row[col])  -- get the current column size
-      -- check if the prev row is bigger than the current row
-      -- if it is, then assume we need to compare the size of the previous row column
-      -- directly above and next to the current column
-      -- if they are the same or smaller then we combine them and don't resize the column
-      -- X Y
-      -- C
-      if current_row_size < prev_row_size then
-        local char_north = strlen(rows[i-1][col])
-        local char_northeast = strlen(rows[i-1][col+1])
-        local size_above = char_north + char_northeast + 1  -- add space for a separator
-        if size_above > current_column_size then -- resize the current column
-          column_sizes[col+offsets] = math.max((column_sizes[col] or 0), current_column_size)
-        else
-          offsets = offsets + 1
-        end
-      else
-        -- if they are the same size, then just compare to the rest of the rows
-        column_sizes[col] = math.max((column_sizes[col] or 0), current_column_size)
-      end
-    end
-  end
-  -- calculate the longest row
+  -- resize first and last columns based on the longest row
   for i=1, #rows do
-    longest_row = math.max(longest_row, strlen(table.concat(rows[i])))
+    local end_column = row_sizes[i]
+    local row_length_delta = longest_row_length - row_lengths[i]
+    local start_column_pad = math.ceil(row_length_delta/2)
+    local end_column_pad = math.floor(row_length_delta/2)
+    rows[i][1] = center(rows[i][1], strlen(rows[i][1]) + start_column_pad)
+    rows[i][end_column] = center(rows[i][end_column], strlen(rows[i][end_column]) + end_column_pad)
   end
-  -- fixup the last column in the long rows
-  local col = 14
-  -- remove extra separators
-  column_sizes[col] = longest_row - strlen(table.concat(rows[1])) - 2
 
-  -- resize columns in each row
-  for i=1, #rows do  -- for each row
-    local row = rows[i]  -- get a local reference
+  -- calculate keycap separator locations
+  for i=1, #rows do
+    local row = rows[i]
+    local row_length = 0
     for col=1, #row do
-      if not (#row == 14 and col > 12) then
-        row[col] = center(row[col], column_sizes[col] or strlen(row[col]))
-      elseif (#row == 14 and col > 13) then
-        row[col] = center(row[col], column_sizes[col] or strlen(row[col]))
-      end
+      local keycap = row[col]
+      -- add the length of the separator
+      row_length = row_length + strlen(keycap) + 1
+      -- mark where there is a separator
+      keycap_separator_columns[i][row_length] = true
     end
   end
 
+  -- place top row
   local final_rows = {}
   local top_row = {charset[" s s"]}
   for col=1, #rows[1] do
@@ -274,49 +287,43 @@ function M.render(layout)
   -- to the bottom right of each cell
   for i=1, #rows do
     local row = rows[i]
-    local separators = {}
     local new_row = {}
-    local offset = 0
-    for col=1, #row do
+    for pos=1, longest_row_length do
+      local up_line = false
       local down_line = false
-      local left_line = col > 0
-      local right_line = col < #row
-      local current_len = strlen(stringify_row_at_col(row, col), row[col])
-      if i < #rows then
-        for next_row_col=1, #rows[i+1] do
-          local next_row_len = strlen(stringify_row_at_col(rows[i+1], next_row_col))
-          if current_len == next_row_len then
-            down_line = true
-          end
-        end
+      local left_line = pos > 0
+      local right_line = pos < longest_row_length
+
+      up_line = (keycap_separator_columns[i] or {})[pos]
+      down_line = (keycap_separator_columns[i+1] or {})[pos]
+
+      if pos == 1 then
+        local line_opts = {
+          (i > 0 and "s") or " ",  -- up
+          (i < #rows and "s") or " ",  -- down
+          (false and "s") or " ",  -- left
+          (right_line and "s") or " ",  -- right
+        }
+        local char = get_line(line_opts)
+        table.insert(new_row, char)
       end
       local line_opts = {
-        (i > 0 and "s") or " ",  -- up
+        (up_line and "s") or " ",  -- up
         (down_line and "s") or " ",  -- down
         (left_line and "s") or " ",  -- left
         (right_line and "s") or " ",  -- right
       }
       local char = get_line(line_opts)
-      if col == 1 then
-        local line_opts = {
-          (i > 0 and "s") or " ",
-          (i < #rows and "s") or " ",
-          (col > 1 and "s") or " ",
-          (col < #row and "s") or " ",
-        }
-        first_char = get_line(line_opts)
-        table.insert(new_row, first_char)
-      end
-      if strlen(row[col]) > 0 then
-        table.insert(new_row, strrep("─", strlen(row[col])))
-      end
       table.insert(new_row, char)
     end
     table.insert(final_rows, "│"..table.concat(row, "│").."│")
     table.insert(final_rows, table.concat(new_row, ""))
   end
 
-  return final_rows
+  ret.row_length = longest_row_length
+  ret.layout = final_rows
+  return ret
 end
 
+--print(table.concat(M.render(M.layouts["dvorak"]), "\n"))
 return M

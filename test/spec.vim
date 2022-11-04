@@ -9,4 +9,4 @@ lua require('matcher_combinators.luassert')
 
 " configuring the plugin
 runtime plugin/keymaster.lua
-lua require('keymaster').setup({ name = 'Jane Doe' })
+lua require('keymaster').setup({ layout = "qwerty" })
