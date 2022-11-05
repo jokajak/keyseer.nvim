@@ -1,9 +1,9 @@
-local strlen = string.len
+local Config = require("keymaster.config")
+local Text = require("keymaster.text")
+local Keycaps = require("keymaster.keycaps")
+-- this file generates the keyboard display
 local strrep = string.rep
-local strformat = string.format
 local max = math.max
-
-local M = {}
 
 local charset = {
   -- [ up down left right ] = char
@@ -25,134 +25,27 @@ local function get_line(opts)
   return charset[table.concat(opts, "")]
 end
 
+---@class Layout
+---@field options Options
+---@field text Text
+---@field keycap_layout Keycaps
 local Layout = {}
+Layout.__index = Layout
 
-function Layout:new()
-  local newObj = { row_length = 0 }
-  self.__index = self
-  return setmetatable(newObj, self)
+---@param options? Options
+function Layout:new(options)
+  options = options or Config.options
+  local this = {
+    options = options,
+    text = Text:new(),
+    keycap_layout = options.layout or Config.options.layout,
+  }
+  setmetatable(this, self)
+  return this
 end
 
-local qwerty_keys = {
-  [1] = { "`", "`" },
-  [2] = { "1", "1" },
-  [3] = { "2", "2" },
-  [4] = { "3", "3" },
-  [5] = { "4", "4" },
-  [6] = { "5", "5" },
-  [7] = { "6", "6" },
-  [8] = { "7", "7" },
-  [9] = { "8", "8" },
-  [10] = { "9", "9" },
-  [11] = { "0", "0" },
-  [12] = { "-", "-" },
-  [13] = { "=", "=" },
-  [14] = { "<BS>", "<BS>" },
-  [15] = { "<TAB>", "<TAB>" },
-  [16] = { "q", "q" },
-  [17] = { "w", "w" },
-  [18] = { "e", "e" },
-  [19] = { "r", "r" },
-  [20] = { "t", "t" },
-  [21] = { "y", "y" },
-  [22] = { "u", "u" },
-  [23] = { "i", "i" },
-  [24] = { "o", "o" },
-  [25] = { "p", "p" },
-  [26] = { "[", "[" },
-  [27] = { "]", "]" },
-  [28] = { "\\", "\\" },
-  [29] = { "<CAPS>", "<CAPS>" },
-  [30] = { "a", "a" },
-  [31] = { "s", "s" },
-  [32] = { "d", "d" },
-  [33] = { "f", "f" },
-  [34] = { "g", "g" },
-  [35] = { "h", "h" },
-  [36] = { "j", "j" },
-  [37] = { "k", "k" },
-  [38] = { "l", "l" },
-  [39] = { ";", ";" },
-  [40] = { "'", "'" },
-  [41] = { "<ENTER>", "<ENTER>" },
-  [42] = { "<LSHIFT>", "<LSHIFT>" },
-  [43] = { "z", "z" },
-  [44] = { "x", "x" },
-  [45] = { "c", "c" },
-  [46] = { "v", "v" },
-  [47] = { "b", "b" },
-  [48] = { "n", "n" },
-  [49] = { "m", "m" },
-  [50] = { ",", "," },
-  [51] = { ".", "." },
-  [52] = { "/", "/" },
-  [53] = { "<RSHIFT>", "<RSHIFT>" },
-}
-
-local dvorak_keys = {
-  [1] = { "`", "`" },
-  [2] = { "1", "1" },
-  [3] = { "2", "2" },
-  [4] = { "3", "3" },
-  [5] = { "4", "4" },
-  [6] = { "5", "5" },
-  [7] = { "6", "6" },
-  [8] = { "7", "7" },
-  [9] = { "8", "8" },
-  [10] = { "9", "9" },
-  [11] = { "0", "0" },
-  [12] = { "-", "[" },
-  [13] = { "=", "]" },
-  [14] = { "<BS>", "<BS>" },
-  [15] = { "<TAB>", "<TAB>" },
-  [16] = { "q", "'" },
-  [17] = { "w", "," },
-  [18] = { "e", "." },
-  [19] = { "r", "p" },
-  [20] = { "t", "y" },
-  [21] = { "y", "f" },
-  [22] = { "u", "g" },
-  [23] = { "i", "c" },
-  [24] = { "o", "r" },
-  [25] = { "p", "l" },
-  [26] = { "[", "/" },
-  [27] = { "]", "=" },
-  [28] = { "\\", "\\" },
-  [29] = { "<CAPS>", "<CAPS>" },
-  [30] = { "a", "a" },
-  [31] = { "s", "o" },
-  [32] = { "d", "e" },
-  [33] = { "f", "u" },
-  [34] = { "g", "i" },
-  [35] = { "h", "d" },
-  [36] = { "j", "h" },
-  [37] = { "k", "t" },
-  [38] = { "l", "n" },
-  [39] = { ";", "s" },
-  [40] = { "'", "-" },
-  [41] = { "<ENTER>", "<ENTER>" },
-  [42] = { "<LSHIFT>", "<LSHIFT>" },
-  [43] = { "z", ";" },
-  [44] = { "x", "q" },
-  [45] = { "c", "j" },
-  [46] = { "v", "k" },
-  [47] = { "b", "x" },
-  [48] = { "n", "b" },
-  [49] = { "m", "m" },
-  [50] = { ",", "w" },
-  [51] = { ".", "v" },
-  [52] = { "/", "z" },
-  [53] = { "<RSHIFT>", "<RSHIFT>" },
-}
-
--- list of supported layouts
-M.layouts = {
-  ["qwerty"] = qwerty_keys,
-  ["dvorak"] = dvorak_keys,
-}
-
 local function center(str, width, shift_left)
-  local total_padding = width - strlen(str)
+  local total_padding = width - Text.len(str)
   local small_pad = math.floor(total_padding / 2)
   local big_pad = math.ceil(total_padding / 2)
   if shift_left then
@@ -181,7 +74,7 @@ end
 --  ├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴─────────┤
 --  │ <LSHIFT>  │ z │ x │ c │ v │ b │ n │ m │ , │ . │ / │ <RSHIFT> │
 --  └───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴──────────┘
-function M.render(layout)
+function Layout:layout()
   local row_sizes = {}
   row_sizes[1] = 14
   row_sizes[2] = 14
@@ -196,8 +89,7 @@ function M.render(layout)
   keycap_separator_columns[4] = {}
   keycap_separator_columns[5] = {}
   local row_lengths = {}
-
-  local ret = Layout:new()
+  local keys_in_layout = Keycaps[self.keycap_layout]
 
   -- prepare a table to hold the keycaps
   local key_strings = {}
@@ -208,15 +100,18 @@ function M.render(layout)
   -- keep track of the longest row
   local longest_row_length = 0
   -- place keys in rows
-  for i = 1, #layout do
-    local keycap = strformat(" %s ", layout[i][2])
+  for i = 1, #keys_in_layout do
+    local keycap = keys_in_layout[i][2]
+    local left_pad = strrep(" ", Config.options.key_labels.padding[2])
+    local right_pad = strrep(" ", Config.options.key_labels.padding[4])
+    keycap = left_pad .. keycap .. right_pad
     -- store the keycap label
     key_strings[column_index] = keycap
     -- this is more efficient than using `table.insert`
     column_index = column_index + 1
     local row_len = row_lengths[row_index] or 0
     -- add 1 for counting the separator
-    row_lengths[row_index] = row_len + strlen(keycap) + 1
+    row_lengths[row_index] = row_len + Text.len(keycap) + 1
     longest_row_length = max(longest_row_length, row_lengths[row_index])
     if column_index > row_sizes[row_index] then
       -- restart the column and row index
@@ -233,8 +128,8 @@ function M.render(layout)
     local row_length_delta = longest_row_length - row_lengths[i]
     local start_column_pad = math.ceil(row_length_delta / 2)
     local end_column_pad = math.floor(row_length_delta / 2)
-    rows[i][1] = center(rows[i][1], strlen(rows[i][1]) + start_column_pad)
-    rows[i][end_column] = center(rows[i][end_column], strlen(rows[i][end_column]) + end_column_pad)
+    rows[i][1] = center(rows[i][1], Text.len(rows[i][1]) + start_column_pad, true)
+    rows[i][end_column] = center(rows[i][end_column], Text.len(rows[i][end_column]) + end_column_pad)
   end
 
   -- calculate keycap separator locations
@@ -244,19 +139,18 @@ function M.render(layout)
     for col = 1, #row do
       local keycap = row[col]
       -- add the length of the separator
-      row_length = row_length + strlen(keycap) + 1
+      row_length = row_length + Text.len(keycap) + 1
       -- mark where there is a separator
       keycap_separator_columns[i][row_length] = true
     end
   end
 
   -- place top row
-  local final_rows = {}
   local top_row = { charset[" s s"] }
   for col = 1, #rows[1] do
     local row = rows[1]
-    if strlen(row[col]) > 0 then
-      table.insert(top_row, strrep("─", strlen(row[col])))
+    if Text.len(row[col]) > 0 then
+      table.insert(top_row, strrep("─", Text.len(row[col])))
     end
     if col < #rows[1] then
       table.insert(top_row, charset[" sss"])
@@ -264,7 +158,7 @@ function M.render(layout)
       table.insert(top_row, charset[" ss "])
     end
   end
-  table.insert(final_rows, table.concat(top_row))
+  self.text:set(1, table.concat(top_row))
 
   -- add lines around keys
   -- this part is weird because we're adding the border
@@ -297,14 +191,13 @@ function M.render(layout)
       local char = get_line(line_opts)
       table.insert(new_row, char)
     end
-    table.insert(final_rows, "│" .. table.concat(row, "│") .. "│")
-    table.insert(final_rows, table.concat(new_row, ""))
+    self.text:append("│" .. table.concat(row, "│") .. "│")
+    self.text:append(table.concat(new_row, ""))
   end
 
-  ret.row_length = longest_row_length
-  ret.layout = final_rows
-  return ret
+  return self.text
 end
 
---print(table.concat(M.render(M.layouts["dvorak"]), "\n"))
-return M
+--[[ local test_layout = Layout:new({layout="dvorak"}) ]]
+--[[ print(table.concat(test_layout:layout().lines, "\n")) ]]
+return Layout

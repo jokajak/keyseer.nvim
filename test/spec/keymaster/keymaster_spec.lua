@@ -1,4 +1,4 @@
-local layouts = require("keymaster.layouts")
+local Layout = require("keymaster.layout")
 
 local qwerty_layout = {
   "┌─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐",
@@ -8,13 +8,14 @@ local qwerty_layout = {
   "├────────┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴───┴────┤",
   "│ <CAPS> │ a │ s │ d │ f │ g │ h │ j │ k │ l │ ; │ ' │ <ENTER> │",
   "├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴─────────┤",
-  "│  <LSHIFT> │ z │ x │ c │ v │ b │ n │ m │ , │ . │ / │ <RSHIFT> │",
+  "│ <LSHIFT>  │ z │ x │ c │ v │ b │ n │ m │ , │ . │ / │ <RSHIFT> │",
   "└───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴──────────┘",
 }
 
 describe("qwerty_layout_test", function()
   it("renders_qwerty", function()
-    assert.combinators.match(qwerty_layout, layouts.render(layouts.layouts["qwerty"]).layout)
+    local layout = Layout:new({ layout = "qwerty" })
+    assert.combinators.match(qwerty_layout, layout:layout().lines)
   end)
 end)
 
@@ -26,12 +27,13 @@ local dvorak_layout = {
   "├────────┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴───┴────┤",
   "│ <CAPS> │ a │ o │ e │ u │ i │ d │ h │ t │ n │ s │ - │ <ENTER> │",
   "├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴─────────┤",
-  "│  <LSHIFT> │ ; │ q │ j │ k │ x │ b │ m │ w │ v │ z │ <RSHIFT> │",
+  "│ <LSHIFT>  │ ; │ q │ j │ k │ x │ b │ m │ w │ v │ z │ <RSHIFT> │",
   "└───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴──────────┘",
 }
 
 describe("dvorak_layout_test", function()
   it("renders_dvorak", function()
-    assert.combinators.match(dvorak_layout, layouts.render(layouts.layouts["dvorak"]).layout)
+    local layout = Layout:new({ layout = "dvorak" })
+    assert.combinators.match(dvorak_layout, layout:layout().lines)
   end)
 end)
