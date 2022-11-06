@@ -34,11 +34,12 @@ Layout.__index = Layout
 
 ---@param options? Options
 function Layout:new(options)
-  options = options or Config.options
+  local defaults = Config.options
+  options = vim.tbl_deep_extend("force", {}, defaults, options or {})
   local this = {
     options = options,
     text = Text:new(),
-    keycap_layout = options.layout or Config.options.layout,
+    keycap_layout = options.layout,
   }
   setmetatable(this, self)
   return this
@@ -89,6 +90,7 @@ function Layout:layout()
   keycap_separator_columns[4] = {}
   keycap_separator_columns[5] = {}
   local row_lengths = {}
+
   local keys_in_layout = Keycaps[self.keycap_layout]
 
   -- prepare a table to hold the keycaps
@@ -102,8 +104,11 @@ function Layout:layout()
   -- place keys in rows
   for i = 1, #keys_in_layout do
     local keycap = keys_in_layout[i][2]
-    local left_pad = strrep(" ", Config.options.key_labels.padding[2])
-    local right_pad = strrep(" ", Config.options.key_labels.padding[4])
+    if self.options.key_labels[keycap] then
+      keycap = self.options.key_labels[keycap]
+    end
+    local left_pad = strrep(" ", self.options.key_labels.padding[2])
+    local right_pad = strrep(" ", self.options.key_labels.padding[4])
     keycap = left_pad .. keycap .. right_pad
     -- store the keycap label
     key_strings[column_index] = keycap
@@ -198,6 +203,4 @@ function Layout:layout()
   return self.text
 end
 
---[[ local test_layout = Layout:new({layout="dvorak"}) ]]
---[[ print(table.concat(test_layout:layout().lines, "\n")) ]]
 return Layout
