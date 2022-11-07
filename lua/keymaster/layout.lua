@@ -8,17 +8,18 @@ local max = math.max
 local charset = {
   -- [ up down left right ] = char
   --      s : single
+  ["    "] = " ",
+  ["ss  "] = "│",
+  [" ss "] = "┐",
+  ["  ss"] = "─",
+  ["s s "] = "┘",
+  ["s  s"] = "└",
   [" s s"] = "┌",
   ["sss "] = "┤",
-  [" ss "] = "┐",
-  ["s  s"] = "└",
+  ["ss s"] = "├",
   ["s ss"] = "┴",
   [" sss"] = "┬",
-  ["ss s"] = "├",
-  ["  ss"] = "─",
   ["ssss"] = "┼",
-  ["s s "] = "┘",
-  ["ss  "] = "│",
 }
 
 local function get_line(opts)
@@ -165,18 +166,20 @@ function Layout:layout()
   end
   self.text:set(1, table.concat(top_row))
 
-  -- add lines around keys
+  -- add lines between keys
   -- this part is weird because we're adding the border
   -- to the bottom right of each cell
   for i = 1, #rows do
     local row = rows[i]
-    local new_row = {}
+    local separator_row = {}
+    local pad_row = {}
     for pos = 1, longest_row_length do
       local up_line = (keycap_separator_columns[i] or {})[pos]
       local down_line = (keycap_separator_columns[i + 1] or {})[pos]
       local left_line = pos > 0
       local right_line = pos < longest_row_length
 
+      -- insert a start character
       if pos == 1 then
         local line_opts = {
           (i > 0 and "s") or " ", -- up
@@ -185,8 +188,17 @@ function Layout:layout()
           (right_line and "s") or " ", -- right
         }
         local char = get_line(line_opts)
-        table.insert(new_row, char)
+        table.insert(separator_row, char)
+        local pad_opts = {
+          (i > 0 and "s") or " ", -- up
+          (i <= #rows and "s") or " ", -- down
+          " ", -- left
+          " ", -- right
+        }
+        local pad_char = get_line(pad_opts)
+        table.insert(pad_row, pad_char)
       end
+
       local line_opts = {
         (up_line and "s") or " ", -- up
         (down_line and "s") or " ", -- down
@@ -194,10 +206,26 @@ function Layout:layout()
         (right_line and "s") or " ", -- right
       }
       local char = get_line(line_opts)
-      table.insert(new_row, char)
+      table.insert(separator_row, char)
+      local pad_opts = {
+        (up_line and "s") or " ", -- up
+        (up_line and "s") or " ", -- down
+        " ", -- left
+        " ", -- right
+      }
+      local pad_char = get_line(pad_opts)
+      table.insert(pad_row, pad_char)
+    end
+    -- add top padding
+    for _ = 1, self.options.key_labels.padding[1] do
+      self.text:append(table.concat(pad_row))
     end
     self.text:append("│" .. table.concat(row, "│") .. "│")
-    self.text:append(table.concat(new_row, ""))
+    -- add bottom padding
+    for _ = 1, self.options.key_labels.padding[3] do
+      self.text:append(table.concat(pad_row))
+    end
+    self.text:append(table.concat(separator_row, ""))
   end
 
   return self.text

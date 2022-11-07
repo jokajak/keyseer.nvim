@@ -10,7 +10,6 @@ local defaults = {
     -- ["<space>"] = "SPC",
     -- ["<cr>"] = "RET",
     -- ["<tab>"] = "TAB",
-    -- TODO: Support top and bottom
     padding = { 0, 1, 0, 1 }, -- padding around keycap labels [top, right, bottom, left]
   },
   window = {
