@@ -60,7 +60,7 @@ function Text:highlight(row, from, to, group)
   local str = vim.fn.strcharpart(line, 0, to)
   from = vim.fn.strlen(before)
   to = vim.fn.strlen(str)
-  table.insert(self.highlights, {
+  table.insert(self.hl, {
     line = row - 1,
     from = from,
     to = to,

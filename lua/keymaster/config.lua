@@ -11,6 +11,7 @@ local defaults = {
     -- ["<cr>"] = "RET",
     -- ["<tab>"] = "TAB",
     padding = { 0, 1, 0, 1 }, -- padding around keycap labels [top, right, bottom, left]
+    highlight_padding = { 0, 0, 0, 0 }, -- how much of the label to highlight
   },
   window = {
     border = "double", -- none, single, double, shadow

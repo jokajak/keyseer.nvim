@@ -13,4 +13,12 @@ function M.get_mode()
   return mode:lower()
 end
 
+function M.normal(keystr)
+  -- Normal key strings back to keycaps
+  local keycap_mapping = {
+    ["<C>"] = "<CTRL>",
+  }
+  return keycap_mapping[keystr] or keystr
+end
+
 return M

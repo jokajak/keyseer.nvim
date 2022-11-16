@@ -5,6 +5,15 @@
 A Neovim plugin written in [Lua][lua] that renders a keyboard displaying which
 keys have assigned actions.
 
+## 🎨 Colors
+
+The table below shows all the highlight groups defined for **Keymaster** with their default link.
+
+| Highlight Group     | Defaults to | Description                                 |
+| ------------------- | ----------- | ------------------------------------------- |
+| _Keymaster_         | Function    | Keys with mappings                          |
+| _KeymasterGroup_    | Keyword     | Keys that are prefixes                      |
+
 ## Testing
 
 This uses [busted][busted], [luassert][luassert] (both through

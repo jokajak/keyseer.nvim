@@ -1,8 +1,14 @@
 local config = require("keymaster.config")
 local Layout = require("keymaster.layout")
+local Keys = require("keymaster.keys")
 local Util = require("keymaster.util")
 
-local highlight = vim.api.nvim_buf_add_highlight
+-- local highlight = vim.api.nvim_buf_add_highlight
+
+local highlight_links = {
+  [""] = "Function",
+  Prefix = "Keyword",
+}
 
 local M = {}
 
@@ -16,6 +22,16 @@ function M.is_valid()
     and vim.api.nvim_buf_is_valid(M.buf)
     and vim.api.nvim_buf_is_loaded(M.buf)
     and vim.api.nvim_win_is_valid(M.win)
+end
+
+local function set_highlights(mappings)
+  -- a list of mappings
+  for keycap, mapping in pairs(mappings) do
+    -- another list of mappings?
+    local group = #mapping == 1 and "" or "Prefix"
+    local cmd = "syn match Keymaster" .. group .. " " .. keycap .. ""
+    vim.notify(cmd, vim.log.levels.DEBUG, { title = "Keymaster" })
+  end
 end
 
 function M.show()
@@ -58,7 +74,6 @@ function M.show()
   vim.api.nvim_buf_set_option(M.buf, "filetype", "keymaster")
   vim.api.nvim_buf_set_option(M.buf, "buftype", "nofile")
   vim.api.nvim_buf_set_option(M.buf, "bufhidden", "wipe")
-  --[[ vim.api.nvim_buf_set_name(M.buf, "[keymaster]") ]]
 
   local winhl = "NormalFloat:KeymasterFloat"
   if vim.fn.hlexists("FloatBorder") == 1 then
@@ -67,6 +82,10 @@ function M.show()
   vim.api.nvim_win_set_option(M.win, "winhighlight", winhl)
   vim.api.nvim_win_set_option(M.win, "foldmethod", "manual")
   vim.api.nvim_win_set_option(M.win, "winblend", config.options.window.winblend)
+
+  for k, v in pairs(highlight_links) do
+    vim.api.nvim_set_hl(0, "Keymaster" .. k, { link = v, default = true })
+  end
 end
 
 function M.on_close()
@@ -74,7 +93,6 @@ function M.on_close()
 end
 
 function M.hide()
-  vim.api.nvim_echo({ { "" } }, false, {})
   if M.buf and vim.api.nvim_buf_is_valid(M.buf) then
     vim.api.nvim_buf_delete(M.buf, { force = true })
     M.buf = nil
@@ -83,7 +101,21 @@ function M.hide()
     vim.api.nvim_win_close(M.win, true)
     M.win = nil
   end
-  vim.cmd("redraw")
+end
+
+local function set_mappings(buf)
+  local keymap_options = {
+    nowait = true,
+    noremap = true,
+    silent = true,
+  }
+  local mappings = {
+    q = ":lua require('keymaster.display').hide()<CR>",
+  }
+
+  for k, v in pairs(mappings) do
+    vim.api.nvim_buf_set_keymap(buf, "n", k, v, keymap_options)
+  end
 end
 
 function M.open(opts)
@@ -97,10 +129,15 @@ function M.open(opts)
       M.show()
     end
 
+    local mappings = Keys.get_mappings(M.mode, buf)
+    vim.notify(mappings, vim.log.levels.DEBUG, { title = "Keymaster" })
     local layout = Layout:new(opts)
-    M.render(layout:layout())
+    layout:calculate_layout()
+
+    M.render(layout)
+    set_mappings(M.buf)
+    vim.api.nvim_win_set_cursor(M.win, { 4, 0 })
   end
-  vim.cmd([[redraw]])
 end
 
 function M.is_enabled(buf)
@@ -131,9 +168,10 @@ local function make_header(disp, width)
   })
 end
 
----@param text Text
-function M.render(text)
+---@param layout Layout
+function M.render(layout)
   vim.api.nvim_buf_set_option(M.buf, "modifiable", true)
+  local text = layout.text
   local width = text.width
 
   local start_row = 0
@@ -150,9 +188,8 @@ function M.render(text)
     vim.api.nvim_buf_clear_namespace(M.buf, config.namespace, 0, -1)
   end
 
-  for _, data in ipairs(text.hl) do
-    highlight(M.buf, config.namespace, data.group, data.line, data.from, data.to)
-  end
+  set_highlights(M.buf)
+
   vim.api.nvim_buf_set_option(M.buf, "modifiable", false)
 end
 

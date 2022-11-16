@@ -29,18 +29,23 @@ end
 ---@class Layout
 ---@field options Options
 ---@field text Text
----@field keycap_layout Keycaps
+---@field layout string[]
+---@field keycap_layout string[]
+---@field mappings string[]
+---@field keycap_coordinates string[]
 local Layout = {}
 Layout.__index = Layout
 
 ---@param options? Options
-function Layout:new(options)
+function Layout:new(options, mappings)
   local defaults = Config.options
   options = vim.tbl_deep_extend("force", {}, defaults, options or {})
   local this = {
     options = options,
     text = Text:new(),
     keycap_layout = options.layout,
+    mappings = mappings,
+    layout = {},
   }
   setmetatable(this, self)
   return this
@@ -76,7 +81,13 @@ end
 --  ├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴─────────┤
 --  │ <LSHIFT>  │ z │ x │ c │ v │ b │ n │ m │ , │ . │ / │ <RSHIFT> │
 --  └───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴──────────┘
-function Layout:layout()
+--  Need to represent:
+--    * Ctrl + <key>
+--    * Shift + <key>
+--    * <key> with things below it, like gg (aka prefix)
+--    * <key> with nothing below it (aka action)
+function Layout:calculate_layout()
+  -- I really want to refactor this
   local row_sizes = {}
   row_sizes[1] = 14
   row_sizes[2] = 14
@@ -165,6 +176,7 @@ function Layout:layout()
     end
   end
   self.text:set(1, table.concat(top_row))
+  table.insert(self.layout, top_row)
 
   -- add lines between keys
   -- this part is weird because we're adding the border
@@ -219,13 +231,17 @@ function Layout:layout()
     -- add top padding
     for _ = 1, self.options.key_labels.padding[1] do
       self.text:append(table.concat(pad_row))
+      table.insert(self.layout, pad_row)
     end
     self.text:append("│" .. table.concat(row, "│") .. "│")
+    table.insert(self.layout, row)
     -- add bottom padding
     for _ = 1, self.options.key_labels.padding[3] do
       self.text:append(table.concat(pad_row))
+      table.insert(self.layout, pad_row)
     end
     self.text:append(table.concat(separator_row, ""))
+    table.insert(self.layout, separator_row)
   end
 
   return self.text

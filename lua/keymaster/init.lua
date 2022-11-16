@@ -1,5 +1,3 @@
-local Util = require("keymaster.util")
-
 local M = {}
 
 ---@param options? Options
@@ -8,6 +6,8 @@ function M.setup(options)
 end
 
 function M.show(opts)
+  local Util = require("keymaster.util")
+
   opts = opts or {}
   if type(opts) == "string" then
     opts = { mode = opts }
