@@ -31,21 +31,20 @@ end
 ---@field text Text
 ---@field layout string[]
 ---@field keycap_layout string[]
----@field mappings string[]
----@field keycap_coordinates string[]
+---@field keycap_positions string[]
 local Layout = {}
 Layout.__index = Layout
 
 ---@param options? Options
-function Layout:new(options, mappings)
+function Layout:new(options)
   local defaults = Config.options
   options = vim.tbl_deep_extend("force", {}, defaults, options or {})
   local this = {
     options = options,
     text = Text:new(),
     keycap_layout = options.layout,
-    mappings = mappings,
     layout = {},
+    keycap_positions = {},
   }
   setmetatable(this, self)
   return this
@@ -88,6 +87,7 @@ end
 --    * <key> with nothing below it (aka action)
 function Layout:calculate_layout()
   -- I really want to refactor this
+  -- This code is so ugly
   local row_sizes = {}
   row_sizes[1] = 14
   row_sizes[2] = 14
@@ -153,10 +153,38 @@ function Layout:calculate_layout()
   for i = 1, #rows do
     local row = rows[i]
     local row_length = 0
+    local row_text = charset["ss  "]
     for col = 1, #row do
       local keycap = row[col]
+      row_text = row_text .. charset["ss  "] .. keycap
+      local padding = self.options.key_labels.padding
+      local highlight_padding = self.options.key_labels.highlight_padding
+      local left_pad_len = padding[2]
+      local right_pad_len = padding[4]
+      local highlight_left = highlight_padding[2]
+      local highlight_right = highlight_padding[4]
+      local start_col = row_length + math.max(0, (left_pad_len - highlight_left))
+      local end_col = start_col + Text.len(keycap) - math.min(right_pad_len - highlight_right)
+      -- start highlight at: previous start + max((left_pad_len - highlight_pad_left), 0)
+      -- end highlight at: start position + length of keycap - min((right_pad_len - highlight_pad_right), 0)
+      local keycap_position = self.text:get_key_highlight_position(row_text, start_col, end_col)
+
+      keycap = string.gsub(keycap, " ", "")
+
+      self.keycap_positions[keycap] = {
+        -- output row = upper padding * rows above
+        -- output row = output row + lower padding * rows above
+        -- output row = output row + upper padding + rows of characters above + separator rows above
+        -- output row = padding[1] * (i - 1) + padding[3] * (i - 1) + padding[1] + i + i
+        -- output row = padding[1] * (i) + padding[3] * (i - 1) + i + i
+        -- output row = padding[1] * (i) + padding[3] * (i) - padding[3] + i + i
+        -- Need to subtract by one to account for the top row
+        row = i + i + (padding[1] + padding[3]) * i - padding[3] - 1,
+        from = keycap_position["from"],
+        to = keycap_position["to"],
+      }
       -- add the length of the separator
-      row_length = row_length + Text.len(keycap) + 1
+      row_length = row_length + Text.len(row[col]) + Text.len(charset["ss  "])
       -- mark where there is a separator
       keycap_separator_columns[i][row_length] = true
     end

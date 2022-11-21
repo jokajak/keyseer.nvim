@@ -3,11 +3,11 @@ local Layout = require("keymaster.layout")
 local Keys = require("keymaster.keys")
 local Util = require("keymaster.util")
 
--- local highlight = vim.api.nvim_buf_add_highlight
+local highlight = vim.api.nvim_buf_add_highlight
 
 local highlight_links = {
-  [""] = "Function",
-  Prefix = "Keyword",
+  [""] = "keyword",
+  Prefix = "Function",
 }
 
 local M = {}
@@ -24,13 +24,19 @@ function M.is_valid()
     and vim.api.nvim_win_is_valid(M.win)
 end
 
-local function set_highlights(mappings)
+local function set_highlights(layout, mappings)
   -- a list of mappings
   for keycap, mapping in pairs(mappings) do
     -- another list of mappings?
     local group = #mapping == 1 and "" or "Prefix"
-    local cmd = "syn match Keymaster" .. group .. " " .. keycap .. ""
-    vim.notify(cmd, vim.log.levels.DEBUG, { title = "Keymaster" })
+    group = "Keymaster" .. group
+    local keycap_position = layout.keycap_positions[string.lower(keycap)]
+    -- account for the header
+    if keycap_position then
+      local row = keycap_position.row + 2
+      -- This fails because the positions are calculated as strings, not bytes
+      highlight(M.buf, config.namespace, group, row, keycap_position.from, keycap_position.to)
+    end
   end
 end
 
@@ -130,11 +136,11 @@ function M.open(opts)
     end
 
     local mappings = Keys.get_mappings(M.mode, buf)
-    vim.notify(mappings, vim.log.levels.DEBUG, { title = "Keymaster" })
+    --vim.notify(vim.inspect(mappings), vim.log.levels.DEBUG, { title = "Keymaster" })
     local layout = Layout:new(opts)
-    layout:calculate_layout()
+    local _ = layout:calculate_layout()
 
-    M.render(layout)
+    M.render(layout, mappings)
     set_mappings(M.buf)
     vim.api.nvim_win_set_cursor(M.win, { 4, 0 })
   end
@@ -169,7 +175,7 @@ local function make_header(disp, width)
 end
 
 ---@param layout Layout
-function M.render(layout)
+function M.render(layout, mappings)
   vim.api.nvim_buf_set_option(M.buf, "modifiable", true)
   local text = layout.text
   local width = text.width
@@ -188,7 +194,7 @@ function M.render(layout)
     vim.api.nvim_buf_clear_namespace(M.buf, config.namespace, 0, -1)
   end
 
-  set_highlights(M.buf)
+  set_highlights(layout, mappings)
 
   vim.api.nvim_buf_set_option(M.buf, "modifiable", false)
 end

@@ -1,5 +1,6 @@
 -- for parsing keys
 local strsub = string.sub
+local presets = require("keymaster.presets")
 
 ---@class Keys
 local M = {}
@@ -117,6 +118,21 @@ function M.get_mappings(mode, buf)
       cmd = keymap.rhs,
       desc = keymap.desc,
       keys = M.extract_key_order(keymap.lhs),
+    }
+    for _, first_key in pairs(mapping.keys.keycaps[1]) do
+      local key_table = ret[first_key] or {}
+      table.insert(key_table, mapping)
+      ret[first_key] = key_table
+    end
+  end
+
+  for lhs, desc in pairs(presets[mode]) do
+    local mapping = {
+      id = lhs,
+      prefix = lhs,
+      cmd = "Preset",
+      desc = desc,
+      keys = M.extract_key_order(lhs),
     }
     for _, first_key in pairs(mapping.keys.keycaps[1]) do
       local key_table = ret[first_key] or {}

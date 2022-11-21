@@ -124,3 +124,17 @@ describe("special_key_test", function()
     }, res)
   end)
 end)
+
+describe("q_keycap_position_test", function()
+  it("gets_the_row", function()
+    local layout = Layout:new({ layout = "qwerty", key_labels = { padding = { 0, 1, 0, 1 } } })
+    local res = layout.keycap_positions["q"]
+    assert.combinators.match(3, res.row)
+    assert.combinators.match(11, res.from)
+    assert.combinators.match(12, res.to)
+    res = layout.keycap_positions["z"]
+    assert.combinators.match(7, res.row)
+    assert.combinators.match(13, res.from)
+    assert.combinators.match(14, res.to)
+  end)
+end)
