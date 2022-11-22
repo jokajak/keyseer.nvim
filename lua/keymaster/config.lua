@@ -2,7 +2,7 @@ local M = {}
 
 M.namespace = vim.api.nvim_create_namespace("Keymaster")
 
---@class Options
+---@class Options
 local defaults = {
   key_labels = {
     -- override the label used to display some keys. It doesn't effect KM in any other way.
@@ -32,7 +32,7 @@ local defaults = {
   layout = "qwerty", -- keycap layout, qwerty or dvorak
 }
 
---@type Options
+---@type Options
 M.options = {}
 
 ---@param options? Options

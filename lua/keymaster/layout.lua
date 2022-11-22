@@ -31,7 +31,7 @@ end
 ---@field text Text
 ---@field layout string[]
 ---@field keycap_layout string[]
----@field keycap_positions string[]
+---@field keycap_positions table[]
 local Layout = {}
 Layout.__index = Layout
 
@@ -167,7 +167,7 @@ function Layout:calculate_layout()
       local end_col = start_col + Text.len(keycap) - math.min(right_pad_len - highlight_right)
       -- start highlight at: previous start + max((left_pad_len - highlight_pad_left), 0)
       -- end highlight at: start position + length of keycap - min((right_pad_len - highlight_pad_right), 0)
-      local keycap_position = self.text:get_key_highlight_position(row_text, start_col, end_col)
+      local keycap_position = Text.get_key_highlight_position(row_text, start_col, end_col)
 
       keycap = string.gsub(keycap, " ", "")
 
