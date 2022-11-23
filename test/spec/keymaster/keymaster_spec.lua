@@ -1,4 +1,5 @@
 local Layout = require("keymaster.layout")
+local Keys = require("keymaster.keys")
 
 local qwerty_layout = {
   "┌─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐",
@@ -105,7 +106,6 @@ end)
 
 describe("multi_key_extract_test", function()
   it("extracts_keys", function()
-    local Keys = require("keymaster.keys")
     local res = Keys.extract_key_order(",g")
     assert.combinators.match({
       keys = { ",", "g" },
@@ -116,7 +116,6 @@ end)
 
 describe("special_key_test", function()
   it("extracts_keys", function()
-    local Keys = require("keymaster.keys")
     local res = Keys.extract_key_order("<C-i>")
     assert.combinators.match({
       keys = { "<C-i>" },

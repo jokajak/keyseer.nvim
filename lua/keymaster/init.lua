@@ -14,6 +14,7 @@ function M.show(opts)
   end
 
   opts.mode = opts.mode or Util.get_mode()
+  opts.prefix = opts.prefix or ""
 
   -- trigger displaying
   require("keymaster.display").open(opts)

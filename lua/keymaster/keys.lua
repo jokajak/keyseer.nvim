@@ -92,6 +92,10 @@ function M.extract_key_order(keystr)
   return ret
 end
 
+local function starts_with(str, start)
+  return str:sub(1, #start) == start
+end
+
 --[[ {
   buffer = 0,
   expr = 0,
@@ -106,19 +110,35 @@ end
   sid = -8,
   silent = 1
 } ]]
-function M.get_mappings(mode, buf)
-  local keymaps = buf and vim.api.nvim_buf_get_keymap(buf, mode) or vim.api.nvim_get_keymap(mode)
-
+local function get_matching_keymaps(keymaps, prefix)
   local ret = {}
 
   for _, keymap in pairs(keymaps) do
-    local mapping = {
-      id = keymap.lhs,
-      prefix = keymap.lhs,
-      cmd = keymap.rhs,
-      desc = keymap.desc,
-      keys = M.extract_key_order(keymap.lhs),
-    }
+    if keymap.lhs and starts_with(keymap.lhs, prefix) and #keymap.lhs > #prefix then
+      local mapping = {
+        id = keymap.lhs,
+        prefix = keymap.lhs,
+        cmd = keymap.rhs,
+        desc = keymap.desc,
+        keys = M.extract_key_order(string.gsub(keymap.lhs, prefix, "", 1)),
+      }
+      table.insert(ret, mapping)
+    end
+  end
+  return ret
+end
+
+function M.get_mappings(mode, buf, prefix)
+  local buffer_keymaps = buf and vim.api.nvim_buf_get_keymap(buf, mode) or {}
+  local global_keymaps = vim.api.nvim_get_keymap(mode)
+  prefix = prefix or ""
+
+  local ret = {}
+
+  local matching_buffer_keymaps = get_matching_keymaps(buffer_keymaps, prefix)
+
+  for _, mapping in ipairs(matching_buffer_keymaps) do
+    -- ignore entries that exactly match the prefix
     for _, first_key in pairs(mapping.keys.keycaps[1]) do
       local key_table = ret[first_key] or {}
       table.insert(key_table, mapping)
@@ -126,14 +146,17 @@ function M.get_mappings(mode, buf)
     end
   end
 
-  for lhs, desc in pairs(presets[mode]) do
-    local mapping = {
-      id = lhs,
-      prefix = lhs,
-      cmd = "Preset",
-      desc = desc,
-      keys = M.extract_key_order(lhs),
-    }
+  local matching_global_keymaps = get_matching_keymaps(global_keymaps, prefix)
+  for _, mapping in ipairs(matching_global_keymaps) do
+    for _, first_key in pairs(mapping.keys.keycaps[1]) do
+      local key_table = ret[first_key] or {}
+      table.insert(key_table, mapping)
+      ret[first_key] = key_table
+    end
+  end
+
+  local matching_preset_keymaps = get_matching_keymaps(presets[mode], prefix)
+  for _, mapping in ipairs(matching_preset_keymaps) do
     for _, first_key in pairs(mapping.keys.keycaps[1]) do
       local key_table = ret[first_key] or {}
       table.insert(key_table, mapping)

@@ -127,6 +127,7 @@ end
 function M.open(opts)
   opts = opts or {}
   M.mode = opts.mode or Util.get_mode()
+  M.prefix = opts.prefix or ""
 
   local buf = vim.api.nvim_get_current_buf()
 
@@ -135,7 +136,7 @@ function M.open(opts)
       M.show()
     end
 
-    local mappings = Keys.get_mappings(M.mode, buf)
+    local mappings = Keys.get_mappings(M.mode, buf, M.prefix)
     --vim.notify(vim.inspect(mappings), vim.log.levels.DEBUG, { title = "Keymaster" })
     local layout = Layout:new(opts)
     local _ = layout:calculate_layout()
