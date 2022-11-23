@@ -6,8 +6,8 @@ local Util = require("keymaster.util")
 local highlight = vim.api.nvim_buf_add_highlight
 
 local highlight_links = {
-  [""] = "keyword",
-  Prefix = "Function",
+  [""] = "Search",
+  Prefix = "IncSearch",
 }
 
 local M = {}
@@ -87,6 +87,7 @@ function M.show()
   end
   vim.api.nvim_win_set_option(M.win, "winhighlight", winhl)
   vim.api.nvim_win_set_option(M.win, "foldmethod", "manual")
+  vim.api.nvim_win_set_option(M.win, "sidescrolloff", 0)
   vim.api.nvim_win_set_option(M.win, "winblend", config.options.window.winblend)
 
   for k, v in pairs(highlight_links) do
@@ -109,22 +110,41 @@ function M.hide()
   end
 end
 
-local function set_mappings(buf)
+function M.update_prefix(prefix)
+  M.open({
+    mode = M.mode,
+    prefix = prefix,
+  })
+end
+
+local function extend_prefix()
+  local col = vim.fn.col(".")
+  local line = vim.fn.getline(".")
+  local char = line:sub(col, col)
+  M.update_prefix(M.prefix .. char)
+end
+
+function M.set_mappings()
   local keymap_options = {
     nowait = true,
     noremap = true,
     silent = true,
+    buffer = M.buf,
   }
+
   local mappings = {
     q = ":lua require('keymaster.display').hide()<CR>",
-    -- TODO: Make this update the view with the pressed key as a prefix
-    ["<CR>"] = ":lua require('keymaster').show()<CR>",
-    -- TODO: Make this update the view to remove a character from the prefix
-    ["<BS>"] = ":lua require('keymaster').show()<CR>",
+    ["<CR>"] = function()
+      extend_prefix()
+    end,
+    ["<BS>"] = function()
+      local prefix = M.prefix
+      M.update_prefix(string.sub(prefix, 1, #prefix - 1))
+    end,
   }
 
   for k, v in pairs(mappings) do
-    vim.api.nvim_buf_set_keymap(buf, "n", k, v, keymap_options)
+    vim.keymap.set("n", k, v, keymap_options)
   end
 end
 
@@ -144,9 +164,10 @@ function M.open(opts)
     --vim.notify(vim.inspect(mappings), vim.log.levels.DEBUG, { title = "Keymaster" })
     local layout = Layout:new(opts)
     local _ = layout:calculate_layout()
+    M.layout = layout
 
     M.render(layout, mappings)
-    set_mappings(M.buf)
+    M:set_mappings()
     vim.api.nvim_win_set_cursor(M.win, { 4, 0 })
   end
 end
