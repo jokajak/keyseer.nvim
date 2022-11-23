@@ -5,6 +5,4 @@ for _, keymap in pairs(keymaps) do
 end ]]
 
 require("keymaster").reset()
-require("keymaster").show({
-  prefix = ",",
-})
+require("keymaster").show({ prefix = "," })

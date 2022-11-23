@@ -117,6 +117,10 @@ local function set_mappings(buf)
   }
   local mappings = {
     q = ":lua require('keymaster.display').hide()<CR>",
+    -- TODO: Make this update the view with the pressed key as a prefix
+    ["<CR>"] = ":lua require('keymaster').show()<CR>",
+    -- TODO: Make this update the view to remove a character from the prefix
+    ["<BS>"] = ":lua require('keymaster').show()<CR>",
   }
 
   for k, v in pairs(mappings) do

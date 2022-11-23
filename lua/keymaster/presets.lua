@@ -1,7 +1,10 @@
 -- preset key allocations in vim
-local M = {}
+local M = {
+  n = {},
+  v = {},
+}
 
-M.n = {
+local normal_mappings = {
   ["h"] = "Left",
   ["j"] = "Down",
   ["k"] = "Up",
@@ -53,5 +56,13 @@ M.n = {
   ["q"] = "Complex repeats, aka macro",
   ["'"] = "Jump to mark",
 }
+
+for k, v in pairs(normal_mappings) do
+  table.insert(M.n, {
+    lhs = k,
+    rhs = k,
+    desc = v,
+  })
+end
 
 return M
