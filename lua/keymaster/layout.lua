@@ -55,10 +55,28 @@ local function center(str, width, shift_left)
   local small_pad = math.floor(total_padding / 2)
   local big_pad = math.ceil(total_padding / 2)
   if shift_left then
-    return strrep(" ", small_pad) .. str .. strrep(" ", big_pad)
+    return strrep(" ", small_pad) .. str .. strrep(" ", big_pad), small_pad, big_pad
   else
-    return strrep(" ", big_pad) .. str .. strrep(" ", small_pad)
+    return strrep(" ", big_pad) .. str .. strrep(" ", small_pad), big_pad, small_pad
   end
+end
+
+-- This function calculates the highlighted keycap position
+-- I hate string versus bytes
+function Layout.calculate_byte_position(row_text, keycap_position, highlight_padding)
+  local left_padding = keycap_position["left_pad"]
+  local right_padding = keycap_position["right_pad"]
+  local keycap = keycap_position["keycap"]
+  local left_highlight_padding = math.max(0, Text.len(left_padding) - highlight_padding[2])
+  -- Calculate the offset to the right
+  -- minimum of the highlight padding to the right and the available padding
+  local right_highlight_padding = math.min(Text.len(right_padding), highlight_padding[4])
+
+  row_text = row_text .. charset["ss  "]
+  local start_col = Text.len(row_text) + Text.len(string.rep(" ", left_highlight_padding))
+  row_text = row_text .. left_padding .. keycap
+  local end_col = Text.len(row_text) + Text.len(string.rep(" ", right_highlight_padding))
+  return Text.get_key_highlight_position(row_text, start_col, end_col)
 end
 
 -- generate a string representation of the layout, e.g.
@@ -85,6 +103,7 @@ end
 --    * Shift + <key>
 --    * <key> with things below it, like gg (aka prefix)
 --    * <key> with nothing below it (aka action)
+--  TODO: Add row for CTRL, ALT, Super, Space
 function Layout:calculate_layout()
   -- I really want to refactor this
   -- This code is so ugly
@@ -113,14 +132,20 @@ function Layout:calculate_layout()
   local row_index = 1
   -- keep track of the longest row
   local longest_row_length = 0
+
+  -- captures how many spaces to put around labels
+  local padding = self.options.key_labels.padding
+  -- captures how much highlighting to put around labels
+  local highlight_padding = self.options.key_labels.highlight_padding
   -- place keys in rows
   for i = 1, #keys_in_layout do
     local keycap = keys_in_layout[i][2]
     if self.options.key_labels[keycap] then
       keycap = self.options.key_labels[keycap]
     end
-    local left_pad = strrep(" ", self.options.key_labels.padding[2])
-    local right_pad = strrep(" ", self.options.key_labels.padding[4])
+    local keycap_entry = keycap
+    local left_pad = strrep(" ", padding[2])
+    local right_pad = strrep(" ", padding[4])
     keycap = left_pad .. keycap .. right_pad
     -- store the keycap label
     key_strings[column_index] = keycap
@@ -129,6 +154,20 @@ function Layout:calculate_layout()
     local row_len = row_lengths[row_index] or 0
     -- add 1 for counting the separator
     row_lengths[row_index] = row_len + Text.len(keycap) + 1
+    self.keycap_positions[keycap_entry] = {
+      ["keycap"] = keycap_entry,
+      ["left_pad"] = left_pad,
+      ["right_pad"] = right_pad,
+      -- output row = upper padding * rows above
+      -- output row = output row + lower padding * rows above
+      -- output row = output row + upper padding + rows of characters above + separator rows above
+      -- output row = padding[1] * (i - 1) + padding[3] * (i - 1) + padding[1] + i + i
+      -- output row = padding[1] * (i) + padding[3] * (i - 1) + i + i
+      -- output row = padding[1] * (i) + padding[3] * (i) - padding[3] + i + i
+      -- Need to subtract by one to account for the top row
+      row = row_index + row_index + (padding[1] + padding[3]) * row_index - padding[3] - 1,
+      -- TODO: Support highlighting above and below
+    }
     longest_row_length = max(longest_row_length, row_lengths[row_index])
     if column_index > row_sizes[row_index] then
       -- restart the column and row index
@@ -145,44 +184,34 @@ function Layout:calculate_layout()
     local row_length_delta = longest_row_length - row_lengths[i]
     local start_column_pad = math.ceil(row_length_delta / 2)
     local end_column_pad = math.floor(row_length_delta / 2)
-    rows[i][1] = center(rows[i][1], Text.len(rows[i][1]) + start_column_pad, true)
-    rows[i][end_column] = center(rows[i][end_column], Text.len(rows[i][end_column]) + end_column_pad)
+    local keycap, left_pad, right_pad = center(rows[i][1], Text.len(rows[i][1]) + start_column_pad, true)
+    self.keycap_positions[string.gsub(keycap, " ", "")]["left_pad"] = string.rep(" ", left_pad)
+      .. self.keycap_positions[string.gsub(keycap, " ", "")]["left_pad"]
+    self.keycap_positions[string.gsub(keycap, " ", "")]["right_pad"] = string.rep(" ", right_pad)
+      .. self.keycap_positions[string.gsub(keycap, " ", "")]["right_pad"]
+    rows[i][1] = keycap
+    keycap, left_pad, right_pad = center(rows[i][end_column], Text.len(rows[i][end_column]) + end_column_pad)
+    self.keycap_positions[string.gsub(keycap, " ", "")]["left_pad"] = string.rep(" ", left_pad)
+      .. self.keycap_positions[string.gsub(keycap, " ", "")]["left_pad"]
+    self.keycap_positions[string.gsub(keycap, " ", "")]["right_pad"] = string.rep(" ", right_pad)
+      .. self.keycap_positions[string.gsub(keycap, " ", "")]["right_pad"]
+    rows[i][end_column] = keycap
   end
 
   -- calculate keycap separator locations
   for i = 1, #rows do
     local row = rows[i]
     local row_length = 0
-    local row_text = charset["ss  "]
+    local row_text = ""
     for col = 1, #row do
       local keycap = row[col]
+      local keycap_entry = string.gsub(keycap, " ", "")
+      local keycap_position =
+        Layout.calculate_byte_position(row_text, self.keycap_positions[keycap_entry], highlight_padding)
       row_text = row_text .. charset["ss  "] .. keycap
-      local padding = self.options.key_labels.padding
-      local highlight_padding = self.options.key_labels.highlight_padding
-      local left_pad_len = padding[2]
-      local right_pad_len = padding[4]
-      local highlight_left = highlight_padding[2]
-      local highlight_right = highlight_padding[4]
-      local start_col = row_length + math.max(0, (left_pad_len - highlight_left))
-      local end_col = start_col + Text.len(keycap) - math.min(right_pad_len - highlight_right)
-      -- start highlight at: previous start + max((left_pad_len - highlight_pad_left), 0)
-      -- end highlight at: start position + length of keycap - min((right_pad_len - highlight_pad_right), 0)
-      local keycap_position = Text.get_key_highlight_position(row_text, start_col, end_col)
 
-      keycap = string.gsub(keycap, " ", "")
-
-      self.keycap_positions[keycap] = {
-        -- output row = upper padding * rows above
-        -- output row = output row + lower padding * rows above
-        -- output row = output row + upper padding + rows of characters above + separator rows above
-        -- output row = padding[1] * (i - 1) + padding[3] * (i - 1) + padding[1] + i + i
-        -- output row = padding[1] * (i) + padding[3] * (i - 1) + i + i
-        -- output row = padding[1] * (i) + padding[3] * (i) - padding[3] + i + i
-        -- Need to subtract by one to account for the top row
-        row = i + i + (padding[1] + padding[3]) * i - padding[3] - 1,
-        from = keycap_position["from"],
-        to = keycap_position["to"],
-      }
+      self.keycap_positions[keycap_entry]["from"] = keycap_position["from"]
+      self.keycap_positions[keycap_entry]["to"] = keycap_position["to"]
       -- add the length of the separator
       row_length = row_length + Text.len(row[col]) + Text.len(charset["ss  "])
       -- mark where there is a separator
