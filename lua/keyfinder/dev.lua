@@ -12,8 +12,12 @@ require("keyfinder.config").setup({
     -- ["<space>"] = "SPC",
     -- ["<cr>"] = "RET",
     -- ["<tab>"] = "TAB",
-    padding = { 1, 1, 1, 1 }, -- padding around keycap labels [top, right, bottom, left]
+    padding = { 0, 1, 0, 1 }, -- padding around keycap labels [top, right, bottom, left]
     highlight_padding = { 1, 2, 1, 2 }, -- how much of the label to highlight
+  },
+  window = {
+    show_title = true,
+    header_lines = 2,
   },
 })
 require("keyfinder").show({})

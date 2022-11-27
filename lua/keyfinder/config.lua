@@ -23,6 +23,7 @@ local defaults = {
     header_sym = "━",
     header_lines = 2,
     title = "keyfinder.nvim",
+    show_legend = true,
   },
   -- disable the Keyfinder popup for certain buf types and file types.
   disable = {

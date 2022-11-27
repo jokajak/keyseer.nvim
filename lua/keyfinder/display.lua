@@ -24,7 +24,7 @@ function M.is_valid()
     and vim.api.nvim_win_is_valid(M.win)
 end
 
-local function set_highlights(layout, mappings)
+local function set_highlights(layout, mappings, window_options)
   local Keycap = require("keyfinder.keycap")
   -- a list of mappings
   for keycap, mapping in pairs(mappings) do
@@ -32,12 +32,11 @@ local function set_highlights(layout, mappings)
     local group = #mapping == 1 and "" or "Prefix"
     group = "Keyfinder" .. group
     local keycap_position = layout.keycap_positions[Keycap.to_lower(keycap)]
-    if keycap == "$" then
-      print(keycap_position)
-    end
-    -- account for the header
     if keycap_position then
-      local row = keycap_position.row + 2
+      local row = keycap_position.row
+      if window_options.show_title then
+        row = row + window_options.header_lines
+      end
       local key_label_options = layout.options.key_labels
       local top_highlights = math.min(key_label_options.padding[1], key_label_options.highlight_padding[1])
       local bottom_highlights = math.min(key_label_options.padding[3], key_label_options.highlight_padding[3])
@@ -212,6 +211,17 @@ local function make_header(disp, width)
   })
 end
 
+local function add_legend(disp, height)
+  height = height or vim.api.nvim_win_get_height(0)
+  vim.api.nvim_buf_set_lines(disp.buf, -1, -1, false, {
+    "Legend:",
+    " Has a mapping",
+    " Prefix for multiple mappings",
+  })
+  highlight(disp.buf, config.namespace, "Keyfinder", height - 2, 1, -1)
+  highlight(disp.buf, config.namespace, "KeyfinderPrefix", height - 1, 1, -1)
+end
+
 ---@param layout Layout
 function M.render(layout, mappings)
   vim.api.nvim_buf_set_option(M.buf, "modifiable", true)
@@ -221,18 +231,26 @@ function M.render(layout, mappings)
   local start_row = 0
   if config.options.window.show_title then
     make_header(M, width)
+    -- TODO: Make header_lines work better
     start_row = config.options.window.header_lines
   end
   vim.api.nvim_buf_set_lines(M.buf, start_row, -1, false, text.lines)
 
   local height = #text.lines + start_row
+  if config.options.window.show_legend then
+    height = height + 3
+  end
   vim.api.nvim_win_set_height(M.win, height)
   vim.api.nvim_win_set_width(M.win, width)
   if vim.api.nvim_buf_is_valid(M.buf) then
     vim.api.nvim_buf_clear_namespace(M.buf, config.namespace, 0, -1)
   end
 
-  set_highlights(layout, mappings)
+  set_highlights(layout, mappings, config.options.window)
+
+  if config.options.window.show_legend then
+    add_legend(M, height)
+  end
 
   vim.api.nvim_buf_set_option(M.buf, "modifiable", false)
 end
