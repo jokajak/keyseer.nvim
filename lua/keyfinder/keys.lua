@@ -92,30 +92,6 @@ function M.extract_key_order(keystr)
   return ret
 end
 
-local function starts_with(str, start)
-  return str:sub(1, #start) == start
-end
-
-local function make_pattern_safe(str)
-  -- ( ) . % + - * ? [ ^ $
-  return string.gsub(str, "[%(|%)|\\|%[|%]|%-|%{%}|%?|%+|%*|%^|%$|%.]", {
-    ["\\"] = "%\\",
-    ["-"] = "%-",
-    ["("] = "%(",
-    [")"] = "%)",
-    ["["] = "%[",
-    ["]"] = "%]",
-    ["{"] = "%{",
-    ["}"] = "%}",
-    ["?"] = "%?",
-    ["+"] = "%+",
-    ["*"] = "%*",
-    ["^"] = "%^",
-    ["$"] = "%$",
-    ["."] = "%.",
-  })
-end
-
 --[[ {
   buffer = 0,
   expr = 0,
@@ -133,15 +109,14 @@ end
 local function get_matching_keymaps(keymaps, prefix)
   local ret = {}
 
-  local prefix_pattern = make_pattern_safe(prefix)
   for _, keymap in pairs(keymaps) do
-    if keymap.lhs and starts_with(keymap.lhs, prefix) and #keymap.lhs > #prefix then
+    if keymap.lhs and vim.startswith(keymap.lhs, prefix) and #keymap.lhs > #prefix then
       local mapping = {
         id = keymap.lhs,
         prefix = keymap.lhs,
         cmd = keymap.rhs,
         desc = keymap.desc,
-        keys = M.extract_key_order(string.gsub(keymap.lhs, prefix_pattern, "", 1)),
+        keys = M.extract_key_order(string.gsub(keymap.lhs, vim.pesc(prefix), "", 1)),
       }
       table.insert(ret, mapping)
     end

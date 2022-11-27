@@ -1,6 +1,6 @@
-local Keycaps = {}
+local M = {}
 
-Keycaps.qwerty = {
+M.qwerty = {
   [1] = { "`", "`" },
   [2] = { "1", "1" },
   [3] = { "2", "2" },
@@ -56,7 +56,7 @@ Keycaps.qwerty = {
   [53] = { "<RSHIFT>", "<RSHIFT>" },
 }
 
-Keycaps.dvorak = {
+M.dvorak = {
   [1] = { "`", "`" },
   [2] = { "1", "1" },
   [3] = { "2", "2" },
@@ -112,4 +112,4 @@ Keycaps.dvorak = {
   [53] = { "<RSHIFT>", "<RSHIFT>" },
 }
 
-return Keycaps
+return M

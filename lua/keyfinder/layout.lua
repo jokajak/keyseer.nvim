@@ -1,6 +1,7 @@
 local Config = require("keyfinder.config")
 local Text = require("keyfinder.text")
 local Keycaps = require("keyfinder.keycaps")
+local Keycap = require("keyfinder.keycap")
 -- this file generates the keyboard display
 local strrep = string.rep
 local max = math.max
@@ -32,6 +33,7 @@ end
 ---@field layout string[]
 ---@field keycap_layout string[]
 ---@field keycap_positions table[]
+---@field keycaps = Keycap[]
 local Layout = {}
 Layout.__index = Layout
 
@@ -186,16 +188,16 @@ function Layout:calculate_layout()
     local start_column_pad = math.ceil(row_length_delta / 2)
     local end_column_pad = math.floor(row_length_delta / 2)
     local keycap, left_pad, right_pad = center(rows[i][1], Text.len(rows[i][1]) + start_column_pad, true)
-    self.keycap_positions[string.gsub(keycap, " ", "")]["left_pad"] = string.rep(" ", left_pad)
-      .. self.keycap_positions[string.gsub(keycap, " ", "")]["left_pad"]
-    self.keycap_positions[string.gsub(keycap, " ", "")]["right_pad"] = string.rep(" ", right_pad)
-      .. self.keycap_positions[string.gsub(keycap, " ", "")]["right_pad"]
+    self.keycap_positions[vim.trim(keycap)]["left_pad"] = string.rep(" ", left_pad)
+      .. self.keycap_positions[vim.trim(keycap)]["left_pad"]
+    self.keycap_positions[vim.trim(keycap)]["right_pad"] = string.rep(" ", right_pad)
+      .. self.keycap_positions[vim.trim(keycap)]["right_pad"]
     rows[i][1] = keycap
     keycap, left_pad, right_pad = center(rows[i][end_column], Text.len(rows[i][end_column]) + end_column_pad)
-    self.keycap_positions[string.gsub(keycap, " ", "")]["left_pad"] = string.rep(" ", left_pad)
-      .. self.keycap_positions[string.gsub(keycap, " ", "")]["left_pad"]
-    self.keycap_positions[string.gsub(keycap, " ", "")]["right_pad"] = string.rep(" ", right_pad)
-      .. self.keycap_positions[string.gsub(keycap, " ", "")]["right_pad"]
+    self.keycap_positions[vim.trim(keycap)]["left_pad"] = string.rep(" ", left_pad)
+      .. self.keycap_positions[vim.trim(keycap)]["left_pad"]
+    self.keycap_positions[vim.trim(keycap)]["right_pad"] = string.rep(" ", right_pad)
+      .. self.keycap_positions[vim.trim(keycap)]["right_pad"]
     rows[i][end_column] = keycap
   end
 
@@ -206,7 +208,7 @@ function Layout:calculate_layout()
     local row_text = ""
     for col = 1, #row do
       local keycap = row[col]
-      local keycap_entry = string.gsub(keycap, " ", "")
+      local keycap_entry = vim.trim(keycap)
       local keycap_position =
         Layout.calculate_byte_position(row_text, self.keycap_positions[keycap_entry], highlight_padding)
       row_text = row_text .. charset["ss  "] .. keycap

@@ -25,12 +25,16 @@ function M.is_valid()
 end
 
 local function set_highlights(layout, mappings)
+  local Keycap = require("keyfinder.keycap")
   -- a list of mappings
   for keycap, mapping in pairs(mappings) do
     -- another list of mappings?
     local group = #mapping == 1 and "" or "Prefix"
     group = "Keyfinder" .. group
-    local keycap_position = layout.keycap_positions[string.lower(keycap)]
+    local keycap_position = layout.keycap_positions[Keycap.to_lower(keycap)]
+    if keycap == "$" then
+      print(keycap_position)
+    end
     -- account for the header
     if keycap_position then
       local row = keycap_position.row + 2
