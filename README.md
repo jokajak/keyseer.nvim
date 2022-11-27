@@ -5,9 +5,11 @@
 A Neovim plugin written in [Lua][lua] that renders a keyboard displaying which
 keys have assigned actions.
 
-![keyfinder example](https://user-images.githubusercontent.com/460913/204161379-75391311-536d-424a-83ca-a8ecad02abad.png)
+![keyfinder light example](https://user-images.githubusercontent.com/460913/204161379-75391311-536d-424a-83ca-a8ecad02abad.png#gh-light-mode-only)
+![keyfinder dark example](https://user-images.githubusercontent.com/460913/204161566-3c7cf476-ca71-41dd-8618-99940dae68b6.png#gh-dark-mode-only)
 
-* Colorscheme: [Tokyonight Storm](https://github.com/folke/tokyonight.nvim)
+
+* Colorscheme: [Tokyonight](https://github.com/folke/tokyonight.nvim)
 
 ## 🎨 Colors
 
