@@ -17,8 +17,20 @@ function M.normal(keystr)
   -- Normal key strings back to keycaps
   local keycap_mapping = {
     ["<C>"] = "<CTRL>",
+    ["<S>"] = "<SHIFT>",
   }
   return keycap_mapping[keystr] or keystr
+end
+
+function M.center(str, width, shift_left)
+  local total_padding = width - vim.fn.strwidth(str)
+  local small_pad = math.floor(total_padding / 2)
+  local big_pad = math.ceil(total_padding / 2)
+  if shift_left then
+    return string.rep(" ", small_pad) .. str .. string.rep(" ", big_pad), small_pad, big_pad
+  else
+    return string.rep(" ", big_pad) .. str .. string.rep(" ", small_pad), big_pad, small_pad
+  end
 end
 
 return M

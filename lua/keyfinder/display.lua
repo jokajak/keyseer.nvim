@@ -145,7 +145,9 @@ function M.set_mappings()
   }
 
   local mappings = {
-    q = ":lua require('keyfinder.display').hide()<CR>",
+    ["<Esc>"] = function()
+      M.hide()
+    end,
     ["<CR>"] = function()
       extend_prefix()
     end,
@@ -213,13 +215,15 @@ end
 
 local function add_legend(disp, height)
   height = height or vim.api.nvim_win_get_height(0)
+  local key_legend, _, _ = Util.center("<bs> go up one level <esc> close", vim.api.nvim_win_get_width(0))
   vim.api.nvim_buf_set_lines(disp.buf, -1, -1, false, {
     "Legend:",
     " Has a mapping",
     " Prefix for multiple mappings",
+    key_legend,
   })
-  highlight(disp.buf, config.namespace, "Keyfinder", height - 2, 1, -1)
-  highlight(disp.buf, config.namespace, "KeyfinderPrefix", height - 1, 1, -1)
+  highlight(disp.buf, config.namespace, "Keyfinder", height - 3, 1, -1)
+  highlight(disp.buf, config.namespace, "KeyfinderPrefix", height - 2, 1, -1)
 end
 
 ---@param layout Layout
@@ -238,7 +242,7 @@ function M.render(layout, mappings)
 
   local height = #text.lines + start_row
   if config.options.window.show_legend then
-    height = height + 3
+    height = height + 4
   end
   vim.api.nvim_win_set_height(M.win, height)
   vim.api.nvim_win_set_width(M.win, width)

@@ -15,6 +15,7 @@ function M.show(opts)
 
   opts.mode = opts.mode or Util.get_mode()
   opts.prefix = opts.prefix or ""
+  opts.prefix = string.gsub(opts.prefix, "<leader>", vim.g.mapleader)
 
   -- trigger displaying
   require("keyfinder.display").open(opts)
