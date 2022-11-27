@@ -1,6 +1,6 @@
 local M = {}
 
-M.namespace = vim.api.nvim_create_namespace("Keymaster")
+M.namespace = vim.api.nvim_create_namespace("Keyfinder")
 
 ---@class Options
 local defaults = {
@@ -22,9 +22,9 @@ local defaults = {
     show_title = true,
     header_sym = "━",
     header_lines = 2,
-    title = "keymaster.nvim",
+    title = "keyfinder.nvim",
   },
-  -- disable the Keymaster popup for certain buf types and file types.
+  -- disable the Keyfinder popup for certain buf types and file types.
   disable = {
     buftypes = {},
     filetypes = {},

@@ -4,5 +4,5 @@ for _, keymap in pairs(keymaps) do
   print(keymap.lhs)
 end ]]
 
-require("keymaster").reset()
-require("keymaster").show()
+require("keyfinder").reset()
+require("keyfinder").show()

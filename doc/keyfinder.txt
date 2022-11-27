@@ -1,17 +1,17 @@
-keymaster.txt*  A plugin that visualizes your keymappings on a keyboard.
+keyfinder.txt*  A plugin that visualizes your keymappings on a keyboard.
 
 ==============================================================================
-CONTENTS                                                  *keymaster-contents*
+CONTENTS                                                  *keyfinder-contents*
 
-    1. Introduction ................................. |keymaster-introduction|
-    2. Setup ........................................ |keymaster-setup|
-    3. Commands ..................................... |keymaster-commands|
-    4. API .......................................... |keymaster-api|
+    1. Introduction ................................. |keyfinder-introduction|
+    2. Setup ........................................ |keyfinder-setup|
+    3. Commands ..................................... |keyfinder-commands|
+    4. API .......................................... |keyfinder-api|
 
 ==============================================================================
-1. INTRODUCTION                                       *keymaster-introduction*
+1. INTRODUCTION                                       *keyfinder-introduction*
 
-keymaster makes Neovim, your favorite text editor, capable of displaying your
+keyfinder makes Neovim, your favorite text editor, capable of displaying your
 keymaps on a keyboard. . For example:
 
   ┌─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐
@@ -25,30 +25,30 @@ keymaps on a keyboard. . For example:
   └───────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴──────────┘
 
 ==============================================================================
-2. SETUP                                                     *keymaster-setup*
+2. SETUP                                                     *keyfinder-setup*
 
 Make sure to add to call the setup function with the proper configuration in
 your `init` file.
 
 If you use `init.vim`: >
 
-    lua require('keymaster').setup({layout = "qwerty"})
+    lua require('keyfinder').setup({layout = "qwerty"})
 
 Or, if you use `init.lua`: >
 
-    require('keymaster').setup({layout = "qwerty"})
+    require('keyfinder').setup({layout = "qwerty"})
 
 ==============================================================================
-3. COMMANDS                                               *keymaster-commands*
+3. COMMANDS                                               *keyfinder-commands*
 
-:Keymaster                                                         *Keymaster*
+:Keyfinder                                                         *Keyfinder*
 
 Display a keyboard with keymappings indicated.
 
 ==============================================================================
-4. API                                                         *keymaster-api*
+4. API                                                         *keyfinder-api*
 
-keymaster.setup({config})                                  *keymaster.setup()*
+keyfinder.setup({config})                                  *keyfinder.setup()*
         Configures this plugin. Currently supported configuration variables
         are:
         • `layout`: Keyboard layout to render, either qwerty or dvorak
@@ -57,12 +57,12 @@ keymaster.setup({config})                                  *keymaster.setup()*
             {config}(required, table) Table of values; keys are as listed
                 above. Accept defaults by omitting the relevant key.
 
-keymaster.is_configured()                          *keymaster.is_configured()*
+keyfinder.is_configured()                          *keyfinder.is_configured()*
         Tell if the plugin is configured.
         Return: ~
             true/false
 
-keymaster.display()                                      *keymaster.display()*
+keyfinder.display()                                      *keyfinder.display()*
         Display a keyboard with keymappings indicated.
 
 ==============================================================================

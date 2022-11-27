@@ -1,5 +1,5 @@
-local Layout = require("keymaster.layout")
-local Keys = require("keymaster.keys")
+local Layout = require("keyfinder.layout")
+local Keys = require("keyfinder.keys")
 
 local qwerty_layout = {
   "┌─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐",

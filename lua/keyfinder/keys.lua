@@ -1,6 +1,6 @@
 -- for parsing keys
 local strsub = string.sub
-local presets = require("keymaster.presets")
+local presets = require("keyfinder.presets")
 
 ---@class Keys
 local M = {}

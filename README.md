@@ -1,4 +1,4 @@
-# keymaster.nvim
+# keyfinder.nvim
 
 [![Integration][integration-badge]][integration-runs]
 
@@ -7,12 +7,12 @@ keys have assigned actions.
 
 ## 🎨 Colors
 
-The table below shows all the highlight groups defined for **Keymaster** with their default link.
+The table below shows all the highlight groups defined for **Keyfinder** with their default link.
 
 | Highlight Group     | Defaults to | Description                                 |
 | ------------------- | ----------- | ------------------------------------------- |
-| _Keymaster_         | Function    | Keys with mappings                          |
-| _KeymasterGroup_    | Keyword     | Keys that are prefixes                      |
+| _Keyfinder_         | Function    | Keys with mappings                          |
+| _KeyfinderGroup_    | Keyword     | Keys that are prefixes                      |
 
 ## Testing
 
@@ -63,7 +63,7 @@ branch and also on Pull Request. Tests will be run using
 [luassert]: https://github.com/Olivine-Labs/luassert
 [plenary]: https://github.com/nvim-lua/plenary.nvim
 [matcher_combinators]: https://github.com/m00qek/matcher_combinators.lua
-[integration-badge]: https://github.com/jokajak/keymaster.nvim/actions/workflows/integration.yml/badge.svg
-[integration-runs]: https://github.com/jokajak/keymaster.nvim/actions/workflows/integration.yml
+[integration-badge]: https://github.com/jokajak/keyfinder.nvim/actions/workflows/integration.yml/badge.svg
+[integration-runs]: https://github.com/jokajak/keyfinder.nvim/actions/workflows/integration.yml
 [neovim-test-versions]: .github/workflows/integration.yml#L17
-[help]: doc/keymaster.txt
+[help]: doc/keyfinder.txt

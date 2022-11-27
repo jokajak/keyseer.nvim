@@ -1,7 +1,7 @@
-local config = require("keymaster.config")
-local Layout = require("keymaster.layout")
-local Keys = require("keymaster.keys")
-local Util = require("keymaster.util")
+local config = require("keyfinder.config")
+local Layout = require("keyfinder.layout")
+local Keys = require("keyfinder.keys")
+local Util = require("keyfinder.util")
 
 local highlight = vim.api.nvim_buf_add_highlight
 
@@ -29,7 +29,7 @@ local function set_highlights(layout, mappings)
   for keycap, mapping in pairs(mappings) do
     -- another list of mappings?
     local group = #mapping == 1 and "" or "Prefix"
-    group = "Keymaster" .. group
+    group = "Keyfinder" .. group
     local keycap_position = layout.keycap_positions[string.lower(keycap)]
     -- account for the header
     if keycap_position then
@@ -77,13 +77,13 @@ function M.show()
 
   M.win = vim.api.nvim_open_win(M.buf, true, opts)
 
-  vim.api.nvim_buf_set_option(M.buf, "filetype", "keymaster")
+  vim.api.nvim_buf_set_option(M.buf, "filetype", "keyfinder")
   vim.api.nvim_buf_set_option(M.buf, "buftype", "nofile")
   vim.api.nvim_buf_set_option(M.buf, "bufhidden", "wipe")
 
-  local winhl = "NormalFloat:KeymasterFloat"
+  local winhl = "NormalFloat:KeyfinderFloat"
   if vim.fn.hlexists("FloatBorder") == 1 then
-    winhl = winhl .. ",FloatBorder:KeymasterBorder"
+    winhl = winhl .. ",FloatBorder:KeyfinderBorder"
   end
   vim.api.nvim_win_set_option(M.win, "winhighlight", winhl)
   vim.api.nvim_win_set_option(M.win, "foldmethod", "manual")
@@ -91,7 +91,7 @@ function M.show()
   vim.api.nvim_win_set_option(M.win, "winblend", config.options.window.winblend)
 
   for k, v in pairs(highlight_links) do
-    vim.api.nvim_set_hl(0, "Keymaster" .. k, { link = v, default = true })
+    vim.api.nvim_set_hl(0, "Keyfinder" .. k, { link = v, default = true })
   end
 end
 
@@ -133,7 +133,7 @@ function M.set_mappings()
   }
 
   local mappings = {
-    q = ":lua require('keymaster.display').hide()<CR>",
+    q = ":lua require('keyfinder.display').hide()<CR>",
     ["<CR>"] = function()
       extend_prefix()
     end,
@@ -161,7 +161,7 @@ function M.open(opts)
     end
 
     local mappings = Keys.get_mappings(M.mode, buf, M.prefix)
-    --vim.notify(vim.inspect(mappings), vim.log.levels.DEBUG, { title = "Keymaster" })
+    --vim.notify(vim.inspect(mappings), vim.log.levels.DEBUG, { title = "Keyfinder" })
     local layout = Layout:new(opts)
     local _ = layout:calculate_layout()
     M.layout = layout

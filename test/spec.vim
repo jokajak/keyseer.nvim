@@ -8,5 +8,5 @@ lua require('plenary.busted')
 lua require('matcher_combinators.luassert')
 
 " configuring the plugin
-runtime plugin/keymaster.lua
-lua require('keymaster').setup({ layout = "qwerty" })
+runtime plugin/keyfinder.lua
+lua require('keyfinder').setup({ layout = "qwerty" })
