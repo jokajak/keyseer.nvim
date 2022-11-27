@@ -1,7 +1,6 @@
 local Config = require("keyfinder.config")
 local Text = require("keyfinder.text")
 local Keycaps = require("keyfinder.keycaps")
-local Keycap = require("keyfinder.keycap")
 -- this file generates the keyboard display
 local strrep = string.rep
 local max = math.max
