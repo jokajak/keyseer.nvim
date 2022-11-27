@@ -154,4 +154,13 @@ describe("q_keycap_position_test", function()
     assert.combinators.match(5, res.from)
     assert.combinators.match(6, res.to)
   end)
+  it("highlights_right", function()
+    local h_layout =
+      Layout:new({ layout = "qwerty", key_labels = { padding = { 0, 1, 0, 1 }, highlight_padding = { 0, 0, 0, 1 } } })
+    h_layout:calculate_layout()
+    local res = h_layout.keycap_positions["0"]
+    assert.combinators.match(1, res.row)
+    assert.combinators.match(66, res.from)
+    assert.combinators.match(68, res.to)
+  end)
 end)

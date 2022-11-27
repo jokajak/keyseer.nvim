@@ -5,4 +5,15 @@ for _, keymap in pairs(keymaps) do
 end ]]
 
 require("keyfinder").reset()
-require("keyfinder").show()
+require("keyfinder.config").setup({
+  key_labels = {
+    -- override the label used to display some keys. It doesn't effect KM in any other way.
+    -- For example:
+    -- ["<space>"] = "SPC",
+    -- ["<cr>"] = "RET",
+    -- ["<tab>"] = "TAB",
+    padding = { 1, 1, 1, 1 }, -- padding around keycap labels [top, right, bottom, left]
+    highlight_padding = { 0, 1, 0, 1 }, -- how much of the label to highlight
+  },
+})
+require("keyfinder").show({})

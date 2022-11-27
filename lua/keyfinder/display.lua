@@ -34,8 +34,17 @@ local function set_highlights(layout, mappings)
     -- account for the header
     if keycap_position then
       local row = keycap_position.row + 2
-      -- This fails because the positions are calculated as strings, not bytes
-      highlight(M.buf, config.namespace, group, row, keycap_position.from, keycap_position.to)
+      local key_label_options = layout.options.key_labels
+      local top_highlights = math.min(key_label_options.padding[1], key_label_options.highlight_padding[1])
+      local bottom_highlights = math.min(key_label_options.padding[3], key_label_options.highlight_padding[3])
+      local first_row = row - top_highlights
+      local last_row = row + bottom_highlights
+      for i = first_row, row, 1 do
+        highlight(M.buf, config.namespace, group, i, keycap_position.from, keycap_position.to)
+      end
+      for i = row, last_row, 1 do
+        highlight(M.buf, config.namespace, group, i, keycap_position.from, keycap_position.to)
+      end
     end
   end
 end
@@ -161,7 +170,6 @@ function M.open(opts)
     end
 
     local mappings = Keys.get_mappings(M.mode, buf, M.prefix)
-    --vim.notify(vim.inspect(mappings), vim.log.levels.DEBUG, { title = "Keyfinder" })
     local layout = Layout:new(opts)
     local _ = layout:calculate_layout()
     M.layout = layout

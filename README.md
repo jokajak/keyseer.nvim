@@ -11,8 +11,8 @@ The table below shows all the highlight groups defined for **Keyfinder** with th
 
 | Highlight Group     | Defaults to | Description                                 |
 | ------------------- | ----------- | ------------------------------------------- |
-| _Keyfinder_         | Function    | Keys with mappings                          |
-| _KeyfinderGroup_    | Keyword     | Keys that are prefixes                      |
+| _Keyfinder_         | Search      | Keys with mappings                          |
+| _KeyfinderPrefix_   | IncSearch   | Keys that are prefixes                      |
 
 ## Testing
 

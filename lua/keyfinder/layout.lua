@@ -76,6 +76,7 @@ function Layout.calculate_byte_position(row_text, keycap_position, highlight_pad
   local start_col = Text.len(row_text) + Text.len(string.rep(" ", left_highlight_padding))
   row_text = row_text .. left_padding .. keycap
   local end_col = Text.len(row_text) + Text.len(string.rep(" ", right_highlight_padding))
+  row_text = row_text .. left_padding .. keycap .. right_padding
   return Text.get_key_highlight_position(row_text, start_col, end_col)
 end
 
