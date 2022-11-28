@@ -2,7 +2,33 @@ local M = {}
 
 M.namespace = vim.api.nvim_create_namespace("Keyfinder")
 
+---@class offset_options
+---@field top integer
+---@field right integer
+---@field bottom integer
+---@field left integer
+
+---@class key_label_options
+---@field padding offset_options
+---@field highlight_padding offset_options
+
+---@class window_options
+---@field border string border options
+---@field margin offset_options
+---@field winblend integer vim.opt.winblend
+---@field rows integer minimum height of window
+---@field columns integer minimum width of window
+---@field show_title boolean whether or not to show the title
+---@field title string title in the window
+---@field header_lines integer number of lines in the header
+---@field header_sym string character to put between header and display
+---@field show_legend boolean whether or not to show the legend
+
 ---@class Options
+---@field key_labels key_label_options
+---@field window window_options
+---@field disable table
+---@field layout string Which keyboard layout to render
 local defaults = {
   key_labels = {
     -- override the label used to display some keys. It doesn't effect KM in any other way.

@@ -24,12 +24,44 @@ function M.is_valid()
     and vim.api.nvim_win_is_valid(M.win)
 end
 
+-- Some special character that shows up in keymaps
+local special_char = "Þ"
+
+---Determine if key is a prefix key
+---@param mapping mapping[]
+---@return boolean
+local function is_prefix_key(mapping)
+  if mapping == nil then
+    return false
+  end
+  local is_prefix = false
+  if #mapping > 1 then
+    for _, map in pairs(mapping) do
+      local shortened_prefix = string.gsub(string.gsub(map.prefix, M.prefix, ""), special_char, "")
+      is_prefix = is_prefix or (vim.fn.strlen(shortened_prefix) > 1)
+    end
+  end
+  return is_prefix
+end
+
+---Set highlights in the keyfinder display
+---@param layout Layout
+---@param mappings table[]
+---@param window_options window_options
 local function set_highlights(layout, mappings, window_options)
   local Keycap = require("keyfinder.keycap")
   -- a list of mappings
   for keycap, mapping in pairs(mappings) do
     -- another list of mappings?
     local group = #mapping == 1 and "" or "Prefix"
+    if #mapping > 1 then
+      local is_prefix = false
+      for _, map in pairs(mapping) do
+        local shortened_prefix = string.gsub(string.gsub(map.prefix, M.prefix, ""), special_char, "")
+        is_prefix = is_prefix or (vim.fn.strlen(shortened_prefix) > 1)
+      end
+      group = is_prefix and "Prefix" or ""
+    end
     group = "Keyfinder" .. group
     local keycap_position = layout.keycap_positions[Keycap.to_lower(keycap)]
     if keycap_position then
@@ -120,6 +152,7 @@ function M.hide()
     vim.api.nvim_win_close(M.win, true)
     M.win = nil
   end
+  M.keymap_buf = nil
 end
 
 function M.update_prefix(prefix)
@@ -131,12 +164,13 @@ end
 
 local function extend_prefix()
   local col = vim.fn.col(".")
-  local line = vim.fn.getline(".")
-  local char = line:sub(col, col)
+  ---@type string
+  local line = vim.fn.getline(".") --[[@as string]]
+  local char = string.sub(line, col, col)
   M.update_prefix(M.prefix .. char)
 end
 
-function M.set_mappings()
+function M.set_mappings(mappings)
   local keymap_options = {
     nowait = true,
     noremap = true,
@@ -144,7 +178,7 @@ function M.set_mappings()
     buffer = M.buf,
   }
 
-  local mappings = {
+  local new_mappings = {
     ["<Esc>"] = function()
       M.hide()
     end,
@@ -157,16 +191,23 @@ function M.set_mappings()
     end,
   }
 
-  for k, v in pairs(mappings) do
+  for k, v in pairs(new_mappings) do
     vim.keymap.set("n", k, v, keymap_options)
   end
 
-  local other_chars = "abcdefghijklmnopqrstuvwxyz,"
+  local other_chars = "abcdefghijklmnopqrstuvwxyz,.[]\\"
   for i = 1, #other_chars do
     local k = string.sub(other_chars, i, i)
-    vim.keymap.set("n", k, function()
-      M.update_prefix(M.prefix .. k)
-    end, keymap_options)
+    if is_prefix_key(mappings[k]) then
+      vim.keymap.set("n", k, function()
+        M.update_prefix(M.prefix .. k)
+      end, keymap_options)
+    else
+      local status, _ = pcall(vim.keymap.del, { "n", k, { buffer = M.buf } })
+      if status then
+        print(string.format("Removing keymap for %s", k))
+      end
+    end
   end
 end
 
@@ -176,19 +217,20 @@ function M.open(opts)
   M.prefix = opts.prefix or ""
 
   local buf = vim.api.nvim_get_current_buf()
+  M.keymap_buf = M.keymap_buf or buf
 
   if M.is_enabled(buf) then
     if not M.is_valid() then
       M.show()
     end
 
-    local mappings = Keys.get_mappings(M.mode, buf, M.prefix)
+    local mappings = Keys.get_mappings(M.mode, M.keymap_buf, M.prefix)
     local layout = Layout:new(opts)
     local _ = layout:calculate_layout()
     M.layout = layout
 
     M.render(layout, mappings)
-    M:set_mappings()
+    M.set_mappings(mappings)
     vim.api.nvim_win_set_cursor(M.win, { 4, 0 })
   end
 end

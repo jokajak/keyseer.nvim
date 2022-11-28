@@ -2,10 +2,22 @@
 local strsub = string.sub
 local presets = require("keyfinder.presets")
 
----@class Keys
+---@class keycaps
+---@field keycaps string[]
+---@field keys string[]
+
+---@class mapping
+---@field cmd string
+---@field desc string
+---@field id string
+---@field keys keycaps
+---@field prefix string
+
 local M = {}
 
--- extract all keys in a special key
+---Extract keycaps in a key string
+---@param keystr string
+---@return table
 local function split_key_str(keystr)
   local keys = {}
   local current_key = ""
@@ -30,10 +42,12 @@ local function split_key_str(keystr)
   return keys
 end
 
--- map keys into their order of being pressed
+---Map keys into their order of being pressed
 -- given a key string ",gb" or "<C-i>"
 -- return a table of {[1] = ",", [2] = "g", [3] = "b"}
 -- or {[1] = { "<C>", "i" }} respectively
+---@param keystr string
+---@return keycaps
 function M.extract_key_order(keystr)
   local keys = {}
   local special = nil
@@ -106,6 +120,10 @@ end
   sid = -8,
   silent = 1
 } ]]
+---Get keymaps with the given prefix
+---@param keymaps mapping
+---@param prefix string
+---@return mapping[]
 local function get_matching_keymaps(keymaps, prefix)
   local ret = {}
 
@@ -124,6 +142,11 @@ local function get_matching_keymaps(keymaps, prefix)
   return ret
 end
 
+---Get keymaps
+---@param mode string
+---@param buf integer
+---@param prefix string
+---@return mapping[]
 function M.get_mappings(mode, buf, prefix)
   local buffer_keymaps = buf and vim.api.nvim_buf_get_keymap(buf, mode) or {}
   local global_keymaps = vim.api.nvim_get_keymap(mode)
