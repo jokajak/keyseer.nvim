@@ -160,6 +160,14 @@ function M.set_mappings()
   for k, v in pairs(mappings) do
     vim.keymap.set("n", k, v, keymap_options)
   end
+
+  local other_chars = "abcdefghijklmnopqrstuvwxyz,"
+  for i = 1, #other_chars do
+    local k = string.sub(other_chars, i, i)
+    vim.keymap.set("n", k, function()
+      M.update_prefix(M.prefix .. k)
+    end, keymap_options)
+  end
 end
 
 function M.open(opts)
