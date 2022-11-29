@@ -32,7 +32,7 @@ end
 ---@field layout string[]
 ---@field keycap_layout string[]
 ---@field keycap_positions table[]
----@field keycaps = Keycap[]
+---@field keycaps Keycap[]
 local Layout = {}
 Layout.__index = Layout
 
@@ -179,9 +179,11 @@ function Layout:calculate_layout()
       row_index = row_index + 1
     end
   end
+  -- store the last row
+  rows[row_index] = key_strings
 
   -- resize first and last columns based on the longest row
-  for i = 1, #rows do
+  for i = 1, #rows - 1 do
     local end_column = row_sizes[i]
     local row_length_delta = longest_row_length - row_lengths[i]
     local start_column_pad = math.ceil(row_length_delta / 2)
@@ -198,6 +200,17 @@ function Layout:calculate_layout()
     self.keycap_positions[vim.trim(keycap)]["right_pad"] = string.rep(" ", right_pad)
       .. self.keycap_positions[vim.trim(keycap)]["right_pad"]
     rows[i][end_column] = keycap
+  end
+
+  -- resize space button
+  do
+    local row_length_delta = longest_row_length - row_lengths[5]
+    local keycap, left_pad, right_pad = center(rows[5][4], Text.len(rows[5][4]) + row_length_delta)
+    rows[5][4] = keycap
+    self.keycap_positions[vim.trim(keycap)]["left_pad"] = string.rep(" ", left_pad)
+      .. self.keycap_positions[vim.trim(keycap)]["left_pad"]
+    self.keycap_positions[vim.trim(keycap)]["right_pad"] = string.rep(" ", right_pad)
+      .. self.keycap_positions[vim.trim(keycap)]["right_pad"]
   end
 
   -- calculate keycap separator locations
