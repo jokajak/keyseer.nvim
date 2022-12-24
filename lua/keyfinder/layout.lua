@@ -33,6 +33,7 @@ end
 ---@field keycap_layout string[]
 ---@field keycap_positions table[]
 ---@field keycaps Keycap[]
+---@field regions table[]
 local Layout = {}
 Layout.__index = Layout
 
@@ -46,6 +47,7 @@ function Layout:new(options)
     keycap_layout = options.layout,
     layout = {},
     keycap_positions = {},
+    regions = {},
   }
   setmetatable(this, self)
   return this
@@ -103,9 +105,6 @@ end
 --  Need to represent:
 --    * Ctrl + <key>
 --    * Shift + <key>
---    * <key> with things below it, like gg (aka prefix)
---    * <key> with nothing below it (aka action)
---  TODO: Add row for CTRL, ALT, Super, Space
 function Layout:calculate_layout()
   -- I really want to refactor this
   -- This code is so ugly
@@ -317,6 +316,19 @@ function Layout:calculate_layout()
   end
 
   return self.text
+end
+
+---Return keycap in a region
+---@param row integer
+---@param col integer
+---@return string
+function Layout:keycap_in_region(row, col)
+  -- row is some number between 5 * top_padding + 5 + 5 * bottom_padding + #separator_rows
+  for keycap, entry in pairs(self.keycap_positions) do
+    print(keycap)
+    print(entry)
+  end
+  return self.layout[row][col]
 end
 
 return Layout

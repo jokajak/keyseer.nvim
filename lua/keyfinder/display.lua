@@ -183,6 +183,7 @@ function M.set_mappings(mappings)
       M.hide()
     end,
     ["<CR>"] = function()
+      -- TODO: Support <Space>
       extend_prefix()
     end,
     ["<BS>"] = function()

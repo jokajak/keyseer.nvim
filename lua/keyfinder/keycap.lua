@@ -51,7 +51,11 @@ function Keycap.to_lower(keylabel)
   if key_cap_map[keylabel] then
     return key_cap_map[keylabel]["lower"]
   else
-    return string.lower(keylabel)
+    if vim.fn.strlen(keylabel) == 1 then
+      return string.lower(keylabel)
+    else
+      return keylabel
+    end
   end
 end
 
@@ -59,7 +63,11 @@ function Keycap.to_upper(keylabel)
   if key_cap_map[keylabel] then
     return key_cap_map[keylabel]["upper"]
   else
-    return string.upper(keylabel)
+    if vim.fn.strlen(keylabel) == 1 then
+      return string.upper(keylabel)
+    else
+      return keylabel
+    end
   end
 end
 

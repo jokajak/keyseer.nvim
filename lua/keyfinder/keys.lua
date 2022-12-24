@@ -92,9 +92,9 @@ function M.extract_key_order(keystr)
   local ret = { keys = keys, keycaps = {} }
   for _, key in pairs(keys) do
     if key == " " then
-      key = "<SPACE>"
+      key = "<Space>"
     elseif key == "<C>" then
-      key = "<LCTRL>"
+      key = "<Ctrl>"
     end
     if key:len() == 1 then
       key = key:lower()
