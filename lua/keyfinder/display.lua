@@ -64,6 +64,9 @@ local function set_highlights(layout, mappings, window_options)
     end
     group = "Keyfinder" .. group
     local keycap_position = layout.keycap_positions[Keycap.to_lower(keycap)]
+    if keycap:len() > 1 then
+      keycap_position = layout.keycap_positions[keycap]
+    end
     if keycap_position then
       local row = keycap_position.row
       if window_options.show_title then
@@ -200,14 +203,15 @@ function M.set_mappings(mappings)
   for i = 1, #other_chars do
     local k = string.sub(other_chars, i, i)
     if is_prefix_key(mappings[k]) then
+      -- if the key is a prefix then create keymap to go into it
       vim.keymap.set("n", k, function()
         M.update_prefix(M.prefix .. k)
       end, keymap_options)
     else
-      local status, _ = pcall(vim.keymap.del, { "n", k, { buffer = M.buf } })
-      if status then
-        print(string.format("Removing keymap for %s", k))
-      end
+      -- otherwise create a keymap to stay here
+      vim.keymap.set("n", k, function()
+        M.update_prefix(M.prefix)
+      end, keymap_options)
     end
   end
 end

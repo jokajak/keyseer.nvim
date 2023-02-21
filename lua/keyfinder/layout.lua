@@ -324,10 +324,10 @@ end
 ---@return string
 function Layout:keycap_in_region(row, col)
   -- row is some number between 5 * top_padding + 5 + 5 * bottom_padding + #separator_rows
-  for keycap, entry in pairs(self.keycap_positions) do
-    print(keycap)
-    print(entry)
-  end
+  -- for keycap, entry in pairs(self.keycap_positions) do
+  --   print(keycap)
+  --   print(entry)
+  -- end
   return self.layout[row][col]
 end
 
