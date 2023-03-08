@@ -155,6 +155,7 @@ function Layout:calculate_layout()
     local row_len = row_lengths[row_index] or 0
     -- add 1 for counting the separator
     row_lengths[row_index] = row_len + Text.len(keycap) + 1
+    print("Add keycap entry for " .. keycap_entry)
     self.keycap_positions[keycap_entry] = {
       ["keycap"] = keycap_entry,
       ["left_pad"] = left_pad,

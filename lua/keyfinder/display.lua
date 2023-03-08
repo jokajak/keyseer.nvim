@@ -8,6 +8,9 @@ local highlight = vim.api.nvim_buf_add_highlight
 local highlight_links = {
   [""] = "Search",
   Prefix = "IncSearch",
+  Meta = "Search",
+  Ctrl = "Search",
+  Shift = "Search",
 }
 
 local M = {}
@@ -37,8 +40,9 @@ local function is_prefix_key(mapping)
   local is_prefix = false
   if #mapping > 1 then
     for _, map in pairs(mapping) do
-      local shortened_prefix = string.gsub(string.gsub(map.prefix, M.prefix, ""), special_char, "")
-      is_prefix = is_prefix or (vim.fn.strlen(shortened_prefix) > 1)
+      local shortened_prefix = string.sub(map.prefix, #M.prefix - 1)
+      local cleaned_prefix = string.gsub(shortened_prefix, special_char, "")
+      is_prefix = is_prefix or (vim.fn.strlen(cleaned_prefix) > 1)
     end
   end
   return is_prefix
@@ -57,7 +61,7 @@ local function set_highlights(layout, mappings, window_options)
     if #mapping > 1 then
       local is_prefix = false
       for _, map in pairs(mapping) do
-        local shortened_prefix = string.gsub(string.gsub(map.prefix, M.prefix, ""), special_char, "")
+        local shortened_prefix = string.gsub(string.sub(map.prefix, #M.prefix - 1), special_char, "")
         is_prefix = is_prefix or (vim.fn.strlen(shortened_prefix) > 1)
       end
       group = is_prefix and "Prefix" or ""
@@ -66,6 +70,12 @@ local function set_highlights(layout, mappings, window_options)
     local keycap_position = layout.keycap_positions[Keycap.to_lower(keycap)]
     if keycap:len() > 1 then
       keycap_position = layout.keycap_positions[keycap]
+      if not keycap_position then
+        keycap_position = layout.keycap_positions[Keycap.to_upper(keycap)]
+      end
+      if not keycap_position then
+        keycap_position = layout.keycap_positions[string.upper(keycap)]
+      end
     end
     if keycap_position then
       local row = keycap_position.row
@@ -83,10 +93,14 @@ local function set_highlights(layout, mappings, window_options)
       for i = row, last_row, 1 do
         highlight(M.buf, config.namespace, group, i, keycap_position.from, keycap_position.to)
       end
+    else
+      print("Unable to find keycap_position for " .. keycap .. ", checked for " .. Keycap.to_lower(keycap))
+      print("Unable to find keycap_position for " .. keycap .. ", checked for " .. Keycap.to_upper(keycap))
     end
   end
 end
 
+-- This function shows the window
 function M.show()
   if M.is_valid() then
     return
@@ -168,7 +182,7 @@ end
 local function extend_prefix()
   local col = vim.fn.col(".")
   ---@type string
-  local line = vim.fn.getline(".") --[[@as string]]
+  local line = vim.fn.getline(".")
   local char = string.sub(line, col, col)
   M.update_prefix(M.prefix .. char)
 end
@@ -230,16 +244,19 @@ function M.open(opts)
     end
 
     local mappings = Keys.get_mappings(M.mode, M.keymap_buf, M.prefix)
-    local layout = Layout:new(opts)
-    local _ = layout:calculate_layout()
-    M.layout = layout
+    if not M.layout then
+      local layout = Layout:new(opts)
+      local _ = layout:calculate_layout()
+      M.layout = layout
+    end
 
-    M.render(layout, mappings)
+    M.render(M.layout, mappings)
     M.set_mappings(mappings)
     vim.api.nvim_win_set_cursor(M.win, { 4, 0 })
   end
 end
 
+-- This method checks if keymap is enabled for the buffer
 function M.is_enabled(buf)
   local buftype = vim.api.nvim_buf_get_option(buf, "buftype")
   for _, bt in ipairs(config.options.disable.buftypes) do
@@ -268,6 +285,7 @@ local function make_header(disp, width)
   })
 end
 
+-- Utility to add a legend to the bottom of the window
 local function add_legend(disp, height)
   height = height or vim.api.nvim_win_get_height(0)
   local key_legend, _, _ = Util.center("<bs> go up one level <esc> close", vim.api.nvim_win_get_width(0))
@@ -282,10 +300,12 @@ local function add_legend(disp, height)
 end
 
 ---@param layout Layout
+-- This function takes the contents of the layout object and puts them in the buffer
 function M.render(layout, mappings)
   vim.api.nvim_buf_set_option(M.buf, "modifiable", true)
   local text = layout.text
   local width = text.width
+  local show_legend = config.options.window.show_legend
 
   local start_row = 0
   if config.options.window.show_title then
@@ -296,7 +316,7 @@ function M.render(layout, mappings)
   vim.api.nvim_buf_set_lines(M.buf, start_row, -1, false, text.lines)
 
   local height = #text.lines + start_row
-  if config.options.window.show_legend then
+  if show_legend then
     height = height + 4
   end
   vim.api.nvim_win_set_height(M.win, height)
@@ -307,7 +327,7 @@ function M.render(layout, mappings)
 
   set_highlights(layout, mappings, config.options.window)
 
-  if config.options.window.show_legend then
+  if show_legend then
     add_legend(M, height)
   end
 

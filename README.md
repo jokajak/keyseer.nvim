@@ -13,7 +13,7 @@ keys have assigned actions.
 ## ✨ Features
 
 - opens a popup with keyboard layout displayed and annotated
-- works correctly with built-in key bindings
+- works correctly with built-in key mappings
 - works correctly with buffer-local mappings
 
 ## ⚡️ Requirements

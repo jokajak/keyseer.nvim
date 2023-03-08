@@ -34,7 +34,11 @@ The config.layout controls which key_cap is mapped to each button on the layout.
 
 Something is not right, things aren't falling into place elegantly.
 
-Display process:
+Run:
+
+1. Get all keymaps
+2. Transform keymaps into new format
+3. Filter jk
 
 1. Get the list of matching key mappings
     1. Get the list of key mappings

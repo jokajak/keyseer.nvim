@@ -148,21 +148,21 @@ local function get_matching_keymaps(keymaps, prefix)
   return ret
 end
 
-local function pretty_print_table(t, prefix)
-  prefix = prefix or ""
-  local result = {}
-  for k, v in pairs(t) do
-    if type(v) == "table" then
-      table.insert(result, prefix .. tostring(k) .. ":")
-      for _, j in ipairs(pretty_print_table(v, prefix .. "  ")) do
-        table.insert(result, j)
-      end
-    else
-      table.insert(result, prefix .. tostring(k) .. ": " .. '"' .. tostring(v) .. '"')
-    end
-  end
-  return result
-end
+-- local function pretty_print_table(t, prefix)
+--   prefix = prefix or ""
+--   local result = {}
+--   for k, v in pairs(t) do
+--     if type(v) == "table" then
+--       table.insert(result, prefix .. tostring(k) .. ":")
+--       for _, j in ipairs(pretty_print_table(v, prefix .. "  ")) do
+--         table.insert(result, j)
+--       end
+--     else
+--       table.insert(result, prefix .. tostring(k) .. ": " .. '"' .. tostring(v) .. '"')
+--     end
+--   end
+--   return result
+-- end
 
 ---Get keymaps
 ---@param mode string
@@ -183,9 +183,9 @@ function M.get_mappings(mode, buf, prefix)
 
   local matching_buffer_keymaps = get_matching_keymaps(buffer_keymaps, prefix)
 
-  local debug_buf = 878
-
-  vim.api.nvim_buf_set_lines(debug_buf, 0, -1, true, pretty_print_table(matching_buffer_keymaps))
+  -- local debug_buf = 878
+  --
+  -- vim.api.nvim_buf_set_lines(debug_buf, 0, -1, true, pretty_print_table(matching_buffer_keymaps))
 
   for _, mapping in ipairs(matching_buffer_keymaps) do
     -- ignore entries that exactly match the prefix
