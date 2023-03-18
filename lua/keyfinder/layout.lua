@@ -26,14 +26,152 @@ local function get_line(opts)
   return charset[table.concat(opts, "")]
 end
 
+---@class Button
+---@field keycap string The string printed on the button
+---@field keycode string The neovim key
+---@field left_pad number The number of spaces to the left of the keycap
+---@field right_pad number The number of spaces to the right of the keycap
+---@field row number The row of the string on the output
+---@field top_row number The top row of the button in the output
+---@field bottom_row number The bottom row of the button on the output
+---@field private _keycap_width number The width of the keycap string
+---@field width number The width of the entire button
+local Button = {}
+Button.__index = Button
+
+---Generate a new button object
+---@param keycap string The string that gets rendered on screen
+---@param keycode string The neovim key
+---@param row_index number The row for the button
+---@param left_pad number The number of spaces to the left of the keycap string
+---@param right_pad number The number of spaces to the right of the keycap string
+---@param top_pad number The number of blank lines above the keycap string
+---@param bottom_pad number The number of blank lines below the keycap string
+---@return Button
+function Button:new(keycap, keycode, row_index, left_pad, right_pad, top_pad, bottom_pad)
+  -- let text_height = 1
+  -- let separator_height = 1
+  -- let height of button = top_pad + text_height + bottom_pad
+  -- let row height = separator_height + height of button
+  -- (each row shares a separator row with the one above it)
+  --
+  -- 1 |--------- <-- separator |
+  -- 2 | top_pad                |
+  -- 3 | keycap                 | row_index = 1
+  -- 4 | bottom_pad             |
+  -- 5 |--------- <-- separator |
+  -- 6 | top_pad                |
+  -- 7 | keycap                 | row_index = 2
+  --
+  -- row for keycap = (rows_above) * (top_pad + bottom_pad + keycap_height + separator_height) + top_pad
+  -- row for keycap = (row_index - 1) * (top_pad + bottom_pad + 1 + 1) + top_pad
+  -- row for keycap = (row_index) * (top_pad + bottom_pad + 2) - (top_pad + bottom_pad + 2) + tap_pad
+  -- row for keycap = row_index * top_pad + row_index * bottom_pad + row_index * 2
+  --                - top_pad - bottom_pad - 2 + top_pad
+  -- row for keycap = row_index * top_pad + row_index * bottom_pad - bottom_pad + row_index * 2 - 2
+  -- row for keycap = row_index + row_index + (top_pad + bottom_pad) * row_index - bottom_pad - 2
+  --
+  -- This math is confusing but appears to be correct
+  --
+  -- output row = upper padding * rows above
+  -- output row = output row + lower padding * rows above
+  -- output row = output row + upper padding + rows of characters above + separator rows above
+  -- output row = padding[1] * (i - 1) + padding[3] * (i - 1) + padding[1] + i + i
+  -- output row = padding[1] * (i) + padding[3] * (i - 1) + i + i
+  -- output row = padding[1] * (i) + padding[3] * (i) - padding[3] + i + i
+  -- Need to subtract by one to account for the top row
+  local row = row_index + row_index + (top_pad + bottom_pad) * row_index - bottom_pad - 1
+  local keycap_width = vim.fn.strwidth(keycap)
+  local this = {
+    keycap = keycap,
+    keycode = keycode,
+    left_pad = left_pad,
+    right_pad = right_pad,
+    row = row,
+    top_pad = top_pad,
+    bottom_pad = bottom_pad,
+    width = left_pad + keycap_width + right_pad,
+    _keycap_width = keycap_width,
+  }
+  setmetatable(this, self)
+  return this
+end
+
+---Get string representation of a button
+---@return string
+function Button:__tostring()
+  local left_pad = strrep(" ", self.left_pad)
+  local right_pad = strrep(" ", self.right_pad)
+  return left_pad .. self.keycap .. right_pad
+end
+
+---Add padding to a button
+---@param padding number The amount of padding to add
+function Button:add_padding(padding, shift_left)
+  local total_padding = self.left_pad + self.right_pad + padding
+  local small_pad = math.floor(total_padding / 2)
+  local big_pad = math.ceil(total_padding / 2)
+  if shift_left then
+    self.left_pad = small_pad
+    self.right_pad = big_pad
+  else
+    self.left_pad = big_pad
+    self.right_pad = small_pad
+  end
+  self.width = small_pad + self._keycap_width + big_pad
+end
+
+---Center a button horizontally
+---@param width number The desired width
+function Button:center(width, shift_left)
+  local total_padding = width - self._keycap_width
+  local small_pad = math.floor(total_padding / 2)
+  local big_pad = math.ceil(total_padding / 2)
+  if shift_left then
+    self.left_pad = small_pad
+    self.right_pad = big_pad
+  else
+    self.left_pad = big_pad
+    self.right_pad = small_pad
+  end
+end
+
+---Return highlight details
+---@param highlight_padding table The table of highlight padding
+---@return number start_col The start column for highlights
+---@return number end_col The start column for highlights
+---@return number start_row The start column for highlights
+---@return number end_row The start column for highlights
+function Button:highlights(highlight_padding)
+  local left_padding = self.left_pad
+  local right_padding = self.right_pad
+  local left_highlight_padding = highlight_padding[2]
+  local right_highlight_padding = highlight_padding[4]
+  -- |<left padding=26>         K<right padding=26>        |
+  -- |<highlight padding left=1>K<hl padding right 1>      |
+  -- col_start = 26 - 1
+  -- calculate how many unhighlighted padding spaces there should be on the left
+  -- no less than 0, calculated as removing left_highlight_padding from left_padding
+  local start_col = math.max(0, left_padding - left_highlight_padding)
+
+  -- Calculate how many highlighted spaces there should be to the right
+  -- minimum of the highlight padding to the right and the available padding
+  local end_col = math.min(right_padding, right_highlight_padding)
+
+  local start_row = highlight_padding[1]
+  local end_row = highlight_padding[3]
+  return start_col, end_col, start_row, end_row
+end
+
 ---@class Layout
 ---@field options Options
 ---@field text Text
 ---@field layout string[]
 ---@field keycap_layout string[]
----@field keycap_positions table[]
+---@field buttons Button[] A table of Buttons for each keycode
 ---@field keycaps Keycap[]
 ---@field regions table[]
+---@field private _text Text The string representation
 local Layout = {}
 Layout.__index = Layout
 
@@ -46,41 +184,27 @@ function Layout:new(options)
     text = Text:new(),
     keycap_layout = options.layout,
     layout = {},
-    keycap_positions = {},
+    buttons = setmetatable({}, {
+      -- Ensure every entry in keycap_positions is a table
+      __index = function(tbl, key)
+        local new_tbl = {}
+        rawset(tbl, key, new_tbl)
+        return new_tbl
+      end,
+    }),
     regions = {},
   }
   setmetatable(this, self)
   return this
 end
 
-local function center(str, width, shift_left)
-  local total_padding = width - Text.len(str)
-  local small_pad = math.floor(total_padding / 2)
-  local big_pad = math.ceil(total_padding / 2)
-  if shift_left then
-    return strrep(" ", small_pad) .. str .. strrep(" ", big_pad), small_pad, big_pad
-  else
-    return strrep(" ", big_pad) .. str .. strrep(" ", small_pad), big_pad, small_pad
+---Get layout string
+---@return string layout The string representation
+function Layout:__tostring()
+  if not self._text then
+    self._text = self:calculate_layout()
   end
-end
-
--- This function calculates the highlighted keycap position
--- I hate string versus bytes
-function Layout.calculate_byte_position(row_text, keycap_position, highlight_padding)
-  local left_padding = keycap_position["left_pad"]
-  local right_padding = keycap_position["right_pad"]
-  local keycap = keycap_position["keycap"]
-  local left_highlight_padding = math.max(0, Text.len(left_padding) - highlight_padding[2])
-  -- Calculate the offset to the right
-  -- minimum of the highlight padding to the right and the available padding
-  local right_highlight_padding = math.min(Text.len(right_padding), highlight_padding[4])
-
-  row_text = row_text .. charset["ss  "]
-  local start_col = Text.len(row_text) + Text.len(string.rep(" ", left_highlight_padding))
-  row_text = row_text .. left_padding .. keycap
-  local end_col = Text.len(row_text) + Text.len(string.rep(" ", right_highlight_padding))
-  row_text = row_text .. left_padding .. keycap .. right_padding
-  return Text.get_key_highlight_position(row_text, start_col, end_col)
+  return tostring(self._text)
 end
 
 -- generate a string representation of the layout, e.g.
@@ -125,8 +249,9 @@ function Layout:calculate_layout()
 
   local keys_in_layout = Keycaps[self.keycap_layout]
 
-  -- prepare a table to hold the keycaps
-  local key_strings = {}
+  local separator_width = vim.fn.strwidth(charset["ss  "])
+  -- prepare a table to hold the buttons for each row
+  local row_buttons = {}
   -- keep track of the column within each row for the keycap
   local column_index = 1
   -- keep track of the row on the keyboard display
@@ -136,99 +261,65 @@ function Layout:calculate_layout()
 
   -- captures how many spaces to put around labels
   local padding = self.options.key_labels.padding
-  -- captures how much highlighting to put around labels
-  local highlight_padding = self.options.key_labels.highlight_padding
   -- place keys in rows
   for i = 1, #keys_in_layout do
-    local keycap = keys_in_layout[i][2]
-    if self.options.key_labels[keycap] then
-      keycap = self.options.key_labels[keycap]
+    local keycode = keys_in_layout[i][2]
+    local keycap = keycode
+    if self.options.key_labels[keycode] then
+      keycap = self.options.key_labels[keycode]
     end
-    local keycap_entry = keycap
-    local left_pad = strrep(" ", padding[2])
-    local right_pad = strrep(" ", padding[4])
-    keycap = left_pad .. keycap .. right_pad
-    -- store the keycap label
-    key_strings[column_index] = keycap
+    local button = Button:new(keycap, keycode, row_index, padding[2], padding[4], padding[1], padding[3])
+    table.insert(row_buttons, button)
     -- this is more efficient than using `table.insert`
     column_index = column_index + 1
     local row_len = row_lengths[row_index] or 0
-    -- add 1 for counting the separator
-    row_lengths[row_index] = row_len + Text.len(keycap) + 1
-    print("Add keycap entry for " .. keycap_entry)
-    self.keycap_positions[keycap_entry] = {
-      ["keycap"] = keycap_entry,
-      ["left_pad"] = left_pad,
-      ["right_pad"] = right_pad,
-      -- output row = upper padding * rows above
-      -- output row = output row + lower padding * rows above
-      -- output row = output row + upper padding + rows of characters above + separator rows above
-      -- output row = padding[1] * (i - 1) + padding[3] * (i - 1) + padding[1] + i + i
-      -- output row = padding[1] * (i) + padding[3] * (i - 1) + i + i
-      -- output row = padding[1] * (i) + padding[3] * (i) - padding[3] + i + i
-      -- Need to subtract by one to account for the top row
-      row = row_index + row_index + (padding[1] + padding[3]) * row_index - padding[3] - 1,
-      -- TODO: Support highlighting above and below
-    }
-    longest_row_length = max(longest_row_length, row_lengths[row_index])
+    row_len = row_len + button.width + separator_width
+    row_lengths[row_index] = row_len
+
+    table.insert(self.buttons[keycode], button)
+    longest_row_length = max(longest_row_length, row_len)
     if column_index > row_sizes[row_index] then
       -- restart the column and row index
       column_index = 1
-      rows[row_index] = key_strings
-      key_strings = {}
       row_index = row_index + 1
+      table.insert(rows, row_buttons)
+      row_buttons = {}
     end
   end
   -- store the last row
-  rows[row_index] = key_strings
+  table.insert(rows, row_buttons)
 
   -- resize first and last columns based on the longest row
+  -- bottom row is excluded because the space button gets the padding
   for i = 1, #rows - 1 do
     local end_column = row_sizes[i]
     local row_length_delta = longest_row_length - row_lengths[i]
     local start_column_pad = math.ceil(row_length_delta / 2)
     local end_column_pad = math.floor(row_length_delta / 2)
-    local keycap, left_pad, right_pad = center(rows[i][1], Text.len(rows[i][1]) + start_column_pad, true)
-    self.keycap_positions[vim.trim(keycap)]["left_pad"] = string.rep(" ", left_pad)
-      .. self.keycap_positions[vim.trim(keycap)]["left_pad"]
-    self.keycap_positions[vim.trim(keycap)]["right_pad"] = string.rep(" ", right_pad)
-      .. self.keycap_positions[vim.trim(keycap)]["right_pad"]
-    rows[i][1] = keycap
-    keycap, left_pad, right_pad = center(rows[i][end_column], Text.len(rows[i][end_column]) + end_column_pad)
-    self.keycap_positions[vim.trim(keycap)]["left_pad"] = string.rep(" ", left_pad)
-      .. self.keycap_positions[vim.trim(keycap)]["left_pad"]
-    self.keycap_positions[vim.trim(keycap)]["right_pad"] = string.rep(" ", right_pad)
-      .. self.keycap_positions[vim.trim(keycap)]["right_pad"]
-    rows[i][end_column] = keycap
+    local row_start_button = rows[i][1]
+    local row_end_button = rows[i][end_column]
+
+    row_start_button:add_padding(start_column_pad, true)
+    row_end_button:add_padding(end_column_pad, false)
   end
 
   -- resize space button
   do
     local row_length_delta = longest_row_length - row_lengths[5]
-    local keycap, left_pad, right_pad = center(rows[5][4], Text.len(rows[5][4]) + row_length_delta)
-    rows[5][4] = keycap
-    self.keycap_positions[vim.trim(keycap)]["left_pad"] = string.rep(" ", left_pad)
-      .. self.keycap_positions[vim.trim(keycap)]["left_pad"]
-    self.keycap_positions[vim.trim(keycap)]["right_pad"] = string.rep(" ", right_pad)
-      .. self.keycap_positions[vim.trim(keycap)]["right_pad"]
+    -- Get the <Space> button from the layout
+    -- At this point there should be at least one
+    local button = self.buttons["<SPACE>"][1]
+    button:add_padding(row_length_delta)
   end
 
   -- calculate keycap separator locations
   for i = 1, #rows do
     local row = rows[i]
     local row_length = 0
-    local row_text = ""
     for col = 1, #row do
-      local keycap = row[col]
-      local keycap_entry = vim.trim(keycap)
-      local keycap_position =
-        Layout.calculate_byte_position(row_text, self.keycap_positions[keycap_entry], highlight_padding)
-      row_text = row_text .. charset["ss  "] .. keycap
-
-      self.keycap_positions[keycap_entry]["from"] = keycap_position["from"]
-      self.keycap_positions[keycap_entry]["to"] = keycap_position["to"]
+      local button = row[col]
       -- add the length of the separator
-      row_length = row_length + Text.len(row[col]) + Text.len(charset["ss  "])
+      row_length = row_length + button.width + separator_width
       -- mark where there is a separator
       keycap_separator_columns[i][row_length] = true
     end
@@ -238,8 +329,9 @@ function Layout:calculate_layout()
   local top_row = { charset[" s s"] }
   for col = 1, #rows[1] do
     local row = rows[1]
-    if Text.len(row[col]) > 0 then
-      table.insert(top_row, strrep("─", Text.len(row[col])))
+    local button = row[col]
+    if button.width > 0 then
+      table.insert(top_row, strrep("─", button.width))
     end
     if col < #rows[1] then
       table.insert(top_row, charset[" sss"])
@@ -253,51 +345,49 @@ function Layout:calculate_layout()
   -- add lines between keys
   -- this part is weird because we're adding the border
   -- to the bottom right of each cell
-  for i = 1, #rows do
-    local row = rows[i]
+  for i, row in ipairs(rows) do
     local separator_row = {}
     local pad_row = {}
+    -- insert a start character
+    local line_opts = {
+      (i > 0 and "s") or " ", -- up
+      (i < #rows and "s") or " ", -- down
+      (false and "s") or " ", -- left
+      "s", -- right
+    }
+    local char = get_line(line_opts)
+    table.insert(separator_row, char)
+    local pad_opts = {
+      (i > 0 and "s") or " ", -- up
+      (i <= #rows and "s") or " ", -- down
+      " ", -- left
+      " ", -- right
+    }
+    local pad_char = get_line(pad_opts)
+    table.insert(pad_row, pad_char)
+
+    -- keycap_separator_columns assume there is no character to the left
     for pos = 1, longest_row_length do
       local up_line = (keycap_separator_columns[i] or {})[pos]
       local down_line = (keycap_separator_columns[i + 1] or {})[pos]
       local left_line = pos > 0
       local right_line = pos < longest_row_length
 
-      -- insert a start character
-      if pos == 1 then
-        local line_opts = {
-          (i > 0 and "s") or " ", -- up
-          (i < #rows and "s") or " ", -- down
-          (false and "s") or " ", -- left
-          (right_line and "s") or " ", -- right
-        }
-        local char = get_line(line_opts)
-        table.insert(separator_row, char)
-        local pad_opts = {
-          (i > 0 and "s") or " ", -- up
-          (i <= #rows and "s") or " ", -- down
-          " ", -- left
-          " ", -- right
-        }
-        local pad_char = get_line(pad_opts)
-        table.insert(pad_row, pad_char)
-      end
-
-      local line_opts = {
+      line_opts = {
         (up_line and "s") or " ", -- up
         (down_line and "s") or " ", -- down
         (left_line and "s") or " ", -- left
         (right_line and "s") or " ", -- right
       }
-      local char = get_line(line_opts)
+      char = get_line(line_opts)
       table.insert(separator_row, char)
-      local pad_opts = {
+      pad_opts = {
         (up_line and "s") or " ", -- up
         (up_line and "s") or " ", -- down
         " ", -- left
         " ", -- right
       }
-      local pad_char = get_line(pad_opts)
+      pad_char = get_line(pad_opts)
       table.insert(pad_row, pad_char)
     end
     -- add top padding
@@ -305,7 +395,11 @@ function Layout:calculate_layout()
       self.text:append(table.concat(pad_row))
       table.insert(self.layout, pad_row)
     end
-    self.text:append("│" .. table.concat(row, "│") .. "│")
+    local _keycap_strings = {}
+    for _, button in ipairs(row) do
+      table.insert(_keycap_strings, tostring(button))
+    end
+    self.text:append("│" .. table.concat(_keycap_strings, "│") .. "│")
     table.insert(self.layout, row)
     -- add bottom padding
     for _ = 1, self.options.key_labels.padding[3] do
