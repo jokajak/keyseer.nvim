@@ -140,40 +140,42 @@ describe("q_keycap_position_test", function()
   local layout = Layout:new({ layout = "qwerty", key_labels = { padding = { 0, 1, 0, 1 } } })
   layout:calculate_layout()
   it("gets_the_row", function()
-    local res = layout.keycap_positions["q"]
-    assert.combinators.match(3, res.row)
-    assert.combinators.match(16, res.from)
-    assert.combinators.match(17, res.to)
+    local button = layout.buttons["q"][1]
+    assert.combinators.match(3, button.row)
   end)
   it("gets_the_column", function()
-    local res = layout.keycap_positions["0"]
-    assert.combinators.match(1, res.row)
-    assert.combinators.match(66, res.from)
-    assert.combinators.match(67, res.to)
+    local button = layout.buttons["0"][1]
+    assert.combinators.match(65, button.left_byte_col)
+    assert.combinators.match(68, button.right_byte_col)
   end)
   it("pads_left", function()
     local h_layout =
       Layout:new({ layout = "qwerty", key_labels = { padding = { 0, 1, 0, 1 }, highlight_padding = { 0, 1, 0, 0 } } })
     h_layout:calculate_layout()
-    local res = h_layout.keycap_positions["0"]
+    local res = h_layout.buttons["0"][1]
     assert.combinators.match(1, res.row)
-    assert.combinators.match(65, res.from)
-    assert.combinators.match(67, res.to)
+    assert.combinators.match(65, res.left_byte_col)
+    assert.combinators.match(68, res.right_byte_col)
   end)
   it("calculates_backtick_pos", function()
-    local res = layout.keycap_positions["`"]
+    -- | ` |
+    --│  `  │
+    --1234567 <-- character positions
+    -- ^--- start of button, byte = 3
+    --      ^-- end of button, byte = 3 + 5 (width of button)
+    local res = layout.buttons["`"][1]
     assert.combinators.match(1, res.row)
-    assert.combinators.match(5, res.from)
-    assert.combinators.match(6, res.to)
+    assert.combinators.match(3, res.left_byte_col)
+    assert.combinators.match(8, res.right_byte_col)
   end)
   it("highlights_right", function()
     local h_layout =
       Layout:new({ layout = "qwerty", key_labels = { padding = { 0, 1, 0, 1 }, highlight_padding = { 0, 0, 0, 1 } } })
     h_layout:calculate_layout()
-    local res = h_layout.keycap_positions["0"]
+    local res = h_layout.buttons["0"][1]
     assert.combinators.match(1, res.row)
-    assert.combinators.match(66, res.from)
-    assert.combinators.match(68, res.to)
+    assert.combinators.match(65, res.left_byte_col)
+    assert.combinators.match(68, res.right_byte_col)
   end)
 end)
 

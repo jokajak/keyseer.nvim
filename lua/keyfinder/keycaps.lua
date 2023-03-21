@@ -1,5 +1,10 @@
+---@class KeycodeMap
+---@field qwerty_keycap string The keycap on a qwerty keyboard
+---@field keycode string The neovim keycode
+
 local M = {}
 
+---@type KeycodeMap[]
 M.qwerty = {
   [1] = { "`", "`" },
   [2] = { "1", "1" },

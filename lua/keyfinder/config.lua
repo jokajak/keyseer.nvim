@@ -2,19 +2,13 @@ local M = {}
 
 M.namespace = vim.api.nvim_create_namespace("Keyfinder")
 
----@class offset_options
----@field top integer
----@field right integer
----@field bottom integer
----@field left integer
-
 ---@class key_label_options
----@field padding offset_options
----@field highlight_padding offset_options
+---@field padding PaddingBox
+---@field highlight_padding PaddingBox
 
 ---@class window_options
 ---@field border string border options
----@field margin offset_options
+---@field margin PaddingBox
 ---@field winblend integer vim.opt.winblend
 ---@field rows integer minimum height of window
 ---@field columns integer minimum width of window

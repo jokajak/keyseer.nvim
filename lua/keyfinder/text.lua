@@ -52,15 +52,15 @@ function Text:append(line)
   end
 end
 
-function Text.get_key_highlight_position(line, from, to)
+---Get the start column and end column
+---@return number start_col the start column
+---@return number end_col the end column
+function Text.get_str_columns(line, from, to)
   local before = vim.fn.strcharpart(line, 0, from)
   local str = vim.fn.strcharpart(line, 0, to)
   from = vim.fn.strlen(before)
   to = vim.fn.strlen(str)
-  return {
-    from = from,
-    to = to,
-  }
+  return from, to
 end
 
 return Text

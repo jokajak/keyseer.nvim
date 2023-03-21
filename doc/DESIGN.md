@@ -46,8 +46,30 @@ Run:
 2. For each key mapping, get the next key codes
     * the next key codes could be a list of key codes
 3. Set the highlight based on the information about the next key code
-    * longer mappings means it's a prefix
-    * more than one mapping means it's a group
-    * could be included with shift
-    * could be included with meta
-    * could be included with ctr
+  * longer mappings means it's a prefix
+  * more than one mapping means it's a group
+  * could be included with shift
+  * could be included with meta
+  * could be included with ctr
+
+## 8 Mar 2023 Idea
+
+* Keyfinder the plugin is responsible providing a mechanism to open a keyfinder object
+* The keyfinder object is responsible for the core functionality:
+    * Manage the buffer
+    * Track the state
+    * Manage the keymaps for the buffer
+
+## Usability Goals
+
+* The keyboard should display the key buttons
+* Key buttons that have a keymap for the button should be highlighted
+* Pressing `<S-<leader>>` should toggle whether or not the `Shift` key should be considered down. In other words modifying
+  if we check for upper case or lower case for a key button
+* Pressing `<C-<leader>>` should toggle whether or not the `Ctrl` key should be considered down. In other words
+  modifying if we display buttons.
+* Pressing `<M-<leader>>` should toggle whether or not the `Meta` key should be considered down. In other words
+  modifying if we display buttons.
+* The state of the modifier buttons should be displayed at the bottom of the buffer
+* The state of the modifier buttons should default to off
+* The Keyfinder plugin will expose an API that will allow specifying the initial state of the modifier buttons.

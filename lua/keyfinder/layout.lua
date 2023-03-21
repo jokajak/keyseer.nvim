@@ -34,21 +34,44 @@ end
 ---@field row number The row of the string on the output
 ---@field top_row number The top row of the button in the output
 ---@field bottom_row number The bottom row of the button on the output
----@field private _keycap_width number The width of the keycap string
+---@field left_col number The leftmost column of the button in the output
+---@field right_col number The rightmost column of the button in the output
+---@field highlight_box HighlightBox The highlight box for the button
 ---@field width number The width of the entire button
+---@field private _keycap_width number The width of the keycap string
+---@field private _highlights BoundingBox the highlight padding around the keycap
 local Button = {}
 Button.__index = Button
+
+---@class HighlightBox
+---@field start_col number The start column
+---@field end_col number The end column
+---@field start_row number The start row
+---@field end_row number The end row
+
+---@class PaddingBox
+---@field left_pad number The number of spaces to the left of the keycap string
+---@field right_pad number The number of spaces to the right of the keycap string
+---@field top_pad number The number of blank lines above the keycap string
+---@field bottom_pad number The number of blank lines below the keycap string
+
+---@class BoundingBox
+---@field left number The number of spaces to the left of the keycap string
+---@field right number The number of spaces to the right of the keycap string
+---@field top number The number of blank lines above the keycap string
+---@field bottom number The number of blank lines below the keycap string
 
 ---Generate a new button object
 ---@param keycap string The string that gets rendered on screen
 ---@param keycode string The neovim key
 ---@param row_index number The row for the button
----@param left_pad number The number of spaces to the left of the keycap string
----@param right_pad number The number of spaces to the right of the keycap string
----@param top_pad number The number of blank lines above the keycap string
----@param bottom_pad number The number of blank lines below the keycap string
+---@param padding_box PaddingBox the padding around the keycap
+---@param highlight_box PaddingBox the highlight padding around the keycap
 ---@return Button
-function Button:new(keycap, keycode, row_index, left_pad, right_pad, top_pad, bottom_pad)
+function Button:new(keycap, keycode, row_index, padding_box, highlight_box)
+  local top_pad, left_pad, bottom_pad, right_pad = padding_box[1], padding_box[2], padding_box[3], padding_box[4]
+  local hl_top, hl_left, hl_bottom, hl_right = highlight_box[1], highlight_box[2], highlight_box[3], highlight_box[4]
+
   -- let text_height = 1
   -- let separator_height = 1
   -- let height of button = top_pad + text_height + bottom_pad
@@ -88,10 +111,18 @@ function Button:new(keycap, keycode, row_index, left_pad, right_pad, top_pad, bo
     left_pad = left_pad,
     right_pad = right_pad,
     row = row,
-    top_pad = top_pad,
-    bottom_pad = bottom_pad,
+    top_row = row - top_pad,
+    bottom_row = row + bottom_pad,
     width = left_pad + keycap_width + right_pad,
     _keycap_width = keycap_width,
+    _highlights = {
+      top = hl_top,
+      bottom = hl_bottom,
+      left = hl_left,
+      right = hl_right,
+    },
+    left_byte_col = 0,
+    right_byte_col = left_pad + keycap_width + right_pad,
   }
   setmetatable(this, self)
   return this
@@ -121,46 +152,49 @@ function Button:add_padding(padding, shift_left)
   self.width = small_pad + self._keycap_width + big_pad
 end
 
----Center a button horizontally
----@param width number The desired width
-function Button:center(width, shift_left)
-  local total_padding = width - self._keycap_width
-  local small_pad = math.floor(total_padding / 2)
-  local big_pad = math.ceil(total_padding / 2)
-  if shift_left then
-    self.left_pad = small_pad
-    self.right_pad = big_pad
-  else
-    self.left_pad = big_pad
-    self.right_pad = small_pad
-  end
-end
-
----Return highlight details
----@param highlight_padding table The table of highlight padding
+---Get highlight details
 ---@return number start_col The start column for highlights
----@return number end_col The start column for highlights
----@return number start_row The start column for highlights
----@return number end_row The start column for highlights
-function Button:highlights(highlight_padding)
+---@return number end_col The end column for highlights
+---@return number start_row The start row for highlights
+---@return number end_row The end row for highlights
+function Button:get_highlights()
   local left_padding = self.left_pad
   local right_padding = self.right_pad
-  local left_highlight_padding = highlight_padding[2]
-  local right_highlight_padding = highlight_padding[4]
   -- |<left padding=26>         K<right padding=26>        |
   -- |<highlight padding left=1>K<hl padding right 1>      |
   -- col_start = 26 - 1
   -- calculate how many unhighlighted padding spaces there should be on the left
   -- no less than 0, calculated as removing left_highlight_padding from left_padding
-  local start_col = math.max(0, left_padding - left_highlight_padding)
+  local start_col = math.max(0, left_padding - self._highlights.left)
 
   -- Calculate how many highlighted spaces there should be to the right
   -- minimum of the highlight padding to the right and the available padding
-  local end_col = math.min(right_padding, right_highlight_padding)
+  local end_col = math.min(right_padding, self._highlights.right)
 
-  local start_row = highlight_padding[1]
-  local end_row = highlight_padding[3]
+  local top_row = self.top_row
+  local bottom_row = self.bottom_row
+  local start_row = self.row - math.max(0, top_row - self._highlights.top)
+  local end_row = self.row + math.min(bottom_row, self._highlights.bottom)
   return start_col, end_col, start_row, end_row
+end
+
+---Set button position in layout
+---@param col number The column for the button to start
+function Button:set_button_byte_position(col)
+  -- strcharpart('abc', -1, 2)
+  --            -1012
+  --     start --^
+  --       end ----^
+  --       returns a
+  -- based on strcharpart
+  -- |  1  |
+  -- 12345
+  -- --^ = start col = 3
+  -- ----^ = end col = 5
+  -- would return 1 which is what we want
+  -- right_col therefore = col + self._keycap_width + self.right_pad
+  self.left_byte_col = col
+  self.right_byte_col = col + self.width
 end
 
 ---@class Layout
@@ -205,6 +239,22 @@ function Layout:__tostring()
     self._text = self:calculate_layout()
   end
   return tostring(self._text)
+end
+
+---Get the start column and end column
+---@param line string The string of characters to find byte positions
+---@param from number The start column
+---@param to number The end column
+---@return number start_col the start column in bytes
+---@return number end_col the end column in bytes
+local function get_str_bytes(line, from, to)
+  -- Because the separators are multi-byte strings,
+  -- we have to do a conversion for highlighting purposes
+  local before = vim.fn.strcharpart(line, 0, from)
+  local str = vim.fn.strcharpart(line, 0, to)
+  from = vim.fn.strlen(before)
+  to = vim.fn.strlen(str)
+  return from, to
 end
 
 -- generate a string representation of the layout, e.g.
@@ -268,7 +318,7 @@ function Layout:calculate_layout()
     if self.options.key_labels[keycode] then
       keycap = self.options.key_labels[keycode]
     end
-    local button = Button:new(keycap, keycode, row_index, padding[2], padding[4], padding[1], padding[3])
+    local button = Button:new(keycap, keycode, row_index, padding, self.options.key_labels.highlight_padding)
     table.insert(row_buttons, button)
     -- this is more efficient than using `table.insert`
     column_index = column_index + 1
@@ -316,8 +366,12 @@ function Layout:calculate_layout()
   for i = 1, #rows do
     local row = rows[i]
     local row_length = 0
+    local row_text = charset["ss  "]
     for col = 1, #row do
       local button = row[col]
+      row_text = row_text .. tostring(button) .. charset["ss  "]
+      local start_col, _ = get_str_bytes(row_text, row_length + 1, row_length + button.width)
+      button:set_button_byte_position(start_col)
       -- add the length of the separator
       row_length = row_length + button.width + separator_width
       -- mark where there is a separator
