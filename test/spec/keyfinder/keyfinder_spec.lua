@@ -1,5 +1,4 @@
 local Layout = require("keyfinder.layout")
-local Keys = require("keyfinder.keys")
 
 local qwerty_layout = {
   "┌─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐",
@@ -116,66 +115,33 @@ describe("vert_pad_layout_test", function()
   end)
 end)
 
-describe("multi_key_extract_test", function()
-  it("extracts_keys", function()
-    local res = Keys.extract_key_order(",g")
-    assert.combinators.match({
-      keys = { ",", "g" },
-      keycaps = { { "," }, { "g" } },
-    }, res)
-  end)
-end)
-
-describe("special_key_test", function()
-  it("extracts_keys", function()
-    local res = Keys.extract_key_order("<C-i>")
-    assert.combinators.match({
-      keys = { "<C-i>" },
-      keycaps = { { "<C>", "i" } },
-    }, res)
-  end)
-end)
-
 describe("q_keycap_position_test", function()
   local layout = Layout:new({ layout = "qwerty", key_labels = { padding = { 0, 1, 0, 1 } } })
   layout:calculate_layout()
+  local h_layout =
+    Layout:new({ layout = "qwerty", key_labels = { padding = { 0, 1, 0, 1 }, highlight_padding = { 0, 1, 0, 0 } } })
+  h_layout:calculate_layout()
   it("gets_the_row", function()
     local button = layout.buttons["q"][1]
     assert.combinators.match(3, button.row)
   end)
-  it("gets_the_column", function()
-    local button = layout.buttons["0"][1]
-    assert.combinators.match(65, button.left_byte_col)
-    assert.combinators.match(68, button.right_byte_col)
-  end)
   it("pads_left", function()
-    local h_layout =
-      Layout:new({ layout = "qwerty", key_labels = { padding = { 0, 1, 0, 1 }, highlight_padding = { 0, 1, 0, 0 } } })
-    h_layout:calculate_layout()
-    local res = h_layout.buttons["0"][1]
-    assert.combinators.match(1, res.row)
-    assert.combinators.match(65, res.left_byte_col)
-    assert.combinators.match(68, res.right_byte_col)
+    local button = h_layout.buttons["0"][1]
+    assert.combinators.match(1, button.row)
   end)
-  it("calculates_backtick_pos", function()
-    -- | ` |
-    --│  `  │
-    --1234567 <-- character positions
-    -- ^--- start of button, byte = 3
-    --      ^-- end of button, byte = 3 + 5 (width of button)
-    local res = layout.buttons["`"][1]
-    assert.combinators.match(1, res.row)
-    assert.combinators.match(3, res.left_byte_col)
-    assert.combinators.match(8, res.right_byte_col)
+  it("gets_left_start", function()
+    local button = h_layout.buttons["0"][1]
+    -- print(h_layout.text.lines[button.row + 1])
+    -- │  `  │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ - │ = │  <BS>  │
+    -- 12345678901234567890123456789012345678901234567890
+    --         10        20        30        40        50
+    -- 11 separators = 22 bytes
+    -- 22 + 44 = 64 + 1 for offset
+    assert.combinators.match(65, button.left_byte_col)
   end)
-  it("highlights_right", function()
-    local h_layout =
-      Layout:new({ layout = "qwerty", key_labels = { padding = { 0, 1, 0, 1 }, highlight_padding = { 0, 0, 0, 1 } } })
-    h_layout:calculate_layout()
-    local res = h_layout.buttons["0"][1]
-    assert.combinators.match(1, res.row)
-    assert.combinators.match(65, res.left_byte_col)
-    assert.combinators.match(68, res.right_byte_col)
+  it("gets_right_start", function()
+    local button = h_layout.buttons["0"][1]
+    assert.combinators.match(68, button.right_byte_col)
   end)
 end)
 

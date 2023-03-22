@@ -79,21 +79,22 @@ local function set_highlights(layout, mappings, window_options)
     end
     if buttons then
       for _, button in ipairs(buttons) do
-        local row = button.row
+        local row_offset = 0
         if window_options.show_title then
-          row = row + window_options.header_lines
+          row_offset = window_options.header_lines
         end
-        local key_label_options = layout.options.key_labels
-        local top_highlights = math.min(key_label_options.padding[1], key_label_options.highlight_padding[1])
-        local bottom_highlights = math.min(key_label_options.padding[3], key_label_options.highlight_padding[3])
-        local first_row = row - top_highlights
-        local last_row = row + bottom_highlights
-        for i = first_row, row, 1 do
-          highlight(M.buf, config.namespace, group, i, button.left_byte_col, button.right_byte_col)
-        end
-        for i = row, last_row, 1 do
-          highlight(M.buf, config.namespace, group, i, button.left_byte_col, button.right_byte_col)
-        end
+        button:highlight(M.buf, config.namespace, group, row_offset)
+        -- local key_label_options = layout.options.key_labels
+        -- local top_highlights = math.min(key_label_options.padding[1], key_label_options.highlight_padding[1])
+        -- local bottom_highlights = math.min(key_label_options.padding[3], key_label_options.highlight_padding[3])
+        -- local first_row = row - top_highlights
+        -- local last_row = row + bottom_highlights
+        -- for i = first_row, row, 1 do
+        --   highlight(M.buf, config.namespace, group, i, button.left_byte_col, button.right_byte_col)
+        -- end
+        -- for i = row, last_row, 1 do
+        --   highlight(M.buf, config.namespace, group, i, button.left_byte_col, button.right_byte_col)
+        -- end
       end
     else
       print("Unable to find keycap_position for " .. keycode .. ", checked for " .. Keycap.to_lower(keycode))
@@ -312,7 +313,6 @@ function M.render(layout, mappings)
   local start_row = 0
   if config.options.window.show_title then
     make_header(M, width)
-    -- TODO: Make header_lines work better
     start_row = config.options.window.header_lines
   end
   vim.api.nvim_buf_set_lines(M.buf, start_row, -1, false, text.lines)

@@ -40,6 +40,7 @@ end
 ---@field width number The width of the entire button
 ---@field private _keycap_width number The width of the keycap string
 ---@field private _highlights BoundingBox the highlight padding around the keycap
+---@field private _padding BoundingBox the display padding around the keycap
 local Button = {}
 Button.__index = Button
 
@@ -78,32 +79,19 @@ function Button:new(keycap, keycode, row_index, padding_box, highlight_box)
   -- let row height = separator_height + height of button
   -- (each row shares a separator row with the one above it)
   --
-  -- 1 |--------- <-- separator |
-  -- 2 | top_pad                |
-  -- 3 | keycap                 | row_index = 1
-  -- 4 | bottom_pad             |
-  -- 5 |--------- <-- separator |
-  -- 6 | top_pad                |
-  -- 7 | keycap                 | row_index = 2
+  -- 0 |--------- <-- separator |
+  -- 1 | top_pad                |
+  -- 2 | keycap                 | row_index = 1
+  -- 3 | bottom_pad             |
+  -- 4 |--------- <-- separator |
+  -- 5 | top_pad                |
+  -- 6 | keycap2                | row_index = 2
   --
-  -- row for keycap = (rows_above) * (top_pad + bottom_pad + keycap_height + separator_height) + top_pad
-  -- row for keycap = (row_index - 1) * (top_pad + bottom_pad + 1 + 1) + top_pad
-  -- row for keycap = (row_index) * (top_pad + bottom_pad + 2) - (top_pad + bottom_pad + 2) + tap_pad
-  -- row for keycap = row_index * top_pad + row_index * bottom_pad + row_index * 2
-  --                - top_pad - bottom_pad - 2 + top_pad
-  -- row for keycap = row_index * top_pad + row_index * bottom_pad - bottom_pad + row_index * 2 - 2
-  -- row for keycap = row_index + row_index + (top_pad + bottom_pad) * row_index - bottom_pad - 2
-  --
+  -- row = (separator_height + top_pad + bottom_pad + key_height) * (row_index - 1) + (separator_height + top_pad)
+  -- keycap1 = (1 + 1 + 1 + 1) * 0 + (1 + 1) = 2
+  -- keycap2 = (1 + 1 + 1 + 1) * 1 + (1 + 1) = 4 + 2 = 6
   -- This math is confusing but appears to be correct
-  --
-  -- output row = upper padding * rows above
-  -- output row = output row + lower padding * rows above
-  -- output row = output row + upper padding + rows of characters above + separator rows above
-  -- output row = padding[1] * (i - 1) + padding[3] * (i - 1) + padding[1] + i + i
-  -- output row = padding[1] * (i) + padding[3] * (i - 1) + i + i
-  -- output row = padding[1] * (i) + padding[3] * (i) - padding[3] + i + i
-  -- Need to subtract by one to account for the top row
-  local row = row_index + row_index + (top_pad + bottom_pad) * row_index - bottom_pad - 1
+  local row = (top_pad + bottom_pad + 1 + 1) * (row_index - 1) + (1 + top_pad)
   local keycap_width = vim.fn.strwidth(keycap)
   local this = {
     keycap = keycap,
@@ -111,8 +99,6 @@ function Button:new(keycap, keycode, row_index, padding_box, highlight_box)
     left_pad = left_pad,
     right_pad = right_pad,
     row = row,
-    top_row = row - top_pad,
-    bottom_row = row + bottom_pad,
     width = left_pad + keycap_width + right_pad,
     _keycap_width = keycap_width,
     _highlights = {
@@ -120,6 +106,12 @@ function Button:new(keycap, keycode, row_index, padding_box, highlight_box)
       bottom = hl_bottom,
       left = hl_left,
       right = hl_right,
+    },
+    _padding = {
+      top = top_pad,
+      bottom = bottom_pad,
+      left = left_pad,
+      right = right_pad,
     },
     left_byte_col = 0,
     right_byte_col = left_pad + keycap_width + right_pad,
@@ -145,37 +137,49 @@ function Button:add_padding(padding, shift_left)
   if shift_left then
     self.left_pad = small_pad
     self.right_pad = big_pad
+    self._padding.left = small_pad
+    self._padding.right = big_pad
   else
     self.left_pad = big_pad
     self.right_pad = small_pad
+    self._padding.left = big_pad
+    self._padding.right = small_pad
   end
   self.width = small_pad + self._keycap_width + big_pad
 end
 
 ---Get highlight details
----@return number start_col The start column for highlights
----@return number end_col The end column for highlights
+---@return number start_col The byte start column for highlights
+---@return number end_col The byte end column for highlights
 ---@return number start_row The start row for highlights
 ---@return number end_row The end row for highlights
 function Button:get_highlights()
-  local left_padding = self.left_pad
-  local right_padding = self.right_pad
+  local left_padding = self._padding.left
+  local right_padding = self._padding.right
   -- |<left padding=26>         K<right padding=26>        |
   -- |<highlight padding left=1>K<hl padding right 1>      |
   -- col_start = 26 - 1
   -- calculate how many unhighlighted padding spaces there should be on the left
+  -- before = vim.fn.strcharpart(line, 0, left_pad + row_prefix)
+  -- after = vim.fn.strcharpart(line, 0, row_prefix + left_pad + button._keycap_width)
   -- no less than 0, calculated as removing left_highlight_padding from left_padding
-  local start_col = math.max(0, left_padding - self._highlights.left)
+  local start_col = math.max(0, left_padding - self._highlights.left) + self.left_byte_col
 
   -- Calculate how many highlighted spaces there should be to the right
   -- minimum of the highlight padding to the right and the available padding
-  local end_col = math.min(right_padding, self._highlights.right)
+  -- end_col = self.left_byte_col + self._keycap_width + left_padding +
+  -- local end_col = self.right_byte_col - math.min(right_padding, self._highlights.right)
+  local highlight_right_cols = math.min(right_padding, self._highlights.right)
+  local end_col = self.left_byte_col + left_padding + self._keycap_width + highlight_right_cols
+  local col_end = self.right_byte_col - self._padding.right + highlight_right_cols
+  if end_col ~= col_end then
+    print("Math is hard.")
+  end
 
-  local top_row = self.top_row
-  local bottom_row = self.bottom_row
-  local start_row = self.row - math.max(0, top_row - self._highlights.top)
-  local end_row = self.row + math.min(bottom_row, self._highlights.bottom)
-  return start_col, end_col, start_row, end_row
+  -- if someone makes highlight really big then the start row should be the top_row
+  local start_row = self.row - math.min(self._padding.top, self._highlights.top)
+  local end_row = self.row + math.min(self._padding.bottom, self._highlights.bottom)
+  return start_col, col_end, start_row, end_row
 end
 
 ---Set button position in layout
@@ -195,6 +199,18 @@ function Button:set_button_byte_position(col)
   -- right_col therefore = col + self._keycap_width + self.right_pad
   self.left_byte_col = col
   self.right_byte_col = col + self.width
+end
+
+---Highlight a buffer
+---@param bufnr buffer A buffer
+---@param namespace number The namespace for the highlights
+---@param highlight_group string The highlighting to apply to the button
+---@param row_offset number The row offset in case there's something above the row (like a header)
+function Button:highlight(bufnr, namespace, highlight_group, row_offset)
+  local col_start, col_end, start_row, end_row = self:get_highlights()
+  for row = start_row, end_row do
+    vim.api.nvim_buf_add_highlight(bufnr, namespace, highlight_group, row + row_offset, col_start, col_end)
+  end
 end
 
 ---@class Layout

@@ -1,0 +1,68 @@
+local Layout = require("keyfinder.layout")
+
+describe("highlights_backtick_tests", function()
+  local layout = Layout:new({ layout = "qwerty", key_labels = { padding = { 0, 0, 0, 0 } } })
+  layout:calculate_layout()
+  ---@type Button
+  local button = layout.buttons["`"][1]
+  -- local line = layout.text.lines[2]
+  -- local row_prefix = vim.fn.strwidth("│")
+  -- print(line)
+  -- local before = vim.fn.strcharpart(line, 0, row_prefix)
+  -- local after = vim.fn.strcharpart(line, 0, row_prefix + button.width)
+  -- print("Before:>" .. before .. "<- (" .. vim.fn.strlen(before) .. ")")
+  -- print("After:->" .. after .. "<- (" .. vim.fn.strlen(after) .. ")")
+  local start_col, end_col, start_row, end_row = button:get_highlights()
+  --│   `   │1│2│3│4│5│6│7│8│9│0│-│=│   <BS>  │
+  --123456789 <-- character positions
+  -- ^--- start of button, byte = 3
+  --        ^-- end of button, byte = 3 + 7 (width of button)
+  it("gets_the_row", function()
+    assert.combinators.match(1, button.row)
+  end)
+  it("has_the_left_byte_col", function()
+    assert.combinators.match(3, button.left_byte_col)
+  end)
+  it("has_the_right_byte_col", function()
+    assert.combinators.match(10, button.right_byte_col)
+  end)
+  it("has_the_width", function()
+    assert.combinators.match(7, button.width)
+  end)
+  it("gets_the_highlight_start_col", function()
+    -- local left_pad = button._padding.left
+    -- before = vim.fn.strcharpart(line, 0, left_pad + row_prefix)
+    -- after = vim.fn.strcharpart(line, 0, row_prefix + left_pad + button._keycap_width + button._highlights.right)
+    -- print("Before: " .. before .. "<- (" .. vim.fn.strlen(before) .. ")")
+    -- print("After:->" .. after .. "<- (" .. vim.fn.strlen(after) .. ")")
+    assert.combinators.match(6, start_col)
+  end)
+  it("gets_the_highlight_end_col", function()
+    local right_col = button.right_byte_col
+      - button._padding.right
+      + math.min(button._highlights.right, button._padding.right)
+    assert.combinators.match(7, end_col)
+    assert.combinators.match(end_col, right_col)
+  end)
+  it("gets_the_highlight_start_row", function()
+    assert.combinators.match(1, start_row)
+  end)
+  it("gets_the_highlight_end_row", function()
+    assert.combinators.match(1, end_row)
+  end)
+end)
+describe("highlights_zero", function()
+  local h_layout =
+    Layout:new({ layout = "qwerty", key_labels = { padding = { 0, 1, 0, 1 }, highlight_padding = { 0, 0, 0, 1 } } })
+  h_layout:calculate_layout()
+  local button = h_layout.buttons["0"][1]
+  it("gets_the_right_row", function()
+    assert.combinators.match(1, button.row)
+  end)
+  it("gets_the_highlight_start", function()
+    assert.combinators.match(66, button.left_byte_col)
+  end)
+  it("gets_the_highlight_end", function()
+    assert.combinators.match(68, button.right_byte_col)
+  end)
+end)
