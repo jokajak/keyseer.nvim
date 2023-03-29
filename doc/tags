@@ -1,2 +1,2 @@
-YourPluginName.options	neovim-plugin-boilerplate.txt	/*YourPluginName.options*
-YourPluginName.setup()	neovim-plugin-boilerplate.txt	/*YourPluginName.setup()*
+Keyfinder.options	keyfinder.txt	/*Keyfinder.options*
+Keyfinder.setup()	keyfinder.txt	/*Keyfinder.setup()*
