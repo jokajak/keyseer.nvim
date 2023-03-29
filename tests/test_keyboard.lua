@@ -15,18 +15,101 @@ local T = MiniTest.new_set({
     pre_case = function()
       -- Restart child process with custom 'init.lua' script
       child.restart({ "-u", "scripts/minimal_init.lua" })
+      child.lua([[qwerty = require('keyfinder.keyboard.qwerty')]])
+      child.lua([[dvorak = require('keyfinder.keyboard.dvorak')]])
     end,
     -- This will be executed one after all tests from this set are finished
     post_once = child.stop,
   },
 })
--- Tests related to the `Keyboard` class.
+local qwerty_layout = {
+  "┌─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐",
+  "│  `  │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ - │ = │  <BS>  │",
+  "├─────┴───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┬────┤",
+  "│  <Tab>  │ q │ w │ e │ r │ t │ y │ u │ i │ o │ p │ [ │ ] │  \\ │",
+  "├────────┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴───┴────┤",
+  "│ <Caps> │ a │ s │ d │ f │ g │ h │ j │ k │ l │ ; │ ' │ <Enter> │",
+  "├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴─────────┤",
+  "│  <Shift>  │ z │ x │ c │ v │ b │ n │ m │ , │ . │ / │  <Shift> │",
+  "├────────┬──┴───┴─┬─┴───┴───┴───┴───┴───┴───┴┬──┴───┴─┬────────┤",
+  "│ <Ctrl> │ <Meta> │          <Space>         │ <Meta> │ <Ctrl> │",
+  "└────────┴────────┴──────────────────────────┴────────┴────────┘",
+}
+local qwerty_shift_pressed_layout = {
+  "┌─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐",
+  "│  ~  │ ! │ @ │ # │ $ │ % │ ^ │ & │ * │ ( │ ) │ _ │ + │  <BS>  │",
+  "├─────┴───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┬────┤",
+  "│  <Tab>  │ Q │ W │ E │ R │ T │ Y │ U │ I │ O │ P │ { │ } │  | │",
+  "├────────┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴───┴────┤",
+  '│ <Caps> │ A │ S │ D │ F │ G │ H │ J │ K │ L │ : │ " │ <Enter> │',
+  "├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴─────────┤",
+  "│  <Shift>  │ Z │ X │ C │ V │ B │ N │ M │ < │ > │ ? │  <Shift> │",
+  "├────────┬──┴───┴─┬─┴───┴───┴───┴───┴───┴───┴┬──┴───┴─┬────────┤",
+  "│ <Ctrl> │ <Meta> │          <Space>         │ <Meta> │ <Ctrl> │",
+  "└────────┴────────┴──────────────────────────┴────────┴────────┘",
+}
+
 T["qwerty"] = MiniTest.new_set()
 
-T["qwerty"]["sets the default value of shift_pressed"] = function()
-  child.lua([[require('keyfinder.keyboard.qwerty')]])
+T["qwerty"]["can access keyboard object"] = function()
+  eq_type_global(child, "qwerty", "table")
+end
+T["qwerty"]["has a layout"] = function()
+  eq_type_global(child, "_G.qwerty._layout", "table")
+end
 
-  eq_type_global(child, "_G.qwerty", "table")
+T["qwerty"]["has config"] = function()
+  eq_type_global(child, "_G.qwerty.config", "table")
+  eq_type_global(child, "_G.qwerty.config.key_labels", "table")
+end
+
+T["qwerty"]["calculates normal layout"] = function()
+  eq_type_global(child, "qwerty", "table")
+  eq_type_global(child, "qwerty.get_lines", "function")
+  eq_global(child, "qwerty:get_lines()", qwerty_layout)
+end
+
+T["qwerty"]["calculates shift pressed layout"] = function()
+  eq_global(child, "qwerty:get_lines(true)", qwerty_shift_pressed_layout)
+end
+
+local dvorak_layout = {
+  "┌─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐",
+  "│  `  │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ [ │ ] │  <BS>  │",
+  "├─────┴───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┬────┤",
+  "│  <Tab>  │ ' │ , │ . │ p │ y │ f │ g │ c │ r │ l │ / │ = │  \\ │",
+  "├────────┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴───┴────┤",
+  "│ <Caps> │ a │ o │ e │ u │ i │ d │ h │ t │ n │ s │ - │ <Enter> │",
+  "├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴─────────┤",
+  "│  <Shift>  │ ; │ q │ j │ k │ x │ b │ m │ w │ v │ z │  <Shift> │",
+  "├────────┬──┴───┴─┬─┴───┴───┴───┴───┴───┴───┴┬──┴───┴─┬────────┤",
+  "│ <Ctrl> │ <Meta> │          <Space>         │ <Meta> │ <Ctrl> │",
+  "└────────┴────────┴──────────────────────────┴────────┴────────┘",
+}
+
+local dvorak_shift_pressed_layout = {
+  "┌─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐",
+  "│  ~  │ ! │ @ │ # │ $ │ % │ ^ │ & │ * │ ( │ ) │ { │ } │  <BS>  │",
+  "├─────┴───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┬────┤",
+  '│  <Tab>  │ " │ < │ > │ P │ Y │ F │ G │ C │ R │ L │ ? │ + │  | │',
+  "├────────┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴───┴────┤",
+  "│ <Caps> │ A │ O │ E │ U │ I │ D │ H │ T │ N │ S │ _ │ <Enter> │",
+  "├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴─────────┤",
+  "│  <Shift>  │ : │ Q │ J │ K │ X │ B │ M │ W │ V │ Z │  <Shift> │",
+  "├────────┬──┴───┴─┬─┴───┴───┴───┴───┴───┴───┴┬──┴───┴─┬────────┤",
+  "│ <Ctrl> │ <Meta> │          <Space>         │ <Meta> │ <Ctrl> │",
+  "└────────┴────────┴──────────────────────────┴────────┴────────┘",
+}
+T["dvorak"] = MiniTest.new_set()
+
+T["dvorak"]["calculates normal layout"] = function()
+  eq_type_global(child, "dvorak", "table")
+  eq_type_global(child, "dvorak.get_lines", "function")
+  eq_global(child, "dvorak:get_lines()", dvorak_layout)
+end
+
+T["dvorak"]["calculates shift pressed layout"] = function()
+  eq_global(child, "dvorak:get_lines(true)", dvorak_shift_pressed_layout)
 end
 
 return T

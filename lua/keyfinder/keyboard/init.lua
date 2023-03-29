@@ -60,6 +60,7 @@ local function default_table()
 end
 
 ---@class Keyboard
+---@field config KeyboardDisplayOptions Options for displaying the keyboard
 ---@field shift_pressed boolean Whether or not the shift button is pressed
 ---@field private _buttons Button[] A mapping table from keycode to button
 ---@field private _normal_lines string[] The string representation of the keyboard without shift pressed
@@ -76,10 +77,8 @@ Keyboard.__index = Keyboard
 local default_keyboard_display_options = {
   padding = { 0, 1, 0, 1 }, -- padding around keycap labels [top, right, bottom, left]
   highlight_padding = { 0, 0, 0, 0 }, -- how much of the label to highlight
+  key_labels = {}, -- keycap overrides
 }
-
-Keyboard.config = {}
-setmetatable(Keyboard.config, make_mt(default_keyboard_display_options))
 
 ---@class PhysicalLayout
 
@@ -92,6 +91,7 @@ function Keyboard:new(options)
     shift_pressed = false,
     _normal_buttons = default_table(),
     _shifted_buttons = default_table(),
+    config = options,
   }
   setmetatable(this, self)
   return this
@@ -242,6 +242,7 @@ function Keyboard:_layout_buttons(shift_pressed)
   for row_index, row in ipairs(rows) do
     local row_length = 0
     local row_text = _borders["ss  "]
+    keycap_separator_columns[row_index] = {}
     for _, button in ipairs(row) do
       row_text = row_text .. tostring(button) .. _borders["ss  "]
       local start_col, _ = get_str_bytes(row_text, row_length + 1, row_length + button.width)
@@ -345,3 +346,5 @@ function Keyboard:get_keycap_at_position(row, col)
   print("Looking for " .. row .. " and " .. col)
   print("Not yet implemented")
 end
+
+return Keyboard

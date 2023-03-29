@@ -197,3 +197,5 @@ function Button:highlight(bufnr, namespace, highlight_group, row_offset)
     )
   end
 end
+
+return Button
