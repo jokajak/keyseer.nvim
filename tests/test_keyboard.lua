@@ -59,8 +59,11 @@ T["qwerty"]["has a layout"] = function()
 end
 
 T["qwerty"]["has config"] = function()
-  eq_type_global(child, "_G.qwerty.config", "table")
-  eq_type_global(child, "_G.qwerty.config.key_labels", "table")
+  eq_type_global(child, "_G.qwerty.padding", "table")
+  eq_type_global(child, "_G.qwerty.highlight_padding", "table")
+  eq_type_global(child, "_G.qwerty.key_labels", "table")
+  eq_type_global(child, "_G.qwerty.shift_pressed", "boolean")
+  eq_global(child, "_G.qwerty.shift_pressed", false)
 end
 
 T["qwerty"]["calculates normal layout"] = function()
@@ -71,6 +74,12 @@ end
 
 T["qwerty"]["calculates shift pressed layout"] = function()
   eq_global(child, "qwerty:get_lines(true)", qwerty_shift_pressed_layout)
+end
+
+T["qwerty"]["calculates height"] = function()
+  child.lua([[qwerty:get_lines(false)]])
+  eq_global(child, "qwerty.height", 11)
+  eq_global(child, "qwerty.width", 63)
 end
 
 local dvorak_layout = {

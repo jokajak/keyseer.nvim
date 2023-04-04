@@ -60,8 +60,12 @@ local function default_table()
 end
 
 ---@class Keyboard
----@field config KeyboardDisplayOptions Options for displaying the keyboard
+---@field padding PaddingBox The spacing around each button keycap
+---@field highlight_padding PaddingBox The extra highlights around a keycap
+---@field key_labels table Keycap replacements
 ---@field shift_pressed boolean Whether or not the shift button is pressed
+---@field height number The number of rows in the rendered keyboard
+---@field width number The number of columns in the rendered keyboard
 ---@field private _buttons Button[] A mapping table from keycode to button
 ---@field private _normal_lines string[] The string representation of the keyboard without shift pressed
 ---@field private _shifted_lines string[] The string representation of the keyboard with shift pressed
@@ -91,9 +95,12 @@ function Keyboard:new(options)
     shift_pressed = false,
     _normal_buttons = default_table(),
     _shifted_buttons = default_table(),
-    config = options,
+    padding = options.padding,
+    highlight_padding = options.highlight_padding,
+    key_labels = options.key_labels,
   }
   setmetatable(this, self)
+  self.__index = self
   return this
 end
 
@@ -119,11 +126,13 @@ function Keyboard:get_lines(shift_pressed)
     if not self._normal_lines then
       self._normal_lines = self:_layout_buttons(shift_pressed)
     end
+    self.height = #self._normal_lines
     return self._normal_lines
   else
     if not self._shifted_lines then
       self._shifted_lines = self:_layout_buttons(shift_pressed)
     end
+    self.height = #self._shifted_lines
     return self._shifted_lines
   end
 end
@@ -194,8 +203,8 @@ function Keyboard:_layout_buttons(shift_pressed)
   -- keep track of the longest row
   local longest_row_length = 0
   -- captures how many spaces to put around labels
-  local padding = self.config.padding
-  local highlight_padding = self.config.highlight_padding
+  local padding = self.padding
+  local highlight_padding = self.highlight_padding
 
   -- convert each row of PhysicalLayout of keycodes into rows of buttons
   for row_index, key_entries in ipairs(self._layout) do
@@ -203,7 +212,7 @@ function Keyboard:_layout_buttons(shift_pressed)
     local row_len = 0
     for _, key_entry in ipairs(key_entries) do
       local keycode = key_entry[shift_pressed and "shifted" or "normal"]
-      local keycap = self.config.key_labels[keycode] or keycode
+      local keycap = self.key_labels[keycode] or keycode
       local button = Button:new(keycap, keycode, row_index, padding, highlight_padding)
       table.insert(buttons, button)
       row_len = row_len + button.width + separator_width
@@ -331,6 +340,11 @@ function Keyboard:_layout_buttons(shift_pressed)
       table.insert(ret, table.concat(pad_row))
     end
     table.insert(ret, table.concat(separator_row, ""))
+  end
+  -- save the width. Every entry in ret should be the same length
+  self.width = 0
+  for _, v in ipairs(ret) do
+    self.width = math.max(self.width, vim.fn.strdisplaywidth(v, 0))
   end
   return ret
 end
