@@ -1,3 +1,4 @@
+local D = require("keyfinder.util.debug")
 local config = require("keyfinder.config")
 
 local if_nil = vim.F.if_nil
@@ -123,6 +124,10 @@ local function _create_window(lines, vim_options)
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
   vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
 
+  -- if vim.api.nvim_buf_is_valid(bufnr) then
+  --   vim.api.nvim_buf_clear_namespace(bufnr, config.namespace, 0, -1)
+  -- end
+
   local win_id = vim.api.nvim_open_win(bufnr, true, win_opts)
 
   vim.api.nvim_win_set_option(win_id, "winblend", config.options.window.winblend)
@@ -142,6 +147,7 @@ end
 function Display:open()
   self:close()
 
+  local start_row = 2
   self.original_win_id = vim.api.nvim_get_current_win()
 
   local lines = {}
@@ -150,6 +156,7 @@ function Display:open()
   local legend_lines = get_legend_lines(self._keyboard.width)
   if self.show_title then
     lines = header_lines
+    start_row = start_row + #lines
   end
   for _, v in ipairs(keyboard_lines) do
     table.insert(lines, v)
@@ -167,8 +174,47 @@ function Display:open()
   }
 
   self.win_id = _create_window(lines, vim_options)
+
+  vim.api.nvim_win_set_cursor(self.win_id, { start_row, 4 })
+
+  self:set_mappings()
 end
 
-function Display:close() end
+function Display:close()
+  if self.win_id and vim.api.nvim_win_is_valid(self.win_id) then
+    vim.api.nvim_win_close(self.win_id, true)
+    self.win_id = nil
+  end
+end
 
+function Display:set_mappings()
+  local keymap_options = {
+    nowait = true,
+    noremap = true,
+    silent = true,
+    buffer = vim.api.nvim_win_get_buf(self.win_id),
+  }
+
+  local base_mappings = {
+    ["<Esc>"] = function()
+      self:close()
+    end,
+    ["<CR>"] = function()
+      D.log("Display", "Enter presseed")
+    end,
+    ["<BS>"] = function()
+      D.log("Backspace", "Backspace pressed")
+    end,
+  }
+
+  for k, v in pairs(base_mappings) do
+    vim.keymap.set("n", k, v, keymap_options)
+  end
+
+  local other_chars = "abcdefghijklmnopqrstuvwxyz,.[]\\"
+  for i = 1, #other_chars do
+    local k = string.sub(other_chars, i, i)
+    D.log("Display", "Key pressed: %s", k)
+  end
+end
 return Display
