@@ -1,3 +1,4 @@
+-- This code is responsible for managing the display
 local D = require("keyfinder.util.debug")
 local config = require("keyfinder.config")
 
@@ -10,6 +11,7 @@ local if_nil = vim.F.if_nil
 ---@field show_title boolean Whether or not to show the title
 ---@field show_legend boolean Whether or not to show the legend
 ---@field private _keyboard Keyboard the keyboard layout
+---@field private _keymaps Keymaps The parsed neovim keymaps
 --- Display is the main UI that shows to interact with the keyboards
 local Display = {}
 Display.__index = Display
@@ -25,7 +27,6 @@ function Display:new(opts)
 
   local obj = setmetatable({
     mode = if_nil(opts.mode, config.options.initial_mode),
-    _original_mode = vim.api.nvim_get_mode().mode,
 
     window = {
       winblend = if_nil(
@@ -178,6 +179,7 @@ function Display:open()
   vim.api.nvim_win_set_cursor(self.win_id, { start_row, 4 })
 
   self:set_mappings()
+  self:highlight_buttons()
 end
 
 function Display:close()
@@ -215,6 +217,13 @@ function Display:set_mappings()
   for i = 1, #other_chars do
     local k = string.sub(other_chars, i, i)
     D.log("Display", "Key pressed: %s", k)
+  end
+end
+
+function Display:highlight_buttons()
+  -- iterate over every button in the current_node
+  for key_code, keymaps_info in pairs(self._keymaps.current_node) do
+    self._keyboard:highlight(key_code, keymaps_info)
   end
 end
 return Display

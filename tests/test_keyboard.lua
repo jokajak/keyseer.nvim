@@ -76,10 +76,10 @@ T["qwerty"]["calculates shift pressed layout"] = function()
   eq_global(child, "qwerty:get_lines(true)", qwerty_shift_pressed_layout)
 end
 
-T["qwerty"]["calculates height"] = function()
+T["qwerty"]["calculates size"] = function()
   child.lua([[qwerty:get_lines(false)]])
   eq_global(child, "qwerty.height", 11)
-  eq_global(child, "qwerty.width", 63)
+  eq_global(child, "qwerty.width", 64)
 end
 
 local dvorak_layout = {

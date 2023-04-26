@@ -9,7 +9,11 @@ Keyfinder.options = {
   debug = false,
   -- Initial neovim mode to display keybindings
   initial_mode = "n",
-  -- Display window options
+
+  -- TODO: Represent modifier toggling in highlights
+  -- include_modifiers = false,
+
+  -- Options for the popup window
   window = {
     border = "double", -- none, single, double, shadow
     margin = { 1, 0, 1, 0 }, -- extra window margin [top, right, bottom, left]

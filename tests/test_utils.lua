@@ -16,6 +16,7 @@ local T = MiniTest.new_set({
     pre_case = function()
       -- Restart child process with custom 'init.lua' script
       child.restart({ "-u", "scripts/minimal_init.lua" })
+      child.lua([[utils = require("keyfinder.utils")]])
     end,
     -- This will be executed one after all tests from this set are finished
     post_once = child.stop,
@@ -24,13 +25,101 @@ local T = MiniTest.new_set({
 
 T["utils"] = MiniTest.new_set()
 -- Tests related to the new method
-T["utils"]["justifies text"] = function()
-  child.lua([[utils = require("keyfinder.utils")]])
-
+T["utils"]["has api"] = function()
   eq_type_global(child, "utils", "table")
 
   -- public methods
   eq_type_global(child, "utils.justify", "function")
+  eq_type_global(child, "utils.parse_keystring", "function")
+end
+
+T["utils"]["parses keystrings"] = function()
+  eq_global(child, "utils.parse_keystring(',g')", { { "," }, { "g" } })
+  eq_global(child, "utils.parse_keystring(' g')", { { "<Space>" }, { "g" } })
+  eq_global(child, "utils.parse_keystring(' <C-d>')", { { "<Space>" }, { "<Ctrl>", "d" } })
+  eq_global(
+    child,
+    "utils.parse_keystring(' <C-Space>')",
+    { { "<Space>" }, { "<Ctrl>", "<Space>" } }
+  )
+  eq_global(
+    child,
+    "utils.parse_keystring(' <C--> ')",
+    { { "<Space>" }, { "<Ctrl>", "-" }, { "<Space>" } }
+  )
+end
+
+T["utils"]["creates keytree"] = function()
+  eq_type_global(child, "utils.keytree", "function")
+  eq_global(child, "utils.keytree('q')", {
+    q = {
+      modifiers = {},
+      children = {},
+    },
+  })
+end
+
+T["utils"]["keytree parses two key presses"] = function()
+  eq_global(child, "utils.keytree('gg')", {
+    g = {
+      modifiers = {},
+      children = {
+        g = {
+          modifiers = {},
+          children = {},
+        },
+      },
+    },
+  })
+end
+
+T["utils"]["keytree parses modifier"] = function()
+  eq_global(child, "utils.keytree('<C-q>')", {
+    q = {
+      modifiers = {
+        ["<Ctrl>"] = true,
+      },
+      children = {},
+    },
+  })
+end
+
+T["utils"]["keytree parses modifier with child"] = function()
+  eq_global(child, "utils.keytree('<C-q>g')", {
+    q = {
+      modifiers = {
+        ["<Ctrl>"] = true,
+      },
+      children = {
+        g = {
+          modifiers = {},
+          children = {},
+        },
+      },
+    },
+  })
+end
+
+T["buttons"] = MiniTest.new_set()
+T["buttons"]["has public API"] = function()
+  child.lua([[buttons = require("keyfinder.util.buttons")]])
+  eq_type_global(child, "buttons", "table")
+  eq_type_global(child, "buttons.shifted_keys", "string")
+  eq_type_global(child, "buttons.unshifted_keys", "string")
+end
+T["buttons"]["generates 1"] = function()
+  child.lua([[buttons = require("keyfinder.util.buttons")]])
+  eq_global(child, "buttons['a']", "A")
+  eq_global(child, "buttons['1']", "!")
+  eq_global(child, "buttons['`']", "~")
+end
+
+T["buttons"]["describes shifted"] = function()
+  child.lua([[buttons = require("keyfinder.util.buttons")]])
+  eq_global(child, "buttons.shifted_keys:find('A', 0, true)", 11)
+  eq_global(child, "buttons.shifted_keys:find('a', 0, true)", vim.NIL)
+  eq_global(child, "buttons.shifted_keys:find('`', 0, true)", vim.NIL)
+  eq_global(child, "buttons.shifted_keys:find('\"', 0, true)", 43)
 end
 
 return T

@@ -66,7 +66,8 @@ end
 ---@field shift_pressed boolean Whether or not the shift button is pressed
 ---@field height number The number of rows in the rendered keyboard
 ---@field width number The number of columns in the rendered keyboard
----@field private _buttons Button[] A mapping table from keycode to button
+---@field private _normal_buttons Button[] A mapping table from keycode to button when shift is not pressed
+---@field private _shifted_buttons Button[] A mapping table from keycode to button when shift is pressed
 ---@field private _normal_lines string[] The string representation of the keyboard without shift pressed
 ---@field private _shifted_lines string[] The string representation of the keyboard with shift pressed
 ---@field private _layout PhysicalLayout The layout for the keyboard
@@ -111,6 +112,20 @@ end
 ---Highlight buttons
 ---@params keycodes KeycodeHighlights[] The keycodes to highlight
 function Keyboard:highlight(keycodes)
+  -- when displaying each button, we want to know it's state:
+  -- * Is there an action for the button when:
+  --  * No mofifiers are held down
+  --  * Shift is held down
+  --  * Ctrl is held down
+  --  * Meta is held down
+  -- * Is the button a prefix for other keymaps when
+  --  * No modifiers are held down
+  --  * Shift is held down
+  --  * Ctrl is held down
+  --  * Meta is held down
+  -- * Are there more than one actions being taken for any of the situations above?
+  --   In other words, is a keymap being ghosted
+  -- We can use Modifier + Leader to toggle a modifier being pressed
   for keycode, highlight_group in pairs(keycodes) do
     for _, button in ipairs(self._buttons[keycode]) do
       button:highlight(highlight_group)
