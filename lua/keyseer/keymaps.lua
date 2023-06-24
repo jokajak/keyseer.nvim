@@ -1,8 +1,8 @@
 --- This file contains the code for parsing keymaps
-local D = require("keyfinder.util.debug")
-local Utils = require("keyfinder.utils")
-local config = require("keyfinder.config")
-local Buttons = require("keyfinder.util.buttons")
+local D = require("keyseer.util.debug")
+local Utils = require("keyseer.utils")
+local config = require("keyseer.config")
+local Buttons = require("keyseer.util.buttons")
 
 local if_nil = vim.F.if_nil
 

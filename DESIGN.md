@@ -1,4 +1,4 @@
-# Keyfinder Design
+# KeySeer Design
 
 This document captures my design considerations and approaches.
 
@@ -34,3 +34,45 @@ Since I am displaying two different character sets, my keymap tree needs to be t
 version of the buttons or the unshifted versions of the buttons.
 
 What I really care about is if the key is displayed on the keyboard itself.
+
+## Internal Data structure
+
+I can convert the keymap `lhs` from `<C-g>Gg` to a table of:
+
+```lua
+local keypresses = {
+  -- this entry captures the information about the keypresses associated with a keycap
+  -- this entry is used when displaying the keyboard
+  g = {
+    actions = {},
+    modifiers = {
+      "Ctrl" = true
+    },
+    children = {}
+  }
+  -- this entry captures the actual keypress
+  -- this entry is used when updating the keyboard state
+  ["<C-g>"] = {
+    actions = {}
+    children = {
+      g = {
+        actions = {},
+        modifiers = {
+          "Shift" = true
+        },
+        children = {}
+      },
+      G = {
+        actions = {},
+        children = {
+          g = {
+            actions = {
+              [""] = `rhs`
+            }
+          }
+        }
+      },
+    }
+  }
+}
+```

@@ -44,7 +44,7 @@ jobs:
         run: exit $(git status --porcelain doc | wc -l | tr -d " ")
 
   tests:
-    needs: 
+    needs:
       - lint
       - documentation
     runs-on: ubuntu-latest
@@ -86,7 +86,7 @@ jobs:
         id: release
         with:
           release-type: simple
-          package-name: keyfinder.nvim
+          package-name: keyseer.nvim
 
       - name: tag stable versions
         if: ${{ steps.release.outputs.release_created }}

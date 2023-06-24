@@ -1,22 +1,14 @@
-<p align="center">
-  <h1 align="center">keyfinder.nvim</h2>
-</p>
+# KeySeer.nvim
 
-<p align="center">
-    > A catch phrase that describes your plugin.
-</p>
+[![Integration][integration-badge]][integration-runs]
 
-<div align="center">
-    > Drag your video (<10MB) here to host it for free on GitHub.
-</div>
+A Neovim plugin written in [Lua][lua] that renders a keyboard displaying which
+keys have assigned actions.
 
-<div align="center">
+![keyseer light example](https://user-images.githubusercontent.com/460913/204164433-e320d74f-d63c-4130-b397-87dc3c5f1bd1.png#gh-light-mode-only)
+![keyseer dark example](https://user-images.githubusercontent.com/460913/204164495-7d749ccf-4b6f-4992-a2a4-310a65fa4e6e.png#gh-dark-mode-only)
 
-> Videos don't work on GitHub mobile, so a GIF alternative can help users.
-
-_[GIF version of the showcase video for mobile users](SHOWCASE_GIF_LINK)_
-
-</div>
+* Colorscheme: [Tokyonight](https://github.com/folke/tokyonight.nvim)
 
 ## ⚡️ Features
 
@@ -24,69 +16,26 @@ _[GIF version of the showcase video for mobile users](SHOWCASE_GIF_LINK)_
 
 ## 📋 Installation
 
-<div align="center">
-<table>
-<thead>
-<tr>
-<th>Package manager</th>
-<th>Snippet</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
+There are two branches to install from:
 
-[wbthomason/packer.nvim](https://github.com/wbthomason/packer.nvim)
+- `main` (default, **recommended**) will have latest development version of plugin. All changes since last stable release should be perceived as being in beta testing phase (meaning they already passed alpha-testing and are moderately settled).
+- `stable` will be updated only upon releases with code tested during public beta-testing phase in `main` branch.
 
-</td>
-<td>
+Here are code snippets for some common installation methods:
 
-```lua
--- stable version
-use {"keyfinder.nvim", tag = "*" }
--- dev version
-use {"keyfinder.nvim"}
-```
+* With [folke/lazy.nvim](https://github.com/folke/lazy.nvim):
 
-</td>
-</tr>
-<tr>
-<td>
+| Branch | Code snippet                                         |
+|--------|------------------------------------------------------|
+| Main   | `{ 'jokajak/keyseer.nvim', version = false },`      |
+| Stable | `{ 'jokajak/keyseer.nvim', version = '*' },`        |
 
-[junegunn/vim-plug](https://github.com/junegunn/vim-plug)
+* With [wbthomason/packer.nvim](https://github.com/wbthomason/packer.nvim):
 
-</td>
-<td>
-
-```lua
--- stable version
-Plug "keyfinder.nvim", { "tag": "*" }
--- dev version
-Plug "keyfinder.nvim"
-```
-
-</td>
-</tr>
-<tr>
-<td>
-
-[folke/lazy.nvim](https://github.com/folke/lazy.nvim)
-
-</td>
-<td>
-
-```lua
--- stable version
-require("lazy").setup({{"keyfinder.nvim", version = "*"}})
--- dev version
-require("lazy").setup({"keyfinder.nvim"})
-```
-
-</td>
-</tr>
-</tbody>
-</table>
-</div>
+| Branch | Code snippet                                         |
+|--------|------------------------------------------------------|
+| Main   | `use 'jokajak/keyseer.nvim'`                        |
+| Stable | `use { 'jokajak/keyseer.nvim', branch = 'stable' }` |
 
 ## ☄ Getting started
 
@@ -94,26 +43,63 @@ require("lazy").setup({"keyfinder.nvim"})
 
 ## ⚙ Configuration
 
-> The configuration list sometimes become cumbersome, making it folded by default reduce the noise of the README file.
-
 <details>
 <summary>Click to unfold the full list of options with their default values</summary>
 
-> **Note**: The options are also available in Neovim by calling `:h keyfinder.options`
+> **Note**: The options are also available in Neovim by calling `:h keyseer.options`
 
 ```lua
-require("keyfinder").setup({
-    -- you can copy the full list from lua/keyfinder/config.lua
-})
+{
+  key_labels = {
+    -- override the label used to display some keys.
+    -- For example:
+    -- ["<space>"] = "SPC",
+    -- ["<cr>"] = "RET",
+    -- ["<tab>"] = "TAB",
+    padding = { 0, 1, 0, 1 }, -- padding around keycap labels [top, right, bottom, left]
+    highlight_padding = { 0, 0, 0, 0 }, -- how much of the label to highlight
+  },
+  -- control how the popup window looks
+  window = {
+    border = "double", -- none, single, double, shadow
+    margin = { 1, 0, 1, 0 }, -- extra window margin [top, right, bottom, left]
+    winblend = 0, -- value between 0-100 0 for fully opaque and 100 for fully transparent
+    rows = 5,
+    columns = 80,
+    show_title = true, -- whether or not to show the title
+    header_sym = "━",
+    header_lines = 2,
+    title = "KeySeer.nvim",
+    show_legend = true,  -- whether or not to show the legend
+  },
+  -- disable the KeySeer popup for certain buf types and file types.
+  disable = {
+    buftypes = {},
+    filetypes = {},
+  },
+  layout = "qwerty", -- keycap layout, qwerty or dvorak
+}
 ```
 
 </details>
 
 ## 🧰 Commands
 
-|   Command   |         Description        |
-|-------------|----------------------------|
-|  `:Toggle`  |     Enables the plugin.    |
+|  Command   |      Description      |
+|------------|-----------------------|
+| `:KeySeer` | Display the keyboard. |
+
+## General Principles
+
+* The keyboard should display information about the current keymaps
+* It should be possible to navigate around the keyboard
+* It would be nice if more information can be shown about the keymaps on a particular keycap
+  * use `K`
+* It would be nice if the location of the keymap definition could be displayed
+  * As part of `K` display
+* It would be nice if the location of the keymap definition could be opened
+  * Using `gd` by default
+* Keys can be "pressed" by prefixing the keypress with `<leader>`
 
 ## ⌨ Contributing
 
@@ -121,7 +107,7 @@ PRs and issues are always welcome. Make sure to provide as much context as possi
 
 ## 🗞 Wiki
 
-You can find guides and showcase of the plugin on [the Wiki](https://github.com/josh/keyfinder.nvim/wiki)
+You can find guides and showcase of the plugin on [the Wiki](https://github.com/josh/keyseer.nvim/wiki)
 
 ## 🎭 Motivations
 

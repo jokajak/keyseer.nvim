@@ -16,7 +16,7 @@ local T = MiniTest.new_set({
     pre_case = function()
       -- Restart child process with custom 'init.lua' script
       child.restart({ "-u", "scripts/minimal_init.lua" })
-      child.lua([[utils = require("keyfinder.utils")]])
+      child.lua([[utils = require("keyseer.utils")]])
     end,
     -- This will be executed one after all tests from this set are finished
     post_once = child.stop,
@@ -102,20 +102,20 @@ end
 
 T["buttons"] = MiniTest.new_set()
 T["buttons"]["has public API"] = function()
-  child.lua([[buttons = require("keyfinder.util.buttons")]])
+  child.lua([[buttons = require("keyseer.util.buttons")]])
   eq_type_global(child, "buttons", "table")
   eq_type_global(child, "buttons.shifted_keys", "string")
   eq_type_global(child, "buttons.unshifted_keys", "string")
 end
 T["buttons"]["generates 1"] = function()
-  child.lua([[buttons = require("keyfinder.util.buttons")]])
+  child.lua([[buttons = require("keyseer.util.buttons")]])
   eq_global(child, "buttons['a']", "A")
   eq_global(child, "buttons['1']", "!")
   eq_global(child, "buttons['`']", "~")
 end
 
 T["buttons"]["describes shifted"] = function()
-  child.lua([[buttons = require("keyfinder.util.buttons")]])
+  child.lua([[buttons = require("keyseer.util.buttons")]])
   eq_global(child, "buttons.shifted_keys:find('A', 0, true)", 11)
   eq_global(child, "buttons.shifted_keys:find('a', 0, true)", vim.NIL)
   eq_global(child, "buttons.shifted_keys:find('`', 0, true)", vim.NIL)

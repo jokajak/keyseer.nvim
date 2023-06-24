@@ -15,8 +15,8 @@ local T = MiniTest.new_set({
     pre_case = function()
       -- Restart child process with custom 'init.lua' script
       child.restart({ "-u", "scripts/minimal_init.lua" })
-      child.lua([[qwerty = require('keyfinder.keyboard.qwerty')]])
-      child.lua([[dvorak = require('keyfinder.keyboard.dvorak')]])
+      child.lua([[qwerty = require('keyseer.keyboard.qwerty')]])
+      child.lua([[dvorak = require('keyseer.keyboard.dvorak')]])
     end,
     -- This will be executed one after all tests from this set are finished
     post_once = child.stop,

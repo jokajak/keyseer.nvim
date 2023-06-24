@@ -1,6 +1,6 @@
 -- This code is responsible for managing the display
-local D = require("keyfinder.util.debug")
-local config = require("keyfinder.config")
+local D = require("keyseer.util.debug")
+local config = require("keyseer").config
 
 local if_nil = vim.F.if_nil
 
@@ -22,31 +22,31 @@ function Display:new(opts)
   opts = opts or {}
 
   if vim.fn.win_gettype() == "command" then
-    error("Can't open keyfinder from command-line window. See E11")
+    error("Can't open keyseer from command-line window. See E11")
   end
 
   local obj = setmetatable({
-    mode = if_nil(opts.mode, config.options.initial_mode),
+    mode = if_nil(opts.mode, config.initial_mode),
 
     window = {
       winblend = if_nil(
         opts.winblend,
-        type(opts.window) == "table" and opts.window.winblend or config.options.window.winblend
+        type(opts.window) == "table" and opts.window.winblend or config.window.winblend
       ),
       border = if_nil(
         opts.border,
-        type(opts.window) == "table" and opts.window.border or config.options.window.border
+        type(opts.window) == "table" and opts.window.border or config.window.border
       ),
     },
-    show_title = if_nil(opts.show_title, config.options.window.show_title),
-    show_legend = if_nil(opts.show_legend, config.options.window.show_legend),
-    title = if_nil(opts.title, config.options.window.title),
+    show_title = if_nil(opts.show_title, config.window.show_title),
+    show_legend = if_nil(opts.show_legend, config.window.show_legend),
+    title = if_nil(opts.title, config.window.title),
   }, self)
-  local keyboard_opts = if_nil(opts.keyboard, config.options.keyboard)
+  local keyboard_opts = if_nil(opts.keyboard, config.keyboard)
   local keyboard = keyboard_opts.layout
 
   if type(keyboard) == "string" then
-    self._keyboard = require("keyfinder.keyboard." .. keyboard):new(keyboard_opts)
+    self._keyboard = require("keyseer.keyboard." .. keyboard):new(keyboard_opts)
   else
     self._keyboard = keyboard:new(keyboard_opts)
   end
@@ -119,8 +119,8 @@ local function _create_window(lines, vim_options)
   vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
   -- buffer is not backed by a file
   vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
-  -- filetype is keyfinder
-  vim.api.nvim_buf_set_option(bufnr, "filetype", "keyfinder")
+  -- filetype is keyseer
+  vim.api.nvim_buf_set_option(bufnr, "filetype", "keyseer")
 
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
   vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
@@ -134,9 +134,9 @@ local function _create_window(lines, vim_options)
   vim.api.nvim_win_set_option(win_id, "winblend", config.options.window.winblend)
 
   -- map highlights if they aren't already defined
-  local winhl = "NormalFloat:KeyfinderFloat"
+  local winhl = "NormalFloat:KeySeerFloat"
   if vim.fn.hlexists("FloatBorder") == 1 then
-    winhl = winhl .. ",FloatBorder:KeyfinderBorder"
+    winhl = winhl .. ",FloatBorder:KeySeerBorder"
   end
   vim.api.nvim_win_set_option(win_id, "winhighlight", winhl)
 

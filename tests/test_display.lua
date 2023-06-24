@@ -25,7 +25,7 @@ local T = MiniTest.new_set({
 T["new()"] = MiniTest.new_set()
 -- Tests related to the new method
 T["new()"]["sets exposed methods and default options value"] = function()
-  child.lua([[display = require("keyfinder.display"):new()]])
+  child.lua([[display = require("keyseer.display"):new()]])
 
   eq_type_global(child, "display", "table")
 

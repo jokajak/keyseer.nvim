@@ -3,7 +3,7 @@
 -- The class will be responsible for calculating a rectangular representation of a keyboard
 -- A keyboard can be displayed as having shift held down or not
 -- Each button on the keyboard can be highlighted
-local Button = require("keyfinder.keyboard.button")
+local Button = require("keyseer.keyboard.button")
 
 -- Border characters for buttons
 local _borders = {
@@ -100,6 +100,9 @@ function Keyboard:new(options)
     highlight_padding = options.highlight_padding,
     key_labels = options.key_labels,
   }
+  if options.layout and options.layout ~= false then
+    this._layout = options.layout
+  end
   setmetatable(this, self)
   self.__index = self
   return this

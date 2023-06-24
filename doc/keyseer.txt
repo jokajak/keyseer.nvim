@@ -1,0 +1,473 @@
+==============================================================================
+------------------------------------------------------------------------------
+*KeySeer* See your keys and their keymaps
+
+------------------------------------------------------------------------------
+                                                               *KeySeer.setup()*
+                           `KeySeer.setup`({config})
+Plugin setup
+
+Parameters~
+{config} `(table|nil)` Module config table. See |KeySeer.config|.
+
+Usage~
+`require('keyseer').setup({})` (replace `{}` with your `config` table)
+
+------------------------------------------------------------------------------
+                                                                *KeySeer.config*
+                                `KeySeer.config`
+KeySeer Config
+
+Default values:
+>
+  KeySeer.config = {
+    -- Prints useful logs about what event are triggered, and reasons actions are executed.
+    debug = false,
+    -- Initial neovim mode to display keybindings
+    initial_mode = "n",
+
+    -- TODO: Represent modifier toggling in highlights
+    include_modifiers = false,
+
+    -- Configuration for keyboard window:
+    -- - `height` and `width` are maximum dimensions.
+    -- - `border` defines border (as in `nvim_open_win()`).
+    window = {
+      border = "double", -- none, single, double, shadow
+      margin = { 1, 0, 1, 0 }, -- extra window margin [top, right, bottom, left]
+      winblend = 0, -- value between 0-100 0 for fully opaque and 100 for fully transparent
+      show_title = true,
+      header_sym = "━",
+      title = "keyseer.nvim",
+      show_legend = true,
+      width = 0.8,
+      height = 0.8,
+    },
+
+    -- Keyboard options
+    keyboard = {
+      -- Layout of the keycaps
+      layout = "qwerty",
+      -- How much space to put around each keycap
+      keycap_padding = { 0, 0, 0, 0 },
+      -- How much padding to highlight around each keycap
+      highlight_padding = { 0, 0, 0, 0 },
+      -- override the label used to display some keys.
+      key_labels = {
+        -- For example:
+        -- ["<space>"] = "SPC",
+        -- ["<cr>"] = "RET",
+        -- ["<tab>"] = "TAB",
+      },
+    },
+  }
+
+  -- KeySeer functionality ========================================
+  --
+
+  -- Helper data ================================================================
+  -- Module default config
+  H.default_config = KeySeer.config
+
+  -- Helper functionality ========================================
+  -- Settings
+  H.setup_config = function(config)
+    -- General idea: if some table elements are not present in user-supplied
+    -- `config`, take them from default config
+    vim.validate({ config = { config, "table", true } })
+    config = vim.tbl_deep_extend("force", H.default_config, config or {})
+
+    -- Validate per nesting level to produce correct error message
+    vim.validate({
+      keyboard = { config.keyboard, "table" },
+      window = { config.window, "table" },
+      debug = { config.debug, "boolean" },
+      include_modifiers = { config.include_modifiers, "boolean" },
+      initial_mode = { config.initial_mode, "string" },
+    })
+
+    local is_string_or_array = function(x)
+      return type(x) == "string" or vim.tbl_islist(x)
+    end
+
+    -- TODO: Add more validations
+    vim.validate({
+      ["window.border"] = {
+        config.window.border,
+        is_string_or_array,
+        "(keyseer) `config.window.border` can be either string or array.",
+      },
+      ["window.height"] = { config.window.height, "number" },
+      ["window.width"] = { config.window.width, "number" },
+    })
+
+    return config
+  end
+
+  H.apply_config = function(config)
+    KeySeer.config = config
+  end
+
+  H.show_window = function()
+    H.ensure_buffer()
+
+    -- Compute floating window options
+    local opts = H.window_options()
+    H.open_window(opts)
+  end
+
+  -- Helpers for floating window
+  H.ensure_buffer = function()
+    if H.bufnr then
+      return
+    end
+
+    H.bufnr = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_name(H.bufnr, "KeySeer")
+
+    vim.api.nvim_buf_set_option(H.bufnr, "bufhidden", "wipe")
+    -- buffer is not backed by a file
+    vim.api.nvim_buf_set_option(H.bufnr, "buftype", "nofile")
+    -- filetype is keyseer
+    vim.api.nvim_buf_set_option(H.bufnr, "filetype", "keyseer")
+  end
+
+  return KeySeer
+
+<
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                       *Display*
+                                   `Display`
+Class~
+{Display}
+Fields~
+{mode} `(string)` The neovim mode for keymappings
+{window} `(table)` The window options
+{title} `(string)` The title of the display
+{show_title} `(boolean)` Whether or not to show the title
+{show_legend} `(boolean)` Whether or not to show the legend
+{private} _keyboard Keyboard the keyboard layout
+{private} _keymaps Keymaps The parsed neovim keymaps
+Display is the main UI that shows to interact with the keyboards
+
+------------------------------------------------------------------------------
+                                                                 *Display:new()*
+                             `Display:new`({opts})
+a new Display
+Parameters~
+{opts} `(table)` Display options
+
+------------------------------------------------------------------------------
+                                                            *get_header_lines()*
+                          `get_header_lines`({width})
+to make the initial display buffer header
+Parameters~
+{width} `(number)` The width for the header
+Return~
+`(string[])` The lines in the header
+
+------------------------------------------------------------------------------
+                                                            *get_legend_lines()*
+                          `get_legend_lines`({width})
+to make the legend at the bottom
+
+------------------------------------------------------------------------------
+                                                              *_create_window()*
+                    `_create_window`({lines}, {vim_options})
+a vim window
+Inspired by plenary.nvim
+Parameters~
+{lines} `(string[])` The lines to display in the window
+{vim_options} `(table)` The options for the window
+Return~
+`(number)` win_id The id of the window that gets created
+
+------------------------------------------------------------------------------
+                                                                *Display:open()*
+                                `Display:open`()
+Open the main display window
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                             *D*
+                                      `D`
+This file contains the code for parsing keymaps
+
+------------------------------------------------------------------------------
+A function that takes a list of keymaps as input and creates a table with the specified structure.
+
+------------------------------------------------------------------------------
+Class~
+{KeymapLayer}
+Fields~
+{normal} `(table)` The neovim keymaps with no modifiers
+{shifted} `(table)` The neovim keymaps with the shift key held down
+{meta} `(table)` The neovim keymaps with the meta key held down
+{ctrl} `(table)` The neovim keymaps with the ctrl key held down
+
+------------------------------------------------------------------------------
+Class~
+{KeymapTreeNode}
+Fields~
+{children} KeymapTreeNode[] The list of child keymaps
+{layers} KeymapLayer Information about the keymap layers
+
+------------------------------------------------------------------------------
+                                                                       *Keymaps*
+                                   `Keymaps`
+Class~
+{Keymaps}
+Fields~
+{mode} `(string)` The neovim mode for keymappings
+{prefix} `(table)` The table of prefix characters
+{current_node} KeymapTree The current node in the keymap tree
+
+------------------------------------------------------------------------------
+                                                                 *Keymaps:new()*
+                             `Keymaps:new`({opts})
+a new keymaps instance
+Parameters~
+{opts} `(table)` options
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                               *Utils.justify()*
+                       `Utils.justify`({width}, {words})
+a list of strings
+Parameters~
+{width} `(number)` The width of the display
+{words} `(string[])` The list of strings to justify
+Return~
+`(string)` The justified string
+
+------------------------------------------------------------------------------
+                                                       *Utils.parse_keystring()*
+                       `Utils.parse_keystring`({keystr})
+function to parse a keystring into a table of keycodes
+Return~
+`(table)` Keycodes in the key string
+
+------------------------------------------------------------------------------
+                                                            *Utils.check_mode()*
+                           `Utils.check_mode`({mode})
+check the mode
+Parameters~
+{mode} `(string)` the mode
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                      *Keyboard*
+                                   `Keyboard`
+Class~
+{Keyboard}
+Fields~
+{padding} PaddingBox The spacing around each button keycap
+{highlight_padding} PaddingBox The extra highlights around a keycap
+{key_labels} `(table)` Keycap replacements
+{shift_pressed} `(boolean)` Whether or not the shift button is pressed
+{height} `(number)` The number of rows in the rendered keyboard
+{width} `(number)` The number of columns in the rendered keyboard
+{private} _normal_buttons Button[] A mapping `(table)` from keycode to button when shift is not pressed
+{private} _shifted_buttons Button[] A mapping `(table)` from keycode to button when shift is pressed
+{private} _normal_lines `(string[])` The string representation of the keyboard without shift pressed
+{private} _shifted_lines `(string[])` The string representation of the keyboard with shift pressed
+{private} _layout PhysicalLayout The layout for the keyboard
+
+------------------------------------------------------------------------------
+                                              *default_keyboard_display_options*
+                       `default_keyboard_display_options`
+Class~
+{KeyboardDisplayOptions}
+Fields~
+{padding} PaddingBox the spacing around each button keycap
+{highlight_padding} PaddingBox the extra highlights around a keycap
+{key_labels} `(string[])` A mapping table to replace a keycap with another label when output
+{layout} PhysicalLayout The layout of buttons on the keyboard
+
+------------------------------------------------------------------------------
+Class~
+{PhysicalLayout}
+
+------------------------------------------------------------------------------
+                                                                *Keyboard:new()*
+                           `Keyboard:new`({options})
+a new keyboard object
+Parameters~
+{options} `(optional)` KeyboardDisplayOptions
+Return~
+Keyboard
+
+------------------------------------------------------------------------------
+Class~
+{KeycodeHighlights}
+Fields~
+{keycode} `(string)` The neovim keycode to highlight
+{highlight_group} `(string)` The highlight group for the highlighting
+
+------------------------------------------------------------------------------
+                                                          *Keyboard:highlight()*
+                        `Keyboard:highlight`({keycodes})
+buttons
+keycodes KeycodeHighlights[] The keycodes to highlight
+
+------------------------------------------------------------------------------
+                                                          *Keyboard:get_lines()*
+                     `Keyboard:get_lines`({shift_pressed})
+lines
+Parameters~
+{shift_pressed} `(boolean)` Whether or not to return the shifted lines
+Return~
+`(string[])` The string representation of the keyboard
+
+------------------------------------------------------------------------------
+                                                         *Keyboard:__tostring()*
+                            `Keyboard:__tostring`()
+string representation
+Return~
+`(string)` The string representation of the keyboard
+
+------------------------------------------------------------------------------
+                                                               *get_str_bytes()*
+                     `get_str_bytes`({line}, {from}, {to})
+the start column and end column
+Parameters~
+{line} `(string)` The string of characters to find byte positions
+{from} `(number)` The start column
+{to} `(number)` The end column
+Return~
+`(number)` start_col the start column in bytes
+Return~
+`(number)` end_col the end column in bytes
+
+------------------------------------------------------------------------------
+                                                    *Keyboard:_layout_buttons()*
+                  `Keyboard:_layout_buttons`({shift_pressed})
+the keyboard laout
+Parameters~
+{shift_pressed} `(boolean)` Whether or not the shift button is held down
+Return~
+`(string[])` The string representation of the keyboard
+
+------------------------------------------------------------------------------
+                                             *Keyboard:get_keycap_at_position()*
+                `Keyboard:get_keycap_at_position`({row}, {col})
+button at coordinates
+Parameters~
+{row} `(integer)`
+{col} `(integer)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+Class~
+{HighlightBox}
+Fields~
+{start_col} `(number)` The start column
+{end_col} `(number)` The end column
+{start_row} `(number)` The start row
+{end_row} `(number)` The end row
+
+------------------------------------------------------------------------------
+Class~
+{PaddingBox}
+Fields~
+{left_pad} `(number)` The number of spaces to the left of the keycap string
+{right_pad} `(number)` The number of spaces to the right of the keycap string
+{top_pad} `(number)` The number of blank lines above the keycap string
+{bottom_pad} `(number)` The number of blank lines below the keycap string
+
+------------------------------------------------------------------------------
+Class~
+{BoundingBox}
+Fields~
+{left} `(number)` The number of spaces to the left of the keycap string
+{right} `(number)` The number of spaces to the right of the keycap string
+{top} `(number)` The number of blank lines above the keycap string
+{bottom} `(number)` The number of blank lines below the keycap string
+
+------------------------------------------------------------------------------
+                                                                        *Button*
+                                    `Button`
+Class~
+{Button}
+Fields~
+{keycap} `(string)` The string printed on the button
+{keycode} `(string)` The neovim key
+{left_pad} `(number)` The number of spaces to the left of the keycap
+{right_pad} `(number)` The number of spaces to the right of the keycap
+{row} `(number)` The row of the string on the output
+{top_row} `(number)` The top row of the button in the output
+{bottom_row} `(number)` The bottom row of the button on the output
+{left_col} `(number)` The leftmost column of the button in the output
+{right_col} `(number)` The rightmost column of the button in the output
+{highlight_box} HighlightBox The highlight box for the button
+{width} `(number)` The width of the entire button
+{private} _keycap_width `(number)` The width of the keycap string
+{private} _highlights BoundingBox the highlight padding around the keycap
+{private} _padding BoundingBox the display padding around the keycap
+
+------------------------------------------------------------------------------
+                                                                  *Button:new()*
+ `Button:new`({keycap}, {keycode}, {row_index}, {padding_box}, {highlight_box})
+a new button object
+Parameters~
+{keycap} `(string)` The string that gets rendered on screen
+{keycode} `(string)` The neovim key
+{row_index} `(number)` The row for the button
+{padding_box} PaddingBox the padding around the keycap
+{highlight_box} PaddingBox the highlight padding around the keycap
+Return~
+Button
+
+------------------------------------------------------------------------------
+                                                           *Button:__tostring()*
+                             `Button:__tostring`()
+string representation of a button
+Return~
+`(string)`
+
+------------------------------------------------------------------------------
+                                                          *Button:add_padding()*
+                 `Button:add_padding`({padding}, {shift_left})
+padding to a button
+Parameters~
+{padding} `(number)` The amount of padding to add
+
+------------------------------------------------------------------------------
+                                                       *Button:get_highlights()*
+                           `Button:get_highlights`()
+highlight details
+Return~
+`(number)` start_col The byte start column for highlights
+Return~
+`(number)` end_col The byte end column for highlights
+Return~
+`(number)` start_row The start row for highlights
+Return~
+`(number)` end_row The end row for highlights
+
+------------------------------------------------------------------------------
+                                             *Button:set_button_byte_position()*
+                    `Button:set_button_byte_position`({col})
+button position in layout
+Parameters~
+{col} `(number)` The column for the button to start
+
+------------------------------------------------------------------------------
+                                                            *Button:highlight()*
+   `Button:highlight`({bufnr}, {namespace}, {highlight_group}, {row_offset})
+a buffer
+Parameters~
+{bufnr} buffer A buffer
+{namespace} `(number)` The namespace for the highlights
+{highlight_group} `(string)` The highlighting to apply to the button
+{row_offset} `(number)` The row offset in case there's something above the row (like a header)
+
+
+ vim:tw=78:ts=8:noet:ft=help:norl:

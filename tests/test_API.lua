@@ -26,18 +26,16 @@ local T = MiniTest.new_set({
 T["setup()"] = MiniTest.new_set()
 
 T["setup()"]["sets exposed methods and default options value"] = function()
-  child.lua([[require('keyfinder').setup()]])
+  child.lua([[require('keyseer').setup()]])
 
   -- global object that holds your plugin information
-  eq_type_global(child, "_G.Keyfinder", "table")
+  eq_type_global(child, "_G.KeySeer", "table")
 
   -- public methods
-  eq_type_global(child, "_G.Keyfinder.toggle", "function")
-  eq_type_global(child, "_G.Keyfinder.disable", "function")
-  eq_type_global(child, "_G.Keyfinder.enable", "function")
+  eq_type_global(child, "_G.KeySeer.setup", "function")
 
   -- config
-  eq_type_global(child, "_G.Keyfinder.config", "table")
+  eq_type_global(child, "_G.KeySeer.config", "table")
 
   -- assert the type, and the value
   eq_config(child, "debug", false)
@@ -45,7 +43,7 @@ T["setup()"]["sets exposed methods and default options value"] = function()
 end
 
 T["setup()"]["overrides default values"] = function()
-  child.lua([[require('keyfinder').setup({
+  child.lua([[require('keyseer').setup({
         -- write all the options with a value different than the default ones
         debug = true,
     })]])
