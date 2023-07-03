@@ -60,12 +60,15 @@ function Utils.justify(width, words)
 end
 
 ---Utility function to parse a keystring into a table of keycodes
+---@param keystr string The key string to be split
+---@param split_keypresses boolean? control if key presses are returned as a keypress or a table of keycaps
 ---@return table Keycodes in the key string
-function Utils.parse_keystring(keystr)
+function Utils.parse_keystring(keystr, split_keypresses)
   local keys = {}
   local key = ""
   local in_special = false
   local pending_char = false
+  split_keypresses = vim.F.if_nil(split_keypresses, true)
 
   local key_lookup = setmetatable({
     C = "<Ctrl>",
@@ -89,22 +92,26 @@ function Utils.parse_keystring(keystr)
         pending_char = false
       else -- check the next character
         if char == ">" then -- if > then we are closing the combo
-          -- split the keys by -
-          local special_keys = vim.split(key, "-", { plain = true })
-          -- get a table for storing the keys
           local key_symbols = {}
-          -- iterate over the keys
-          for j, special_key in ipairs(special_keys) do
-            if special_key == "" then
-              if j % 2 ~= 0 then
+          if split_keypresses then
+            -- split the keys by -
+            local special_keys = vim.split(key, "-", { plain = true })
+            -- get a table for storing the keys
+            -- iterate over the keys
+            for j, special_key in ipairs(special_keys) do
+              if special_key == "" then
+                if j % 2 ~= 0 then
+                  local key_symbol = key_lookup[special_key]
+                  table.insert(key_symbols, key_symbol)
+                end
+              else
+                -- map the symbol to a standard key
                 local key_symbol = key_lookup[special_key]
                 table.insert(key_symbols, key_symbol)
               end
-            else
-              -- map the symbol to a standard key
-              local key_symbol = key_lookup[special_key]
-              table.insert(key_symbols, key_symbol)
             end
+          else
+            table.insert(key_symbols, "<" .. key .. ">")
           end
           -- add the keys to the result
           table.insert(keys, key_symbols)
@@ -153,40 +160,84 @@ function Utils.check_mode(mode)
   end
 end
 
-function Utils.keytree(keystr)
-  -- Parse the keystring using Utils.parse_keystring
-  local parsed_keystr = Utils.parse_keystring(keystr)
+function Utils.wo(win, k, v)
+  if vim.api.nvim_set_option_value then
+    vim.api.nvim_set_option_value(k, v, { scope = "local", win = win })
+  else
+    vim.wo[win][k] = v
+  end
+end
 
-  -- Initialize an empty table for the nested keymap
-  local ret = {}
+---@alias KeySeerNotifyOpts {lang?:string, title?:string, level?:number}
 
-  local current_node = ret
-  local next_node = ret
-  -- Iterate over the parsed keystr and build the nested keymap
-  for _, key_list in ipairs(parsed_keystr) do
-    local modifiers = {}
-    for i, key in ipairs(key_list) do
-      -- Skip keys that include both < and > in the key
-      local is_modifier = (key == "<Ctrl>" or key == "<Meta>" or key == "<Shift>" or key == "<Alt>")
-
-      if is_modifier then
-        modifiers[key] = true
-      else
-        if not current_node[key] then
-          current_node[key] = { modifiers = {}, children = {} }
-        end
-        for modifier, _ in pairs(modifiers) do
-          current_node[key].modifiers[modifier] = true
-        end
-        -- Store the reference for the next node.
-        -- This way modifiers could come later
-        next_node = current_node[key].children
-      end
-    end
-    current_node = next_node
+---@param msg string|string[]
+---@param opts? KeySeerNotifyOpts
+function Utils.notify(msg, opts)
+  if vim.in_fast_event() then
+    return vim.schedule(function()
+      Utils.notify(msg, opts)
+    end)
   end
 
-  return ret
+  opts = opts or {}
+  if type(msg) == "table" then
+    msg = table.concat(
+      vim.tbl_filter(function(line)
+        return line or false
+      end, msg),
+      "\n"
+    )
+  end
+  local lang = opts.lang or "markdown"
+  vim.notify(msg, opts.level or vim.log.levels.INFO, {
+    on_open = function(win)
+      pcall(require, "nvim-treesitter")
+      vim.wo[win].conceallevel = 3
+      vim.wo[win].concealcursor = ""
+      vim.wo[win].spell = false
+      local buf = vim.api.nvim_win_get_buf(win)
+      if not pcall(vim.treesitter.start, buf, lang) then
+        vim.bo[buf].filetype = lang
+        vim.bo[buf].syntax = lang
+      end
+    end,
+    title = opts.title or "keyseer.nvim",
+  })
+end
+
+---@param msg string|string[]
+---@param opts? KeySeerNotifyOpts
+function Utils.error(msg, opts)
+  opts = opts or {}
+  opts.level = vim.log.levels.ERROR
+  Utils.notify(msg, opts)
+end
+
+function Utils.default_table()
+  return setmetatable({}, {
+    -- ensure every entry in the table is a table
+    __index = function(tbl, key)
+      local new_tbl = {}
+      rawset(tbl, key, new_tbl)
+      return new_tbl
+    end,
+  })
+end
+
+---Get the start column and end column
+---@param line string The string of characters to find byte positions
+---@param from number The start column
+---@param to number The end column
+---@return number start_col the start column in bytes
+---@return number end_col the end column in bytes
+function Utils.get_str_bytes(line, from, to)
+  -- Because the separators are multi-byte strings,
+  -- we have to do a conversion for highlighting purposes
+  local before = vim.fn.strcharpart(line, 0, from)
+  local str = vim.fn.strcharpart(line, 0, to)
+  from = vim.fn.strlen(before)
+  to = vim.fn.strlen(str)
+  return from, to
 end
 
 return Utils

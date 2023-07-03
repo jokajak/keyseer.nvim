@@ -29,27 +29,28 @@ Default values:
     -- TODO: Represent modifier toggling in highlights
     include_modifiers = false,
 
-    -- Configuration for keyboard window:
+    -- Configuration for ui:
     -- - `height` and `width` are maximum dimensions.
     -- - `border` defines border (as in `nvim_open_win()`).
-    window = {
+    ui = {
       border = "double", -- none, single, double, shadow
       margin = { 1, 0, 1, 0 }, -- extra window margin [top, right, bottom, left]
       winblend = 0, -- value between 0-100 0 for fully opaque and 100 for fully transparent
-      show_title = true,
-      header_sym = "━",
-      title = "keyseer.nvim",
-      show_legend = true,
-      width = 0.8,
-      height = 0.8,
+      size = {
+        width = 65,
+        height = 14,
+      },
+      icons = {
+        keyseer = "",
+      },
     },
 
     -- Keyboard options
     keyboard = {
       -- Layout of the keycaps
+      ---@type string|Keyboard
       layout = "qwerty",
-      -- How much space to put around each keycap
-      keycap_padding = { 0, 0, 0, 0 },
+      keycap_padding = { 0, 1, 0, 1 }, -- padding around keycap labels [top, right, bottom, left]
       -- How much padding to highlight around each keycap
       highlight_padding = { 0, 0, 0, 0 },
       -- override the label used to display some keys.
@@ -80,7 +81,7 @@ Default values:
     -- Validate per nesting level to produce correct error message
     vim.validate({
       keyboard = { config.keyboard, "table" },
-      window = { config.window, "table" },
+      ui = { config.ui, "table" },
       debug = { config.debug, "boolean" },
       include_modifiers = { config.include_modifiers, "boolean" },
       initial_mode = { config.initial_mode, "string" },
@@ -92,13 +93,16 @@ Default values:
 
     -- TODO: Add more validations
     vim.validate({
-      ["window.border"] = {
-        config.window.border,
+      ["ui.border"] = {
+        config.ui.border,
         is_string_or_array,
-        "(keyseer) `config.window.border` can be either string or array.",
+        "(keyseer) `config.ui.border` can be either string or array.",
       },
-      ["window.height"] = { config.window.height, "number" },
-      ["window.width"] = { config.window.width, "number" },
+      ["ui.size"] = { config.ui.size, "table" },
+    })
+    vim.validate({
+      ["ui.size.height"] = { config.ui.size.height, "number" },
+      ["ui.size.width"] = { config.ui.size.width, "number" },
     })
 
     return config
@@ -259,6 +263,33 @@ check the mode
 Parameters~
 {mode} `(string)` the mode
 
+------------------------------------------------------------------------------
+                                                                *Utils.notify()*
+                         `Utils.notify`({msg}, {opts})
+Parameters~
+{msg} `(string|string[])`
+{opts} `(optional)` `({lang?:string,)` title?:string, level?:number}
+
+------------------------------------------------------------------------------
+                                                                 *Utils.error()*
+                          `Utils.error`({msg}, {opts})
+Parameters~
+{msg} `(string|string[])`
+{opts} `(optional)` `({lang?:string,)` title?:string, level?:number}
+
+------------------------------------------------------------------------------
+                                                         *Utils.get_str_bytes()*
+                  `Utils.get_str_bytes`({line}, {from}, {to})
+the start column and end column
+Parameters~
+{line} `(string)` The string of characters to find byte positions
+{from} `(number)` The start column
+{to} `(number)` The end column
+Return~
+`(number)` start_col the start column in bytes
+Return~
+`(number)` end_col the end column in bytes
+
 
 ==============================================================================
 ------------------------------------------------------------------------------
@@ -273,11 +304,12 @@ Fields~
 {shift_pressed} `(boolean)` Whether or not the shift button is pressed
 {height} `(number)` The number of rows in the rendered keyboard
 {width} `(number)` The number of columns in the rendered keyboard
+{layout} PhysicalLayout The layout for the keyboard
 {private} _normal_buttons Button[] A mapping `(table)` from keycode to button when shift is not pressed
 {private} _shifted_buttons Button[] A mapping `(table)` from keycode to button when shift is pressed
 {private} _normal_lines `(string[])` The string representation of the keyboard without shift pressed
 {private} _shifted_lines `(string[])` The string representation of the keyboard with shift pressed
-{private} _layout PhysicalLayout The layout for the keyboard
+{private} _locations Button[] A `(table)` of button positions
 
 ------------------------------------------------------------------------------
                                               *default_keyboard_display_options*
@@ -288,11 +320,14 @@ Fields~
 {padding} PaddingBox the spacing around each button keycap
 {highlight_padding} PaddingBox the extra highlights around a keycap
 {key_labels} `(string[])` A mapping table to replace a keycap with another label when output
-{layout} PhysicalLayout The layout of buttons on the keyboard
+{layout} `(optional)` PhysicalLayout The layout of buttons on the keyboard
 
 ------------------------------------------------------------------------------
 Class~
-{PhysicalLayout}
+{PhysicalKey}
+Fields~
+{normal} `(string)`
+{shifted} `(string)`
 
 ------------------------------------------------------------------------------
                                                                 *Keyboard:new()*
@@ -333,19 +368,6 @@ Return~
 `(string)` The string representation of the keyboard
 
 ------------------------------------------------------------------------------
-                                                               *get_str_bytes()*
-                     `get_str_bytes`({line}, {from}, {to})
-the start column and end column
-Parameters~
-{line} `(string)` The string of characters to find byte positions
-{from} `(number)` The start column
-{to} `(number)` The end column
-Return~
-`(number)` start_col the start column in bytes
-Return~
-`(number)` end_col the end column in bytes
-
-------------------------------------------------------------------------------
                                                     *Keyboard:_layout_buttons()*
                   `Keyboard:_layout_buttons`({shift_pressed})
 the keyboard laout
@@ -361,6 +383,13 @@ button at coordinates
 Parameters~
 {row} `(integer)`
 {col} `(integer)`
+
+------------------------------------------------------------------------------
+                                                     *Keyboard:populate_lines()*
+                        `Keyboard:populate_lines`({ui})
+lines in a display
+Parameters~
+{ui} KeySeerUI
 
 
 ==============================================================================
@@ -408,6 +437,7 @@ Fields~
 {right_col} `(number)` The rightmost column of the button in the output
 {highlight_box} HighlightBox The highlight box for the button
 {width} `(number)` The width of the entire button
+{is_modifier} `(boolean)` Whether or not a button is a modifier
 {private} _keycap_width `(number)` The width of the keycap string
 {private} _highlights BoundingBox the highlight padding around the keycap
 {private} _padding BoundingBox the display padding around the keycap
@@ -468,6 +498,176 @@ Parameters~
 {namespace} `(number)` The namespace for the highlights
 {highlight_group} `(string)` The highlighting to apply to the button
 {row_offset} `(number)` The row offset in case there's something above the row (like a header)
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                 *default_state*
+                                `default_state`
+Class~
+{KeySeerUIState}
+Fields~
+{pane} `(string)`
+{button} Button
+{modifiers} `(table{string,boolean})`
+
+------------------------------------------------------------------------------
+                                                                             *M*
+                                      `M`
+Class~
+{KeySeerUI:} KeySeerPopup
+Fields~
+{render} KeySeerRender
+{state} KeySeerUIState
+
+------------------------------------------------------------------------------
+                                                                          *M.ui*
+                                     `M.ui`
+Type~
+KeySeerUI
+
+------------------------------------------------------------------------------
+                                                                   *M.visible()*
+                                 `M.visible`()
+Return~
+`(boolean)`
+
+------------------------------------------------------------------------------
+                                                                      *M.show()*
+                                `M.show`({pane})
+Parameters~
+{pane} `(optional)` `(string)`
+
+------------------------------------------------------------------------------
+                                                                    *M.create()*
+                                  `M.create`()
+Return~
+KeySeerUI
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                             *M*
+                                      `M`
+Class~
+{KeySeerUIPane}
+Fields~
+{id} `(number)`
+{button} `(optional)` `(boolean)`
+{desc} `(optional)` `(string)`
+{key} `(optional)` `(string)`
+{toggle} `(optional)` `(boolean)`
+
+------------------------------------------------------------------------------
+                                                                       *M.panes*
+                                   `M.panes`
+Type~
+`(table<string,KeySeerUIPane>)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+Class~
+{KeySeerPopupOptions}
+Fields~
+{buf} `(optional)` `(number)`
+{margin} `(optional)` `({top?:number,)` right?:number, bottom?:number, left?:number}
+{size} `(optional)` `({width:number,)` height:number}
+{zindex} `(optional)` `(number)`
+{style} `(optional)` "" | "minimal"
+{border} `(optional)` "none" | "single" | "double" | "rounded" | "solid" | "shadow"
+{title} `(optional)` `(string)`
+{title_pos} `(optional)` "center" | "left" | "right"
+{persistent} `(optional)` `(boolean)`
+{ft} `(optional)` `(string)`
+{noautocmd} `(optional)` `(boolean)`
+
+------------------------------------------------------------------------------
+Class~
+{KeySeerPopup}
+Fields~
+{buf} `(number)`
+{win} `(number)`
+{opts} KeySeerPopupOptions
+
+------------------------------------------------------------------------------
+                                                                   *Popup.new()*
+                              `Popup.new`({opts})
+a new Popup
+Parameters~
+{opts} `(optional)` KeySeerPopupOptions
+
+------------------------------------------------------------------------------
+                                                                  *Popup:init()*
+                              `Popup:init`({opts})
+Parameters~
+{opts} `(optional)` KeySeerPopupOptions
+
+------------------------------------------------------------------------------
+                                                                    *Popup:on()*
+                       `Popup:on`({events}, {fn}, {opts})
+Parameters~
+{events} `(string|string[])`
+{fn} `(fun(self?):boolean?)`
+{opts} `(optional)` `(table)`
+
+------------------------------------------------------------------------------
+                                                                *Popup:on_key()*
+                      `Popup:on_key`({key}, {fn}, {desc})
+Parameters~
+{key} `(string)`
+{fn} `(fun(self?))`
+{desc} `(optional)` `(string)`
+
+------------------------------------------------------------------------------
+                                                                 *Popup:close()*
+                             `Popup:close`({opts})
+Parameters~
+{opts} `(optional)` `({wipe:boolean})`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                             *M*
+                                      `M`
+Class~
+{KeySeerRender:} Text
+Fields~
+{ui} KeySeerUI
+{keyboard} Keyboard
+
+------------------------------------------------------------------------------
+                                                                       *M.new()*
+                                 `M.new`({ui})
+Return~
+KeySeerRender
+Parameters~
+{ui} KeySeerUI
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                          *Text*
+                                     `Text`
+Class~
+{Text}
+Fields~
+{_lines} {str: `(string,)` hl?:string|Extmark}[][]
+{padding} `(number)`
+
+------------------------------------------------------------------------------
+                                                                 *Text:append()*
+                       `Text:append`({str}, {hl}, {opts})
+Parameters~
+{str} `(string)`
+{hl} `(optional)` `(string|{hl_group?:string,)` col?:number, end_col?:number}
+{opts} `(optional)` {indent?: `(number,)` prefix?: string}
+
+------------------------------------------------------------------------------
+                                                              *Text:highlight()*
+                          `Text:highlight`({patterns})
+Parameters~
+{patterns} `(table<string,string>)`
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:

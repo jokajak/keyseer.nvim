@@ -4,6 +4,7 @@
 -- A keyboard can be displayed as having shift held down or not
 -- Each button on the keyboard can be highlighted
 local Button = require("keyseer.keyboard.button")
+local Utils = require("keyseer.utils")
 
 -- Border characters for buttons
 local _borders = {
@@ -66,11 +67,12 @@ end
 ---@field shift_pressed boolean Whether or not the shift button is pressed
 ---@field height number The number of rows in the rendered keyboard
 ---@field width number The number of columns in the rendered keyboard
+---@field layout PhysicalLayout The layout for the keyboard
 ---@field private _normal_buttons Button[] A mapping table from keycode to button when shift is not pressed
 ---@field private _shifted_buttons Button[] A mapping table from keycode to button when shift is pressed
 ---@field private _normal_lines string[] The string representation of the keyboard without shift pressed
 ---@field private _shifted_lines string[] The string representation of the keyboard with shift pressed
----@field private _layout PhysicalLayout The layout for the keyboard
+---@field private _locations Button[] A table of button positions
 local Keyboard = {}
 Keyboard.__index = Keyboard
 
@@ -78,14 +80,19 @@ Keyboard.__index = Keyboard
 ---@field padding PaddingBox the spacing around each button keycap
 ---@field highlight_padding PaddingBox the extra highlights around a keycap
 ---@field key_labels string[] A mapping table to replace a keycap with another label when output
----@field layout PhysicalLayout The layout of buttons on the keyboard
+---@field layout? PhysicalLayout The layout of buttons on the keyboard
 local default_keyboard_display_options = {
-  padding = { 0, 1, 0, 1 }, -- padding around keycap labels [top, right, bottom, left]
+  keycap_padding = { 0, 1, 0, 1 }, -- padding around keycap labels [top, right, bottom, left]
   highlight_padding = { 0, 0, 0, 0 }, -- how much of the label to highlight
   key_labels = {}, -- keycap overrides
 }
 
----@class PhysicalLayout
+---@class PhysicalKey
+---@field normal string
+---@field shifted string
+
+---@alias PhysicalKeyRow PhysicalKey[]
+---@alias PhysicalLayout PhysicalKeyRow[]
 
 ---Create a new keyboard object
 ---@param options? KeyboardDisplayOptions
@@ -96,12 +103,12 @@ function Keyboard:new(options)
     shift_pressed = false,
     _normal_buttons = default_table(),
     _shifted_buttons = default_table(),
-    padding = options.padding,
+    padding = options.keycap_padding,
     highlight_padding = options.highlight_padding,
     key_labels = options.key_labels,
   }
   if options.layout and options.layout ~= false then
-    this._layout = options.layout
+    this.layout = options.layout
   end
   setmetatable(this, self)
   self.__index = self
@@ -161,22 +168,6 @@ function Keyboard:__tostring()
   return tostring(self:get_lines(self.shift_pressed))
 end
 
----Get the start column and end column
----@param line string The string of characters to find byte positions
----@param from number The start column
----@param to number The end column
----@return number start_col the start column in bytes
----@return number end_col the end column in bytes
-local function get_str_bytes(line, from, to)
-  -- Because the separators are multi-byte strings,
-  -- we have to do a conversion for highlighting purposes
-  local before = vim.fn.strcharpart(line, 0, from)
-  local str = vim.fn.strcharpart(line, 0, to)
-  from = vim.fn.strlen(before)
-  to = vim.fn.strlen(str)
-  return from, to
-end
-
 ---Calculate the keyboard laout
 ---@param shift_pressed boolean Whether or not the shift button is held down
 ---@return string[] The string representation of the keyboard
@@ -225,7 +216,7 @@ function Keyboard:_layout_buttons(shift_pressed)
   local highlight_padding = self.highlight_padding
 
   -- convert each row of PhysicalLayout of keycodes into rows of buttons
-  for row_index, key_entries in ipairs(self._layout) do
+  for row_index, key_entries in ipairs(self.layout) do
     local buttons = {}
     local row_len = 0
     for _, key_entry in ipairs(key_entries) do
@@ -245,7 +236,7 @@ function Keyboard:_layout_buttons(shift_pressed)
   -- resize first and last columns based on the longest row
   -- bottom row is excluded because the space button gets the padding
   for i = 1, #rows - 1 do
-    local end_column = #self._layout[i]
+    local end_column = #self.layout[i]
     local row_length_delta = longest_row_length - row_lengths[i]
     local start_column_pad = math.ceil(row_length_delta / 2)
     local end_column_pad = math.floor(row_length_delta / 2)
@@ -272,7 +263,7 @@ function Keyboard:_layout_buttons(shift_pressed)
     keycap_separator_columns[row_index] = {}
     for _, button in ipairs(row) do
       row_text = row_text .. tostring(button) .. _borders["ss  "]
-      local start_col, _ = get_str_bytes(row_text, row_length + 1, row_length + button.width)
+      local start_col, _ = Utils.get_str_bytes(row_text, row_length + 1, row_length + button.width)
       button:set_button_byte_position(start_col)
       -- add the length of the separator
       row_length = row_length + button.width + separator_width
@@ -379,4 +370,170 @@ function Keyboard:get_keycap_at_position(row, col)
   print("Not yet implemented")
 end
 
+---Populate lines in a display
+---@param ui KeySeerUI The UI to display to
+---@param keycaps KeyMapTreeNode The keycaps to display
+function Keyboard:populate_lines(ui, keycaps)
+  -- generate a string representation of the layout, e.g.
+  -- ┌──────┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬──────┐
+  -- │  `   │1│2│3│4│5│6│7│8│9│0│-│=│ <BS> │
+  -- ├──────┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼──────┤
+  -- │<TAB> │q│w│e│r│t│y│u│i│o│p│[│]│  \   │
+  -- ├──────┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┴──────┤
+  -- │<CAPS>│a│s│d│f│g│h│j│k│l│;│'│ <ENTER>│
+  -- ├──────┴─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼────────┤
+  -- │<SHIFT> │z│x│c│v│b│n│m│,│.│/│ <SHIFT>│
+  -- └────────┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴────────┘
+  --  ┌───────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬──────┐
+  --  │   `   │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ - │ = │ <BS> │
+  --  ├───────┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼──────┤
+  --  │ <TAB> │ q │ w │ e │ r │ t │ y │ u │ i │ o │ p │ [ │ ] │   \  │
+  --  ├───────┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴──────┤
+  --  │ <CAPS> │ a │ s │ d │ f │ g │ h │ j │ k │ l │ ; │ ' │ <ENTER> │
+  --  ├────────┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─────────┤
+  --  │ <SHIFT>  │ z │ x │ c │ v │ b │ n │ m │ , │ . │ / │  <SHIFT>  │
+  --  └──────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───────────┘
+  local display = ui.render
+  local shift_pressed = ui.state.modifiers.shift
+  local button_lookup = Utils.default_table()
+  if shift_pressed then
+    button_lookup = self._shifted_buttons
+  end
+
+  local rows = {}
+  local keycap_separator_columns = {}
+  local row_lengths = {}
+
+  -- convenience variable for the width of a separator character
+  local separator_width = vim.fn.strwidth(_borders["ss  "])
+  -- keep track of the longest row
+  local longest_row_length = 0
+  -- captures how many spaces to put around labels
+  local padding = self.padding
+  local highlight_padding = self.highlight_padding
+
+  -- convert each row of PhysicalLayout of keycodes into rows of buttons
+  for row_index, key_entries in ipairs(self.layout) do
+    local buttons = {}
+    local row_len = 0
+    for _, key_entry in ipairs(key_entries) do
+      local keycode = key_entry[shift_pressed and "shifted" or "normal"]
+      local keycap = self.key_labels[keycode] or keycode
+      local button = Button:new(keycap, keycode, row_index, padding, highlight_padding)
+      table.insert(buttons, button)
+      row_len = row_len + button.width + separator_width
+
+      table.insert(button_lookup[keycode], button)
+    end
+    rows[row_index] = buttons
+    row_lengths[row_index] = row_len
+    longest_row_length = math.max(longest_row_length, row_len)
+  end
+
+  -- resize first and last columns based on the longest row
+  -- bottom row is excluded because the space button gets the padding
+  for i = 1, #rows - 1 do
+    local end_column = #self.layout[i]
+    local row_length_delta = longest_row_length - row_lengths[i]
+    local start_column_pad = math.ceil(row_length_delta / 2)
+    local end_column_pad = math.floor(row_length_delta / 2)
+    local row_start_button = rows[i][1]
+    local row_end_button = rows[i][end_column]
+
+    row_start_button:add_padding(start_column_pad, true)
+    row_end_button:add_padding(end_column_pad, false)
+  end
+
+  -- resize space button
+  do
+    local row_length_delta = longest_row_length - row_lengths[5]
+    -- Get the <Space> button from the layout
+    -- At this point there should be at least one
+    local button = button_lookup["<Space>"][1]
+    button:add_padding(row_length_delta)
+  end
+
+  -- calculate keycap separator locations
+  for row_index, row in ipairs(rows) do
+    local row_length = 0
+    local row_text = _borders["ss  "]
+    keycap_separator_columns[row_index] = {}
+    for _, button in ipairs(row) do
+      row_text = row_text .. tostring(button) .. _borders["ss  "]
+      local start_col, _ = Utils.get_str_bytes(row_text, row_length + 1, row_length + button.width)
+      button:set_button_byte_position(start_col)
+      -- add the length of the separator
+      row_length = row_length + button.width + separator_width
+      -- mark where there is a separator
+      keycap_separator_columns[row_index][row_length] = true
+    end
+  end
+  -- place top row
+  display:append(_borders[" s s"])
+  for col, button in ipairs(rows[1]) do
+    if button.width > 0 then
+      display:append(string.rep("─", button.width))
+    end
+    if col < #rows[1] then
+      display:append(_borders[" sss"])
+    else
+      display:append(_borders[" ss "])
+    end
+  end
+  display:nl()
+
+  -- for each row of buttons
+  for row_index, row in ipairs(rows) do
+    -- add the padding row above the keycap text
+    for _ = 1, padding[1] do
+      display:append(_borders["ss  "])
+      -- for each button in the row
+      for _, button in ipairs(row) do
+        display:append(string.rep(" ", button.width))
+        display:append(_borders["ss  "])
+      end
+      display:nl()
+    end
+    -- add the keycap text
+    for _, button in ipairs(row) do
+      -- add the padding row above the keycap text
+      display:append(_borders["ss  "]):append(tostring(button), keycaps[button.keycap])
+    end
+    display:append(_borders["ss  "]):nl()
+    -- add the padding row below the keycap text
+    for _ = 1, padding[3] do
+      display:append(_borders["ss  "])
+      -- for each button in the row
+      for _, button in ipairs(row) do
+        display:append(string.rep(" ", button.width))
+        display:append(_borders["ss  "])
+      end
+      display:nl()
+    end
+    -- add lines below the current row of keycaps
+    -- keycap_separator_columns assume there is no character to the left
+    local first_char_in_separator_row = {
+      (row_index > 0 and "s") or " ", -- up
+      (row_index < #rows and "s") or " ", -- down
+      " ", -- left
+      "s", -- right
+    }
+    display:append(_borders[table.concat(first_char_in_separator_row, "")])
+    for pos = 1, longest_row_length do
+      local up_line = (keycap_separator_columns[row_index] or {})[pos]
+      local down_line = (keycap_separator_columns[row_index + 1] or {})[pos]
+      local left_line = pos > 0
+      local right_line = pos < longest_row_length
+
+      local line_opts = {
+        (up_line and "s") or " ", -- up
+        (down_line and "s") or " ", -- down
+        (left_line and "s") or " ", -- left
+        (right_line and "s") or " ", -- right
+      }
+      display:append(_borders[table.concat(line_opts, "")])
+    end
+    display:nl()
+  end
+end
 return Keyboard

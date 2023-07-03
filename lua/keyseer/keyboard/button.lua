@@ -2,6 +2,14 @@
 -- The button object encapsulates the logic for displaying and highlighting a button
 local strrep = string.rep
 
+-- table of key codes that are modifiers
+local modifiers = {
+  ["<Caps>"] = true,
+  ["<Shift>"] = true,
+  ["<Ctrl>"] = true,
+  ["<Meta>"] = true,
+}
+
 ---@class HighlightBox
 ---@field start_col number The start column
 ---@field end_col number The end column
@@ -32,6 +40,7 @@ local strrep = string.rep
 ---@field right_col number The rightmost column of the button in the output
 ---@field highlight_box HighlightBox The highlight box for the button
 ---@field width number The width of the entire button
+---@field is_modifier boolean Whether or not a button is a modifier
 ---@field private _keycap_width number The width of the keycap string
 ---@field private _highlights BoundingBox the highlight padding around the keycap
 ---@field private _padding BoundingBox the display padding around the keycap
@@ -78,6 +87,7 @@ function Button:new(keycap, keycode, row_index, padding_box, highlight_box)
     right_pad = right_pad,
     row = row,
     width = left_pad + keycap_width + right_pad,
+    is_modifier = modifiers[keycode] or false,
     _keycap_width = keycap_width,
     _highlights = {
       top = hl_top,

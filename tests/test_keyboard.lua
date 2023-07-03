@@ -55,7 +55,7 @@ T["qwerty"]["can access keyboard object"] = function()
   eq_type_global(child, "qwerty", "table")
 end
 T["qwerty"]["has a layout"] = function()
-  eq_type_global(child, "_G.qwerty._layout", "table")
+  eq_type_global(child, "_G.qwerty.layout", "table")
 end
 
 T["qwerty"]["has config"] = function()

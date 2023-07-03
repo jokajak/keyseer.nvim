@@ -1,0 +1,1 @@
+-- This module is responsible for managing the view within the floating window

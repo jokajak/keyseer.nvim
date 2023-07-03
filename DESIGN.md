@@ -44,7 +44,7 @@ local keypresses = {
   -- this entry captures the information about the keypresses associated with a keycap
   -- this entry is used when displaying the keyboard
   g = {
-    actions = {},
+    keymaps = {},
     modifiers = {
       "Ctrl" = true
     },
@@ -53,20 +53,23 @@ local keypresses = {
   -- this entry captures the actual keypress
   -- this entry is used when updating the keyboard state
   ["<C-g>"] = {
-    actions = {}
+    keymaps = {}
     children = {
       g = {
-        actions = {},
+        keymaps = {},
         modifiers = {
           "Shift" = true
         },
         children = {}
       },
       G = {
-        actions = {},
+        keymaps = {},
+        modifiers = {
+          "Shift" = true
+        },
         children = {
           g = {
-            actions = {
+            keymaps = {
               [""] = `rhs`
             }
           }
@@ -76,3 +79,16 @@ local keypresses = {
   }
 }
 ```
+
+## User Experience
+
+* `:KeySeer` opens main KeySeer window
+  * Can use `KeySeer n` or `KeySeer i` to configure which mode is displayed
+* Different views accessible via keymap:
+  * H: Main display showing the keyboard layout with highlighting
+  * I: Information display showing the details for the current keycap
+  * C: Configuration display for changing the mode or meta presses
+  * ?: Help screen
+* Navigating from the current keypress to the next is accomplished with `g<keypress>`
+
+It would be neat if I could somehow integrate with hydra.nvim

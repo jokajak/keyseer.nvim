@@ -31,16 +31,16 @@ function Display:new(opts)
     window = {
       winblend = if_nil(
         opts.winblend,
-        type(opts.window) == "table" and opts.window.winblend or config.window.winblend
+        type(opts.window) == "table" and opts.window.winblend or config.ui.winblend
       ),
       border = if_nil(
         opts.border,
-        type(opts.window) == "table" and opts.window.border or config.window.border
+        type(opts.window) == "table" and opts.window.border or config.ui.border
       ),
     },
-    show_title = if_nil(opts.show_title, config.window.show_title),
-    show_legend = if_nil(opts.show_legend, config.window.show_legend),
-    title = if_nil(opts.title, config.window.title),
+    show_title = if_nil(opts.show_title, config.ui.show_title),
+    show_legend = if_nil(opts.show_legend, config.ui.show_legend),
+    title = if_nil(opts.title, config.ui.title),
   }, self)
   local keyboard_opts = if_nil(opts.keyboard, config.keyboard)
   local keyboard = keyboard_opts.layout

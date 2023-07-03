@@ -49,57 +49,6 @@ T["utils"]["parses keystrings"] = function()
   )
 end
 
-T["utils"]["creates keytree"] = function()
-  eq_type_global(child, "utils.keytree", "function")
-  eq_global(child, "utils.keytree('q')", {
-    q = {
-      modifiers = {},
-      children = {},
-    },
-  })
-end
-
-T["utils"]["keytree parses two key presses"] = function()
-  eq_global(child, "utils.keytree('gg')", {
-    g = {
-      modifiers = {},
-      children = {
-        g = {
-          modifiers = {},
-          children = {},
-        },
-      },
-    },
-  })
-end
-
-T["utils"]["keytree parses modifier"] = function()
-  eq_global(child, "utils.keytree('<C-q>')", {
-    q = {
-      modifiers = {
-        ["<Ctrl>"] = true,
-      },
-      children = {},
-    },
-  })
-end
-
-T["utils"]["keytree parses modifier with child"] = function()
-  eq_global(child, "utils.keytree('<C-q>g')", {
-    q = {
-      modifiers = {
-        ["<Ctrl>"] = true,
-      },
-      children = {
-        g = {
-          modifiers = {},
-          children = {},
-        },
-      },
-    },
-  })
-end
-
 T["buttons"] = MiniTest.new_set()
 T["buttons"]["has public API"] = function()
   child.lua([[buttons = require("keyseer.util.buttons")]])
@@ -120,6 +69,11 @@ T["buttons"]["describes shifted"] = function()
   eq_global(child, "buttons.shifted_keys:find('a', 0, true)", vim.NIL)
   eq_global(child, "buttons.shifted_keys:find('`', 0, true)", vim.NIL)
   eq_global(child, "buttons.shifted_keys:find('\"', 0, true)", 43)
+end
+
+T["utils"]["parse_keystring supports split_keypresses"] = function()
+  eq_global(child, "utils.parse_keystring('<C-g>', false)", { { "<C-g>" } })
+  eq_global(child, "utils.parse_keystring('<C-g>', true)", { { "<Ctrl>", "g" } })
 end
 
 return T
