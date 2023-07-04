@@ -12,6 +12,11 @@ M.colors = {
   Special = "@punctuation.special",
   Button = "CursorLine",
   ButtonActive = "Visual",
+  KeycapKeymap = "CursorLine",
+  KeycapMultipleKeymaps = "Search",
+  KeycapKeymapAndPrefix = "Visual",
+  KeycapKeymapsAndPrefix = "IncSearch",
+  KeycapPrefix = "Bold",
 }
 
 M.did_setup = false

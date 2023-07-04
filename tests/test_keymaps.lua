@@ -150,12 +150,12 @@ T["keymaps"]["gets current keycaps"] = function()
   child.lua([[ret = Keymaps:new()]])
   child.lua("ret:add_keymaps({{lhs='g', rhs='g_action'}})")
   eq_global(child, "ret:get_current_keycaps()", {
-    "g",
+    g = "KeySeerKeycapKeymap",
   })
   child.lua("ret:add_keymaps({{lhs='<C-g>', rhs='g_action'}})")
   eq_global(child, "ret:get_current_keycaps()", {
-    "g",
-    "<C-g>",
+    g = "KeySeerKeycapKeymap",
+    ["<C-g>"] = "KeySeerKeycapKeymap",
   })
 end
 

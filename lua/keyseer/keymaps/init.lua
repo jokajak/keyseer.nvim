@@ -2,8 +2,7 @@
 local D = require("keyseer.util.debug")
 local Utils = require("keyseer.utils")
 local config = require("keyseer").config
-local Buttons = require("keyseer.util.buttons")
-local BuiltInKeyMaps = require("keyseer.util.builtin_keymaps")
+local BuiltInKeyMaps = require("keyseer.keymaps.builtin_keymaps")
 local Keypress = require("keyseer.keymaps.keypress")
 
 local if_nil = vim.F.if_nil
@@ -83,10 +82,13 @@ function Keymaps:add_keymaps(keymaps)
     -- Ignore plug keymaps
     for _, v in ipairs(key_presses[1]) do
       -- This is some weird character that shows up
-      if string.match(v, "Þ") or string.lower(v) == "<plug>" then
+      if string.lower(v) == "<plug>" then
         -- empty out the key_presses table to force the for loop to be skipped
         key_presses = {}
       end
+    end
+    if string.match(keymap.lhs, "Þ") then
+      key_presses = {}
     end
 
     -- Iterate over the parsed keystr and build the nested keymap
@@ -97,12 +99,6 @@ function Keymaps:add_keymaps(keymaps)
         for k, v in pairs(Keypress.get_modifiers(key)) do
           modifiers[k] = v
         end
-        local is_modifier = (
-          key == "<Ctrl>"
-          or key == "<Meta>"
-          or key == "<Shift>"
-          or key == "<Alt>"
-        )
 
         if not current_node[key] then
           current_node[key] = { modifiers = {}, children = {}, keymaps = {} }
@@ -132,12 +128,19 @@ function Keymaps:get_current_keycaps(modifiers)
     vim.tbl_deep_extend("force", { Ctrl = false, Shift = false, Alt = false }, modifiers or {})
   local ret = {}
   for k, v in pairs(self.current_node.children) do
-    Utils.notify(k .. " Children: " .. #v.children)
-    if #v.children == 0 then
-      ret[k] = "KeySeerButtonActive"
+    -- empty children means it has a keymap
+    if vim.tbl_isempty(v.children) then
+      ret[k] = "KeySeerKeycapKeymap"
+      if vim.tbl_count(v.keymaps) > 1 then
+        ret[k] = "KeySeerKeycapMultipleKeymaps"
+      end
     else
-      if #v.keymaps > 0 then
-        ret[k] = "KeySeerH2"
+      if vim.tbl_count(v.keymaps) == 1 then
+        ret[k] = "KeySeerKeycapKeymapAndPrefix"
+      elseif vim.tbl_count(v.keymaps) > 1 then
+        ret[k] = "KeySeerKeycapKeymapsAndPrefix"
+      else
+        ret[k] = "KeySeerKeycapPrefix"
       end
     end
   end

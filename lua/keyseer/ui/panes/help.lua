@@ -8,6 +8,32 @@ function M.render(ui)
   local display = ui.render
   display:append("Help", "KeySeerH2"):nl():nl()
 
+  display:append("Colors depict the status of a keycap."):nl()
+
+  display
+    :append("Button", "KeySeerKeycapKeymap", { indent = 2 })
+    :append(" has a single keymap assigned.")
+    :nl()
+  display
+    :append("Button", "KeySeerKeycapMultipleKeymaps", { indent = 2 })
+    :append(" has a multiple keymaps assigned.")
+    :nl()
+
+  display
+    :append("Button", "KeySeerKeycapKeymapsAndPrefix", { indent = 2 })
+    :append(" has multiple keymaps assigned and is a prefix to more keymaps.")
+    :nl()
+
+  display
+    :append("Button", "KeySeerKeycapKeymapAndPrefix", { indent = 2 })
+    :append(" has a keymap assigned and is a prefix to keymaps.")
+    :nl()
+
+  display
+    :append("Button", "KeySeerKeycapPrefix", { indent = 2 })
+    :append(" is a prefix to keymaps.")
+    :nl()
+
   display
     :append("You can press ")
     :append(UIConfig.keys.details, "KeySeerSpecial")
