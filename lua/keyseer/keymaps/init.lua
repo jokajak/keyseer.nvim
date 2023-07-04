@@ -35,7 +35,7 @@ end
 ---@param bufnr buffer? The buffer for which to get keymaps
 ---@param mode string? Optional mode for which to get keymaps
 ---@returns table
-function Keymaps:get_keymaps(bufnr, mode)
+function Keymaps:process_keymaps(bufnr, mode)
   local mode = mode or config.initial_mode
   local bufnr = bufnr or vim.api.nvim_get_current_buf()
   local global_keymaps = vim.api.nvim_get_keymap(mode)

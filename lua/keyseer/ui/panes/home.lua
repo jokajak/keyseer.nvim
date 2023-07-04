@@ -18,39 +18,50 @@ local Keymaps = require("keyseer.keymaps")
 local Utils = require("keyseer.utils")
 -- Render help
 local M = {
-  state = {
-    count = 0,
-  },
+  count = 0,
+  modifiers = {},
+  saved_keymaps = {},
 }
+
+function M.ensure_state(ui)
+  if not ui.state.keyboard then
+    local keyboard_opts = Config.keyboard
+    local keyboard
+    local keyboard_options = vim.deepcopy(keyboard_opts)
+    keyboard_options.layout = nil
+
+    if type(keyboard_opts.layout) == "string" then
+      keyboard = require("keyseer.keyboard." .. keyboard_opts.layout):new(keyboard_options)
+    else
+      ---@type Keyboard
+      local layout = keyboard_opts.layout
+      keyboard = layout:new(keyboard_options)
+    end
+
+    ui.state.keyboard = keyboard
+  end
+  if not ui.state.keymaps then
+    ui.state.keymaps = Keymaps:new()
+    ui.state.keymaps:process_keymaps()
+  end
+end
 
 -- TODO: Populate main
 function M.render(ui)
-  local keyboard_opts = Config.keyboard
-  local keyboard
-  local keyboard_options = vim.deepcopy(keyboard_opts)
-  keyboard_options.layout = nil
-
-  if type(keyboard_opts.layout) == "string" then
-    keyboard = require("keyseer.keyboard." .. keyboard_opts.layout):new(keyboard_options)
-  else
-    ---@type Keyboard
-    local layout = keyboard_opts.layout
-    keyboard = layout:new(keyboard_options)
-  end
-
-  local keymaps = Keymaps:new()
-  keymaps:get_keymaps()
-  keyboard:populate_lines(ui, keymaps:get_current_keycaps())
-  ui.state.keyboard = keyboard
+  M.ensure_state(ui)
+  local current_keycaps = ui.state.keymaps:get_current_keycaps(ui.state.modifiers)
+  ui.state.keyboard:populate_lines(ui, current_keycaps)
 end
 
+---Update keymaps when entering the pane
 function M.on_enter(ui)
-  M.state.count = M.state.count + 1
-  Utils.notify("Entering home for the " .. M.state.count .. " time.")
+  M.ensure_state(ui)
+  Utils.notify("Entering home")
 end
 
+---Update keymaps when exiting the pane
 function M.on_exit(ui)
-  Utils.notify("Exiting home for the " .. M.state.count .. " time.")
+  Utils.notify("Exiting home")
 end
 
 return M
