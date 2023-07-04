@@ -11,6 +11,7 @@ local if_nil = vim.F.if_nil
 ---@class Keymaps
 ---@field root KeyMapTreeNode The root of the keymap treenode
 ---@field current_node KeyMapTreeNode The current node of the keymap tree
+---@field previous_node KeyMapTreeNode The previous node of the keymap tree
 local Keymaps = {}
 Keymaps.__index = Keymaps
 
@@ -25,6 +26,7 @@ function Keymaps:new()
   }, self)
 
   this.current_node = this.root
+  this.previous_node = nil
 
   return this
 end

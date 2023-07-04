@@ -1,3 +1,11 @@
+-- Details View:
+--  keyseer.nvim  (H)   Details (D)   Configuration (C)   Help (?)
+--
+-- Details for <key cap>
+--
+-- Current action: None
+-- Number of prefixed actions: N
+
 -- Render details
 local M = {}
 

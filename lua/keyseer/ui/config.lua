@@ -22,6 +22,7 @@ function M.get_panes()
 end
 
 M.keys = {
+  back = "<bs>",
   close = "q",
   details = "<cr>",
 }

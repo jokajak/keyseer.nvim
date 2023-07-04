@@ -71,8 +71,6 @@ function Utils.parse_keystring(keystr, split_keypresses)
   split_keypresses = vim.F.if_nil(split_keypresses, true)
 
   local key_lookup = setmetatable({
-    C = "<Ctrl>",
-    M = "<Meta>",
     Space = "<Space>",
     BS = "<BS>",
     [" "] = "<Space>",
@@ -80,6 +78,14 @@ function Utils.parse_keystring(keystr, split_keypresses)
   }, {
     __index = function(_, k)
       return k
+    end,
+  })
+  local modifier_lookup = setmetatable({
+    C = "<Ctrl>",
+    M = "<Meta>",
+  }, {
+    __index = function(_, k)
+      return key_lookup[k]
     end,
   })
 
@@ -101,12 +107,12 @@ function Utils.parse_keystring(keystr, split_keypresses)
             for j, special_key in ipairs(special_keys) do
               if special_key == "" then
                 if j % 2 ~= 0 then
-                  local key_symbol = key_lookup[special_key]
+                  local key_symbol = modifier_lookup[special_key]
                   table.insert(key_symbols, key_symbol)
                 end
               else
                 -- map the symbol to a standard key
-                local key_symbol = key_lookup[special_key]
+                local key_symbol = modifier_lookup[special_key]
                 table.insert(key_symbols, key_symbol)
               end
             end

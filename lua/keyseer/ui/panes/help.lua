@@ -1,3 +1,15 @@
+-- Help View:
+--  keyseer.nvim  (H)   Details (D)   Configuration (C)   Help (?)
+--
+-- Help
+--
+-- Keyboard Shortcuts
+--   - Home <H> Go back to main view
+--   - Details <D> Show details of a current keycap
+--   - Configuration <C> Change configuration
+--   - Help <?> Toggle this help page
+--
+-- Color information goes here
 local UIConfig = require("keyseer.ui.config")
 
 -- Render help
@@ -11,26 +23,31 @@ function M.render(ui)
   display:append("Colors depict the status of a keycap."):nl()
 
   display
-    :append("Button", "KeySeerKeycapKeymap", { indent = 2 })
+    :append("Keycap ", "", { indent = 2 })
+    :append("ex", "KeySeerKeycapKeymap")
     :append(" has a single keymap assigned.")
     :nl()
   display
-    :append("Button", "KeySeerKeycapMultipleKeymaps", { indent = 2 })
+    :append("Keycap ", "", { indent = 2 })
+    :append("ex", "KeySeerKeycapMultipleKeymaps")
     :append(" has a multiple keymaps assigned.")
     :nl()
 
   display
-    :append("Button", "KeySeerKeycapKeymapsAndPrefix", { indent = 2 })
+    :append("Keycap ", "", { indent = 2 })
+    :append("ex", "KeySeerKeycapKeymapsAndPrefix")
     :append(" has multiple keymaps assigned and is a prefix to more keymaps.")
     :nl()
 
   display
-    :append("Button", "KeySeerKeycapKeymapAndPrefix", { indent = 2 })
+    :append("Keycap ", "", { indent = 2 })
+    :append("ex", "KeySeerKeycapKeymapAndPrefix")
     :append(" has a keymap assigned and is a prefix to keymaps.")
     :nl()
 
   display
-    :append("Button", "KeySeerKeycapPrefix", { indent = 2 })
+    :append("Keycap ", "", { indent = 2 })
+    :append("ex", "KeySeerKeycapPrefix")
     :append(" is a prefix to keymaps.")
     :nl()
 
@@ -62,8 +79,6 @@ function M.render(ui)
   end
 
   display:nl()
-  display:append("Key has an action assigned"):nl()
-  display:append("Key is a prefix"):nl()
 end
 
 return M

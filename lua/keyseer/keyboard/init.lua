@@ -496,7 +496,6 @@ function Keyboard:populate_lines(ui, keycaps)
     end
     -- add the keycap text
     for _, button in ipairs(row) do
-      -- add the padding row above the keycap text
       display:append(_borders["ss  "]):append(tostring(button), keycaps[button.keycap])
     end
     display:append(_borders["ss  "]):nl()

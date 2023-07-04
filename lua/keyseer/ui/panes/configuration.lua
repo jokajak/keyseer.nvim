@@ -1,3 +1,10 @@
+-- Configuration View:
+--  keyseer.nvim  (H)   Details (D)   Configuration (C)   Help (?)
+--
+-- Configuration
+--
+-- Current mode: Normal
+
 -- Render configurations
 local M = {}
 

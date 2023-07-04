@@ -2,17 +2,20 @@
 local Popup = require("keyseer.ui.popup")
 local Render = require("keyseer.ui.render")
 local UIConfig = require("keyseer.ui.config")
+local Utils = require("keyseer.utils")
 
 -- This section of code is copied from https://github.com/folke/lazy.nvim/
 -- Mad props and respect go to folke
 
 ---@class KeySeerUIState
 ---@field pane string Which pane to show
+---@field prev_pane string The previous pane shown
 ---@field keyboard Keyboard The associated keyboard object
 ---@field mode string The mode for displaying keymaps
 ---@field modifiers table{string,boolean} What modifier buttons are considered pressed
 local default_state = {
   pane = "home",
+  prev_pane = "",
   mode = "n",
   modifiers = {
     ctrl = false,
@@ -61,25 +64,40 @@ function M.create()
 
   for k, v in pairs(UIConfig.panes) do
     self:on_key(v["key"], function()
-      self.state.pane = k
-      local button = self.render:get_button()
-      if button then
-        self.state.button = button
+      if self.state.pane == "home" then
+        local button = self.render:get_button()
+        if button then
+          self.state.button = button
+        end
       end
+      self.state.prev_pane = self.state.pane
+      self.state.pane = k
       self:update()
     end, v["desc"])
   end
 
-  -- keycap details
+  -- open details for the keycap under the cursor
   self:on_key(UIConfig.keys.details, function()
-    local button = self.render:get_button()
-    if button then
-      if button.is_modifier then
-        self.state.modifiers[button.keycode] = not self.state.modifiers[button.keycode]
-      else
-        self.state.button = button
-        self.state.pane = "details"
+    if self.state.pane == "home" then
+      local button = self.render:get_button()
+      if button then
+        if button.is_modifier then
+          self.state.modifiers[button.keycode] = not self.state.modifiers[button.keycode]
+        else
+          self.state.button = button
+          self.state.prev_pane = self.state.pane
+          self.state.pane = "details"
+        end
+        self:update()
       end
+    end
+  end)
+
+  -- go backwards in the key press tree
+  self:on_key(UIConfig.keys.back, function()
+    -- only makes sense on the home pane
+    if self.state.pane == "home" then
+      Utils.notify("Going back")
       self:update()
     end
   end)
@@ -88,6 +106,16 @@ end
 
 function M:update()
   if self.buf and vim.api.nvim_buf_is_valid(self.buf) then
+    if self.state.pane ~= self.state.prev_pane then
+      local pane_available, pane = pcall(require, "keyseer.ui.panes." .. self.state.prev_pane)
+      if pane_available and pane and vim.is_callable(pane.on_exit) then
+        pane.on_exit(self)
+      end
+      pane_available, pane = pcall(require, "keyseer.ui.panes." .. self.state.pane)
+      if pane_available and pane and vim.is_callable(pane.on_enter) then
+        pane.on_enter(self)
+      end
+    end
     vim.bo[self.buf].modifiable = true
     self.render:update()
     vim.bo[self.buf].modifiable = false
@@ -96,57 +124,3 @@ function M:update()
 end
 
 return M
--- Main view:
---  keyseer.nvim  󰒲   Details (D)   Configuration (C)   Help (?)
---
--- ┌─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐
--- │  `  │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ [ │ ] │  <BS>  │
--- ├─────┴───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┬────┤
--- │  <TAB>  │ ' │ , │ . │ p │ y │ f │ g │ c │ r │ l │ / │ = │  \ │
--- ├────────┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴───┴────┤
--- │ <CAPS> │ a │ o │ e │ u │ i │ d │ h │ t │ n │ s │ - │ <ENTER> │
--- ├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴─────────┤
--- │  <SHIFT>  │ ; │ q │ j │ k │ x │ b │ m │ w │ v │ z │  <SHIFT> │
--- ├────────┬──┴───┴──┬┴───┴──┬┴───┴───┴───┴───┴─┬─┴───┴─┬────────┤
--- │ <CTRL> │ <SUPER> │ <ALT> │      <SPACE>     │ <ALT> │ <CTRL> │
--- └────────┴─────────┴───────┴──────────────────┴───────┴────────┘
---
--- Details View:
---  keyseer.nvim  (H)   Details (D)   Configuration (C)   Help (?)
---
--- Details for <key cap>
---
--- Current action: None
--- Number of prefixed actions: N
---
--- Configuration View:
---  keyseer.nvim  (H)   Details (D)   Configuration (C)   Help (?)
---
--- Configuration
---
--- Current mode: Normal
---
--- Help View:
---  keyseer.nvim  (H)   Details (D)   Configuration (C)   Help (?)
---
--- Help
---
--- Keyboard Shortcuts
---   - Home <H> Go back to main view
---   - Details <D> Show details of a current keycap
---   - Configuration <C> Change configuration
---   - Help <?> Toggle this help page
---
--- Color information goes here
---
--- ┌─────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬────────┐
--- │  `  │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ [ │ ] │  <BS>  │
--- ├─────┴───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┬────┤
--- │  <TAB>  │ ' │ , │ . │ p │ y │ f │ g │ c │ r │ l │ / │ = │  \ │
--- ├────────┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴───┴────┤
--- │ <CAPS> │ a │ o │ e │ u │ i │ d │ h │ t │ n │ s │ - │ <ENTER> │
--- ├────────┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴──┬┴─────────┤
--- │  <SHIFT>  │ ; │ q │ j │ k │ x │ b │ m │ w │ v │ z │  <SHIFT> │
--- ├────────┬──┴───┴──┬┴───┴──┬┴───┴───┴───┴───┴─┬─┴───┴─┬────────┤
--- │ <CTRL> │ <SUPER> │ <ALT> │      <SPACE>     │ <ALT> │ <CTRL> │
--- └────────┴─────────┴───────┴──────────────────┴───────┴────────┘
