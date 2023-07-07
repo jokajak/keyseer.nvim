@@ -42,9 +42,10 @@ KeySeer.setup = function(config)
       error("Can't open keyseer from command-line window. See E11")
       return
     end
+    local bufnr = vim.api.nvim_get_current_buf()
 
     local UI = require("keyseer.ui")
-    UI.show("home", mode)
+    UI.show("home", mode, bufnr)
   end, {
     bar = false,
     bang = false,

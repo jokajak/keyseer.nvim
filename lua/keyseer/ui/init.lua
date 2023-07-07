@@ -17,6 +17,7 @@ local Keymaps = require("keyseer.keymaps")
 ---@field current_keymaps table<string> The keymaps that have been added
 ---@field mode string The mode for displaying keymaps
 ---@field modifiers table{string,boolean} What modifier buttons are considered pressed
+---@field bufnr buffer|nil The buffer
 local default_state = {
   pane = "home",
   prev_pane = "",
@@ -27,6 +28,7 @@ local default_state = {
     shift = false,
     alt = false,
   },
+  bufnr = nil,
 }
 --
 ---@class KeySeerUI: KeySeerPopup
@@ -42,9 +44,10 @@ function M.visible()
   return M.ui and M.ui.win and vim.api.nvim_win_is_valid(M.ui.win)
 end
 
----@param pane? string
----@param mode? string
-function M.show(pane, mode)
+---@param pane? string The starting pane
+---@param mode? string The neovim mode for keymaps
+---@param bufnr? integer The buffer for keymaps
+function M.show(pane, mode, bufnr)
   M.ui = M.visible() and M.ui or M.create()
 
   if pane then
@@ -54,6 +57,11 @@ function M.show(pane, mode)
   if mode then
     M.ui.state.mode = mode
   end
+
+  if bufnr then
+    M.ui.state.bufnr = bufnr
+  end
+
   M.ui:update()
 end
 
@@ -98,7 +106,7 @@ function M.create()
     end
     if not self.state.keymaps then
       self.state.keymaps = Keymaps:new()
-      self.state.keymaps:process_keymaps()
+      self.state.keymaps:process_keymaps(self.state.bufnr)
     end
   end
 

@@ -36,10 +36,9 @@ end
 ---@param mode string? Optional mode for which to get keymaps
 ---@returns table
 function Keymaps:process_keymaps(bufnr, mode)
-  local mode = mode or config.initial_mode
-  local bufnr = bufnr or vim.api.nvim_get_current_buf()
-  local global_keymaps = vim.api.nvim_get_keymap(mode)
+  mode = mode or config.initial_mode
   local buffer_keymaps = bufnr and vim.api.nvim_buf_get_keymap(bufnr, mode) or {}
+  local global_keymaps = vim.api.nvim_get_keymap(mode)
   local preset_keymaps = BuiltInKeyMaps[mode]
   self:add_keymaps(preset_keymaps)
   self:add_keymaps(global_keymaps)
