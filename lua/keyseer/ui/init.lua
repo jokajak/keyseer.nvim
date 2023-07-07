@@ -3,6 +3,8 @@ local Popup = require("keyseer.ui.popup")
 local Render = require("keyseer.ui.render")
 local UIConfig = require("keyseer.ui.config")
 local Utils = require("keyseer.utils")
+local Config = require("keyseer").config
+local Keymaps = require("keyseer.keymaps")
 
 -- This section of code is copied from https://github.com/folke/lazy.nvim/
 -- Mad props and respect go to folke
@@ -10,13 +12,16 @@ local Utils = require("keyseer.utils")
 ---@class KeySeerUIState
 ---@field pane string Which pane to show
 ---@field prev_pane string The previous pane shown
----@field keyboard Keyboard The associated keyboard object
+---@field keyboard Keyboard The keyboard object
+---@field keymaps Keymaps The keymaps
+---@field current_keymaps table<string> The keymaps that have been added
 ---@field mode string The mode for displaying keymaps
 ---@field modifiers table{string,boolean} What modifier buttons are considered pressed
 local default_state = {
   pane = "home",
   prev_pane = "",
   mode = "n",
+  current_keymaps = {},
   modifiers = {
     ctrl = false,
     shift = false,
@@ -74,6 +79,27 @@ function M.create()
       self.state.pane = k
       self:update()
     end, v["desc"])
+
+    if not self.state.keyboard then
+      local keyboard_opts = Config.keyboard
+      local keyboard
+      local keyboard_options = vim.deepcopy(keyboard_opts)
+      keyboard_options.layout = nil
+
+      if type(keyboard_opts.layout) == "string" then
+        keyboard = require("keyseer.keyboard." .. keyboard_opts.layout):new(keyboard_options)
+      else
+        ---@type Keyboard
+        local layout = keyboard_opts.layout
+        keyboard = layout:new(keyboard_options)
+      end
+
+      self.state.keyboard = keyboard
+    end
+    if not self.state.keymaps then
+      self.state.keymaps = Keymaps:new()
+      self.state.keymaps:process_keymaps()
+    end
   end
 
   -- open details for the keycap under the cursor
@@ -98,6 +124,7 @@ function M.create()
     -- only makes sense on the home pane
     if self.state.pane == "home" then
       Utils.notify("Going back")
+      self.state.keymaps:pop()
       self:update()
     end
   end)

@@ -23,45 +23,38 @@ local M = {
   saved_keymaps = {},
 }
 
-function M.ensure_state(ui)
-  if not ui.state.keyboard then
-    local keyboard_opts = Config.keyboard
-    local keyboard
-    local keyboard_options = vim.deepcopy(keyboard_opts)
-    keyboard_options.layout = nil
-
-    if type(keyboard_opts.layout) == "string" then
-      keyboard = require("keyseer.keyboard." .. keyboard_opts.layout):new(keyboard_options)
-    else
-      ---@type Keyboard
-      local layout = keyboard_opts.layout
-      keyboard = layout:new(keyboard_options)
-    end
-
-    ui.state.keyboard = keyboard
-  end
-  if not ui.state.keymaps then
-    ui.state.keymaps = Keymaps:new()
-    ui.state.keymaps:process_keymaps()
-  end
-end
-
--- TODO: Populate main
 function M.render(ui)
-  M.ensure_state(ui)
   local current_keycaps = ui.state.keymaps:get_current_keycaps(ui.state.modifiers)
   ui.state.keyboard:populate_lines(ui, current_keycaps)
+  for _, keypress in pairs(ui.state.current_keymaps) do
+    vim.keymap.del("n", "g" .. keypress, { buffer = ui.buf })
+  end
+  ui.state.current_keymaps = {}
+  for _, keypress in pairs(ui.state.keymaps:get_current_keypresses()) do
+    D.log("UI", "adding keymap for %s", keypress)
+    table.insert(ui.state.current_keymaps, keypress)
+    vim.keymap.set("n", "g" .. keypress, function()
+      ui.state.keymaps:push(keypress)
+      ui:update()
+    end, { buffer = ui.buf })
+  end
 end
 
 ---Update keymaps when entering the pane
 function M.on_enter(ui)
-  M.ensure_state(ui)
-  Utils.notify("Entering home")
+  for _, keypress in pairs(ui.state.current_keymaps) do
+    vim.keymap.set("n", "g" .. keypress, function()
+      ui.state.keymaps:push(keypress)
+      ui:update()
+    end, { buffer = ui.buf })
+  end
 end
 
 ---Update keymaps when exiting the pane
 function M.on_exit(ui)
-  Utils.notify("Exiting home")
+  for _, keypress in pairs(ui.state.current_keymaps) do
+    vim.keymap.del("n", "g" .. keypress, { buffer = ui.buf })
+  end
 end
 
 return M

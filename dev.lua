@@ -1,17 +1,6 @@
-local qwerty = require("keyseer.keyboard.qwerty")
-
-local keyboard = qwerty:new()
-
-print(vim.pretty_print(qwerty.get_lines))
-print(vim.pretty_print(keyboard.get_lines))
-local Display = require("keyseer.display")
-
-local display = Display:new({
-  show_legend = true,
-  show_title = false,
-  keyboard = {
-    layout = "qwerty",
-    padding = { 0, 1, 0, 1 },
-  },
+local KeySeer = require("keyseer").setup({
+  debug = true,
 })
-display:open()
+
+local UI = require("keyseer.ui")
+UI.show("home", "n")

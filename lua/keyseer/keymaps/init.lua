@@ -11,7 +11,7 @@ local if_nil = vim.F.if_nil
 ---@class Keymaps
 ---@field root KeyMapTreeNode The root of the keymap treenode
 ---@field current_node KeyMapTreeNode The current node of the keymap tree
----@field previous_node KeyMapTreeNode The previous node of the keymap tree
+---@field stack table<KeyMapTreeNode> The previous node of the keymap tree
 local Keymaps = {}
 Keymaps.__index = Keymaps
 
@@ -25,8 +25,8 @@ function Keymaps:new()
     },
   }, self)
 
+  this.stack = {}
   this.current_node = this.root
-  this.previous_node = nil
 
   return this
 end
@@ -149,4 +149,37 @@ function Keymaps:get_current_keycaps(modifiers)
   return ret
 end
 
+---Get the key presses for the current node
+---@return table<KeyCapTreeNode>
+function Keymaps:get_current_keypresses()
+  local ret = {}
+  for keypress, node in pairs(self.current_node.children) do
+    if next(node.children) ~= nil then
+      table.insert(ret, keypress)
+    end
+  end
+  return ret
+end
+
+---Update the current node
+function Keymaps:push(keypress)
+  if vim.tbl_isempty(self.current_node.children) then
+    Utils.notify("Received a keypress for no children.", { level = vim.log.levels.ERROR })
+    return
+  end
+  if self.current_node.children[keypress] ~= nil then
+    table.insert(self.stack, self.current_node)
+    self.current_node = self.current_node.children[keypress]
+  else
+    Utils.notify(
+      "Received a keypress that isn't valid: " .. keypress,
+      { level = vim.log.levels.ERROR }
+    )
+    vim.print(self.current_node.children[keypress])
+  end
+end
+
+function Keymaps:pop()
+  self.current_node = table.remove(self.stack)
+end
 return Keymaps
