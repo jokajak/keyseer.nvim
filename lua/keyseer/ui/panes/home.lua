@@ -13,14 +13,11 @@
 -- │ <CTRL> │ <SUPER> │ <ALT> │      <SPACE>     │ <ALT> │ <CTRL> │
 -- └────────┴─────────┴───────┴──────────────────┴───────┴────────┘
 local D = require("keyseer.util.debug")
-local Config = require("keyseer").config
-local Keymaps = require("keyseer.keymaps")
-local Utils = require("keyseer.utils")
+local UIConfig = require("keyseer.ui.config")
 -- Render help
 local M = {
   count = 0,
   modifiers = {},
-  saved_keymaps = {},
 }
 
 function M.render(ui)
@@ -42,19 +39,28 @@ end
 
 ---Update keymaps when entering the pane
 function M.on_enter(ui)
-  for _, keypress in pairs(ui.state.current_keymaps) do
-    vim.keymap.set("n", "g" .. keypress, function()
-      ui.state.keymaps:push(keypress)
-      ui:update()
-    end, { buffer = ui.buf })
-  end
+  -- for _, keypress in pairs(ui.state.current_keymaps) do
+  --   vim.keymap.set("n", "g" .. keypress, function()
+  --     ui.state.keymaps:push(keypress)
+  --     ui:update()
+  --   end, { buffer = ui.buf })
+  -- end
+  -- go backwards in the key press tree
+  vim.keymap.set("n", UIConfig.keys.back, function()
+    -- only makes sense on the home pane
+    ui.state.keymaps:pop()
+    ui:update()
+  end, { buffer = ui.buf })
 end
 
 ---Update keymaps when exiting the pane
 function M.on_exit(ui)
   for _, keypress in pairs(ui.state.current_keymaps) do
+    D.log("UI", "deleting keymap for %s", keypress)
     vim.keymap.del("n", "g" .. keypress, { buffer = ui.buf })
   end
+  ui.state.current_keymaps = {}
+  vim.keymap.del("n", UIConfig.keys.back, { buffer = ui.buf })
 end
 
 return M

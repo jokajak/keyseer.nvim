@@ -66,6 +66,12 @@ KeySeer.config = {
 
   -- TODO: Represent modifier toggling in highlights
   include_modifiers = false,
+  -- Boolean to include built in keymaps in display
+  include_builtin_keymaps = false,
+  -- Boolean to include global keymaps in display
+  include_global_keymaps = true,
+  -- Boolean to include buffer keymaps in display
+  include_buffer_keymaps = true,
 
   -- Configuration for ui:
   -- - `height` and `width` are maximum dimensions.
@@ -103,6 +109,21 @@ KeySeer.config = {
 
 -- KeySeer functionality ========================================
 --
+---Open the keyseer ui
+---@param mode? string the neovim mode to show keymaps for
+---@param bufnr? buffer the buffer for buffer specific keymaps
+KeySeer.show = function(mode, bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  mode = mode or "n"
+
+  local UI = require("keyseer.ui")
+  UI.show("home", mode, bufnr)
+end
+
+KeySeer.close = function()
+  local UI = require("keyseer.ui")
+  UI:close()
+end
 
 -- Helper data ================================================================
 -- Module default config

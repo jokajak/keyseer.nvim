@@ -1,7 +1,7 @@
 --- This file contains the code for parsing keymaps
 local D = require("keyseer.util.debug")
 local Utils = require("keyseer.utils")
-local config = require("keyseer").config
+local Config = require("keyseer").config
 local BuiltInKeyMaps = require("keyseer.keymaps.builtin_keymaps")
 local Keypress = require("keyseer.keymaps.keypress")
 
@@ -36,13 +36,19 @@ end
 ---@param mode string? Optional mode for which to get keymaps
 ---@returns table
 function Keymaps:process_keymaps(bufnr, mode)
-  mode = mode or config.initial_mode
-  local buffer_keymaps = bufnr and vim.api.nvim_buf_get_keymap(bufnr, mode) or {}
-  local global_keymaps = vim.api.nvim_get_keymap(mode)
-  local preset_keymaps = BuiltInKeyMaps[mode]
-  self:add_keymaps(preset_keymaps)
-  self:add_keymaps(global_keymaps)
-  self:add_keymaps(buffer_keymaps)
+  mode = mode or Config.initial_mode
+  if Config.include_builtin_keymaps then
+    local preset_keymaps = BuiltInKeyMaps[mode]
+    self:add_keymaps(preset_keymaps)
+  end
+  if Config.include_global_keymaps then
+    local global_keymaps = vim.api.nvim_get_keymap(mode)
+    self:add_keymaps(global_keymaps)
+  end
+  if Config.include_buffer_keymaps then
+    local buffer_keymaps = bufnr and vim.api.nvim_buf_get_keymap(bufnr, mode) or {}
+    self:add_keymaps(buffer_keymaps)
+  end
 end
 
 ---@class KeySeerKeyMap
@@ -179,6 +185,6 @@ function Keymaps:push(keypress)
 end
 
 function Keymaps:pop()
-  self.current_node = table.remove(self.stack)
+  self.current_node = vim.F.if_nil(table.remove(self.stack), self.root)
 end
 return Keymaps

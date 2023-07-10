@@ -2,7 +2,7 @@
 local Popup = require("keyseer.ui.popup")
 local Render = require("keyseer.ui.render")
 local UIConfig = require("keyseer.ui.config")
-local Utils = require("keyseer.utils")
+local D = require("keyseer.util.debug")
 local Config = require("keyseer").config
 local Keymaps = require("keyseer.keymaps")
 
@@ -48,7 +48,8 @@ end
 ---@param mode? string The neovim mode for keymaps
 ---@param bufnr? integer The buffer for keymaps
 function M.show(pane, mode, bufnr)
-  M.ui = M.visible() and M.ui or M.create()
+  bufnr = vim.F.if_nil(bufnr, vim.api.nvim_get_current_buf())
+  M.ui = M.visible() and M.ui or M.create(bufnr)
 
   if pane then
     M.ui.state.pane = pane
@@ -58,16 +59,17 @@ function M.show(pane, mode, bufnr)
     M.ui.state.mode = mode
   end
 
-  if bufnr then
-    M.ui.state.bufnr = bufnr
-  end
+  D.log("UI", "Setting bufnr to " .. bufnr)
+  M.ui.state.bufnr = bufnr
 
   M.ui:update()
 end
 
 ---@return KeySeerUI
-function M.create()
+---@param bufnr? buffer The buffer to retrieve keymaps
+function M.create(bufnr)
   local self = setmetatable({}, { __index = setmetatable(M, { __index = Popup }) })
+  bufnr = vim.F.if_nil(bufnr, vim.api.nvim_get_current_buf())
   ---@cast self KeySeerUI
   Popup.init(self, {})
 
@@ -127,15 +129,6 @@ function M.create()
     end
   end)
 
-  -- go backwards in the key press tree
-  self:on_key(UIConfig.keys.back, function()
-    -- only makes sense on the home pane
-    if self.state.pane == "home" then
-      Utils.notify("Going back")
-      self.state.keymaps:pop()
-      self:update()
-    end
-  end)
   return self
 end
 
