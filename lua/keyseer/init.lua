@@ -64,7 +64,6 @@ KeySeer.config = {
   -- Initial neovim mode to display keybindings
   initial_mode = "n",
 
-  -- TODO: Represent modifier toggling in highlights
   include_modifiers = false,
   -- Boolean to include built in keymaps in display
   include_builtin_keymaps = false,
@@ -72,6 +71,9 @@ KeySeer.config = {
   include_global_keymaps = true,
   -- Boolean to include buffer keymaps in display
   include_buffer_keymaps = true,
+  -- TODO: Represent modifier toggling in highlights
+  -- Boolean to include modified keys (e.g. <C-x> or <A-y> or C) in display
+  include_modified_keypresses = false,
 
   -- Configuration for ui:
   -- - `height` and `width` are maximum dimensions.

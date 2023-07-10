@@ -69,15 +69,4 @@ function M:title()
   self:nl():nl()
 end
 
-function M:get_button()
-  if not (self.ui.win and vim.api.nvim_win_is_valid(self.ui.win)) then
-    return
-  end
-  if not (self.ui.state.pane == "home") then
-    return
-  end
-  local cursorposition = vim.fn.getcursorcharpos(self.ui.win)
-  local row, col = cursorposition[1], cursorposition[2]
-end
-
 return M

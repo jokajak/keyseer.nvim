@@ -5,6 +5,7 @@
 -- Each button on the keyboard can be highlighted
 local Button = require("keyseer.keyboard.button")
 local Utils = require("keyseer.utils")
+local D = require("keyseer.util.debug")
 
 -- Border characters for buttons
 local _borders = {
@@ -72,7 +73,7 @@ end
 ---@field private _shifted_buttons Button[] A mapping table from keycode to button when shift is pressed
 ---@field private _normal_lines string[] The string representation of the keyboard without shift pressed
 ---@field private _shifted_lines string[] The string representation of the keyboard with shift pressed
----@field private _locations Button[] A table of button positions
+---@field private _locations Button[] A table of buttons for their position
 local Keyboard = {}
 Keyboard.__index = Keyboard
 
@@ -361,44 +362,55 @@ end
 ---Return button at coordinates
 ---@param row integer
 ---@param col integer
+---@return Button ret the button at the position
 function Keyboard:get_keycap_at_position(row, col)
   -- We need to convert the row to a row index
   -- Each row is keycap_height + top_padding + bottom_padding tall
   -- We need to convert the col to a column index
   -- Converting a column back to a column index is hard because the buttons are different width
-  print("Looking for " .. row .. " and " .. col)
-  print("Not yet implemented")
+  local ret = nil
+  D.log("Keyboard", "Looking for keycap under " .. row .. ", " .. col)
+  for _, keycaps in pairs(self._locations) do
+    for _, button in pairs(keycaps) do
+      D.log("Keyboard", string.format("Checking button: %s", button.keycap))
+      if button.top_row <= row and button.bottom_row >= row then
+        if button.left_col < col and button.right_col >= col then
+          if not ret then
+            ret = button
+          else
+            Utils.notify("Found multiple matching buttons!")
+          end
+        end
+      end
+      D.log(
+        "Keyboard",
+        string.format(
+          "%s: (%d, %d) and (%d, %d)",
+          button.keycap,
+          button.top_row,
+          button.bottom_row,
+          button.left_col,
+          button.right_col
+        )
+      )
+    end
+  end
+  if ret then
+    Utils.notify(string.format("Found %s!", ret.keycap))
+  end
+  return ret
 end
 
 ---Populate lines in a display
 ---@param ui KeySeerUI The UI to display to
 ---@param keycaps KeyMapTreeNode The keycaps to display
+---@return number height The height of the window
+---@return number width The width of the window
 function Keyboard:populate_lines(ui, keycaps)
-  -- generate a string representation of the layout, e.g.
-  -- ┌──────┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬──────┐
-  -- │  `   │1│2│3│4│5│6│7│8│9│0│-│=│ <BS> │
-  -- ├──────┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼──────┤
-  -- │<TAB> │q│w│e│r│t│y│u│i│o│p│[│]│  \   │
-  -- ├──────┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┴──────┤
-  -- │<CAPS>│a│s│d│f│g│h│j│k│l│;│'│ <ENTER>│
-  -- ├──────┴─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼────────┤
-  -- │<SHIFT> │z│x│c│v│b│n│m│,│.│/│ <SHIFT>│
-  -- └────────┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴────────┘
-  --  ┌───────┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬──────┐
-  --  │   `   │ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 0 │ - │ = │ <BS> │
-  --  ├───────┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼──────┤
-  --  │ <TAB> │ q │ w │ e │ r │ t │ y │ u │ i │ o │ p │ [ │ ] │   \  │
-  --  ├───────┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴┬──┴──────┤
-  --  │ <CAPS> │ a │ s │ d │ f │ g │ h │ j │ k │ l │ ; │ ' │ <ENTER> │
-  --  ├────────┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─────────┤
-  --  │ <SHIFT>  │ z │ x │ c │ v │ b │ n │ m │ , │ . │ / │  <SHIFT>  │
-  --  └──────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───────────┘
   local display = ui.render
   local shift_pressed = ui.state.modifiers.shift
   local button_lookup = Utils.default_table()
-  if shift_pressed then
-    button_lookup = self._shifted_buttons
-  end
+  self._locations = button_lookup
 
   local rows = {}
   local keycap_separator_columns = {}
@@ -459,6 +471,7 @@ function Keyboard:populate_lines(ui, keycaps)
     local row_text = _borders["ss  "]
     keycap_separator_columns[row_index] = {}
     for _, button in ipairs(row) do
+      button:set_button_start_col(row_length + 1)
       row_text = row_text .. tostring(button) .. _borders["ss  "]
       local start_col, _ = Utils.get_str_bytes(row_text, row_length + 1, row_length + button.width)
       button:set_button_byte_position(start_col)
@@ -534,5 +547,7 @@ function Keyboard:populate_lines(ui, keycaps)
     end
     display:nl()
   end
+  D.log("Keyboard", string.format("Columns: %d", display:col()))
+  return display:row(), display:col()
 end
 return Keyboard

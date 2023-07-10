@@ -22,7 +22,15 @@ local M = {
 
 function M.render(ui)
   local current_keycaps = ui.state.keymaps:get_current_keycaps(ui.state.modifiers)
-  ui.state.keyboard:populate_lines(ui, current_keycaps)
+  local height, width = ui.state.keyboard:populate_lines(ui, current_keycaps)
+  D.log("UI", string.format("Resizing to %dx%d (HxW)", height, width))
+  ui.win_opts.height = height - 1
+  ui.opts.size.height = height - 1
+  if width ~= 0 then
+    ui.win_opts.width = width
+    ui.opts.size.width = width
+  end
+  ui:layout()
   for _, keypress in pairs(ui.state.current_keymaps) do
     vim.keymap.del("n", "g" .. keypress, { buffer = ui.buf })
   end
@@ -35,6 +43,18 @@ function M.render(ui)
       ui:update()
     end, { buffer = ui.buf })
   end
+end
+
+local function get_button_under_cursor(ui)
+  local cursorposition = vim.fn.getcursorcharpos(ui.win)
+  local row, col = cursorposition[2], cursorposition[3]
+  -- size of the title is statically calculated
+  local row_offset = 4
+  D.log("UI", "Button row, col: " .. row - row_offset .. ", " .. col)
+  ---@type Keyboard
+  local keyboard = ui.state.keyboard
+  local button = keyboard:get_keycap_at_position(row - row_offset, col)
+  return button
 end
 
 ---Update keymaps when entering the pane
@@ -51,6 +71,21 @@ function M.on_enter(ui)
     ui.state.keymaps:pop()
     ui:update()
   end, { buffer = ui.buf })
+
+  -- open details for the keycap under the cursor
+  vim.keymap.set("n", UIConfig.keys.details, function()
+    local button = get_button_under_cursor(ui)
+    if button then
+      if button.is_modifier then
+        ui.state.modifiers[button.keycode] = not ui.state.modifiers[button.keycode]
+      else
+        ui.state.button = button
+        ui.state.prev_pane = ui.state.pane
+        ui.state.pane = "details"
+      end
+      ui:update()
+    end
+  end, { buffer = ui.buf })
 end
 
 ---Update keymaps when exiting the pane
@@ -61,6 +96,7 @@ function M.on_exit(ui)
   end
   ui.state.current_keymaps = {}
   vim.keymap.del("n", UIConfig.keys.back, { buffer = ui.buf })
+  vim.keymap.del("n", UIConfig.keys.details, { buffer = ui.buf })
 end
 
 return M

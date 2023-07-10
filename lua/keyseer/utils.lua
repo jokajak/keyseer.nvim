@@ -230,7 +230,7 @@ function Utils.default_table()
   })
 end
 
----Get the start column and end column
+---Get the start column and end column in bytes
 ---@param line string The string of characters to find byte positions
 ---@param from number The start column
 ---@param to number The end column

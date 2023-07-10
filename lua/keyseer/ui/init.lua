@@ -44,6 +44,18 @@ function M.visible()
   return M.ui and M.ui.win and vim.api.nvim_win_is_valid(M.ui.win)
 end
 
+local function get_button_under_cursor(ui)
+  local cursorposition = vim.fn.getcursorcharpos(ui.win)
+  local row, col = cursorposition[2], cursorposition[3]
+  -- size of the title is statically calculated
+  local row_offset = 4
+  D.log("UI", "Button row, col: " .. row - row_offset .. ", " .. col)
+  ---@type Keyboard
+  local keyboard = ui.state.keyboard
+  local button = keyboard:get_keycap_at_position(row - row_offset, col)
+  return button
+end
+
 ---@param pane? string The starting pane
 ---@param mode? string The neovim mode for keymaps
 ---@param bufnr? integer The buffer for keymaps
@@ -80,7 +92,7 @@ function M.create(bufnr)
   for k, v in pairs(UIConfig.panes) do
     self:on_key(v["key"], function()
       if self.state.pane == "home" then
-        local button = self.render:get_button()
+        local button = get_button_under_cursor(self)
         if button then
           self.state.button = button
         end
@@ -111,23 +123,6 @@ function M.create(bufnr)
       self.state.keymaps:process_keymaps(self.state.bufnr)
     end
   end
-
-  -- open details for the keycap under the cursor
-  self:on_key(UIConfig.keys.details, function()
-    if self.state.pane == "home" then
-      local button = self.render:get_button()
-      if button then
-        if button.is_modifier then
-          self.state.modifiers[button.keycode] = not self.state.modifiers[button.keycode]
-        else
-          self.state.button = button
-          self.state.prev_pane = self.state.pane
-          self.state.pane = "details"
-        end
-        self:update()
-      end
-    end
-  end)
 
   return self
 end

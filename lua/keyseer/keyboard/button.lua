@@ -85,7 +85,9 @@ function Button:new(keycap, keycode, row_index, padding_box, highlight_box)
     keycode = keycode,
     left_pad = left_pad,
     right_pad = right_pad,
+    top_row = row - top_pad,
     row = row,
+    bottom_row = row + bottom_pad,
     width = left_pad + keycap_width + right_pad,
     is_modifier = modifiers[keycode] or false,
     _keycap_width = keycap_width,
@@ -187,6 +189,13 @@ function Button:set_button_byte_position(col)
   -- right_col therefore = col + self._keycap_width + self.right_pad
   self.left_byte_col = col
   self.right_byte_col = col + self.width
+end
+
+---Set the start column for the button
+---@param col integer The start column
+function Button:set_button_start_col(col)
+  self.left_col = col
+  self.right_col = col + self.width
 end
 
 ---Highlight a buffer
