@@ -131,9 +131,17 @@ end
 ---@return table<KeyCapTreeNode>
 function Keymaps:get_current_keycaps(modifiers)
   vim.validate({ modifiers = { modifiers, "table", true } })
-  modifiers =
-    vim.tbl_deep_extend("force", { Ctrl = false, Shift = false, Alt = false }, modifiers or {})
+  modifiers = vim.tbl_deep_extend(
+    "force",
+    { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
+    modifiers or {}
+  )
   local ret = {}
+  for modifier, pressed in pairs(modifiers) do
+    if pressed then
+      ret[modifier] = "KeySeerKeycapKeymap"
+    end
+  end
   for k, v in pairs(self.current_node.children) do
     -- empty children means it has a keymap
     if vim.tbl_isempty(v.children) then

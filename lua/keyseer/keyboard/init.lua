@@ -368,11 +368,10 @@ function Keyboard:get_keycap_at_position(row, col)
   -- Each row is keycap_height + top_padding + bottom_padding tall
   -- We need to convert the col to a column index
   -- Converting a column back to a column index is hard because the buttons are different width
+  ---@type Button
   local ret = nil
-  D.log("Keyboard", "Looking for keycap under " .. row .. ", " .. col)
   for _, keycaps in pairs(self._locations) do
     for _, button in pairs(keycaps) do
-      D.log("Keyboard", string.format("Checking button: %s", button.keycap))
       if button.top_row <= row and button.bottom_row >= row then
         if button.left_col < col and button.right_col >= col then
           if not ret then
@@ -382,21 +381,7 @@ function Keyboard:get_keycap_at_position(row, col)
           end
         end
       end
-      D.log(
-        "Keyboard",
-        string.format(
-          "%s: (%d, %d) and (%d, %d)",
-          button.keycap,
-          button.top_row,
-          button.bottom_row,
-          button.left_col,
-          button.right_col
-        )
-      )
     end
-  end
-  if ret then
-    Utils.notify(string.format("Found %s!", ret.keycap))
   end
   return ret
 end

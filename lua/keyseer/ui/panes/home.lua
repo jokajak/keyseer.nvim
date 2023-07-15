@@ -21,6 +21,7 @@ local M = {
 }
 
 function M.render(ui)
+  D.log("UI", "Current Ctrl state: %s", ui.state.modifiers.Ctrl)
   local current_keycaps = ui.state.keymaps:get_current_keycaps(ui.state.modifiers)
   local height, width = ui.state.keyboard:populate_lines(ui, current_keycaps)
   D.log("UI", string.format("Resizing to %dx%d (HxW)", height, width))
@@ -36,7 +37,7 @@ function M.render(ui)
   end
   ui.state.current_keymaps = {}
   for _, keypress in pairs(ui.state.keymaps:get_current_keypresses()) do
-    D.log("UI", "adding keymap for %s", keypress)
+    -- D.log("UI", "adding keymap for %s", keypress)
     table.insert(ui.state.current_keymaps, keypress)
     vim.keymap.set("n", "g" .. keypress, function()
       ui.state.keymaps:push(keypress)
@@ -50,7 +51,6 @@ local function get_button_under_cursor(ui)
   local row, col = cursorposition[2], cursorposition[3]
   -- size of the title is statically calculated
   local row_offset = 4
-  D.log("UI", "Button row, col: " .. row - row_offset .. ", " .. col)
   ---@type Keyboard
   local keyboard = ui.state.keyboard
   local button = keyboard:get_keycap_at_position(row - row_offset, col)
@@ -77,7 +77,9 @@ function M.on_enter(ui)
     local button = get_button_under_cursor(ui)
     if button then
       if button.is_modifier then
+        D.log("UI", "Clicked on a modifier")
         ui.state.modifiers[button.keycode] = not ui.state.modifiers[button.keycode]
+        vim.print(ui.state.modifiers)
       else
         ui.state.button = button
         ui.state.prev_pane = ui.state.pane
@@ -91,7 +93,7 @@ end
 ---Update keymaps when exiting the pane
 function M.on_exit(ui)
   for _, keypress in pairs(ui.state.current_keymaps) do
-    D.log("UI", "deleting keymap for %s", keypress)
+    -- D.log("UI", "deleting keymap for %s", keypress)
     vim.keymap.del("n", "g" .. keypress, { buffer = ui.buf })
   end
   ui.state.current_keymaps = {}
