@@ -13,7 +13,12 @@ local M = {}
 function M.render(ui)
   ui.render:append("Details", "KeySeerH2"):nl():nl()
 
-  ui.render:append("Details for <keycap>", "KeySeerH2"):nl()
+  if ui.state.button then
+    ui.render:append("Details for ", "KeySeerH2")
+    ui.render:append(tostring(ui.state.button), "KeySeerH2"):nl()
+  else
+    ui.render:append("No button currently under cursor."):nl()
+  end
 end
 
 return M
