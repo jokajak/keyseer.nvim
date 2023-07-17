@@ -393,7 +393,7 @@ end
 ---@return number width The width of the window
 function Keyboard:populate_lines(ui, keycaps)
   local display = ui.render
-  local shift_pressed = ui.state.modifiers.shift
+  local shift_pressed = ui.state.modifiers["<Shift>"]
   local button_lookup = Utils.default_table()
   self._locations = button_lookup
 
