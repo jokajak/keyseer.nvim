@@ -7,6 +7,9 @@ local D = {}
 ---@param ... any: the arguments of the formatted string.
 ---@private
 function D.log(scope, str, ...)
+  if _G.KeySeer == nil then
+    return
+  end
   if _G.KeySeer.config ~= nil and not _G.KeySeer.config.debug then
     return
   end

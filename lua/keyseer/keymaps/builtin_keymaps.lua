@@ -27,7 +27,8 @@ local normal_mappings = {
   ["N"] = "Repeat last search in opposite direction",
   ["o"] = "Insert on line below",
   ["O"] = "Insert on line above",
-  ["R"] = "Replace",
+  ["r"] = "Replace current character",
+  ["R"] = "Enter Replace mode",
   ["T"] = "Move before previous char",
   ["^"] = "Start of line (non-blank)",
   ["b"] = "Previous word",
@@ -65,6 +66,7 @@ local normal_mappings = {
   ["gg"] = "First line",
   ["gu"] = "Lowercase",
   ["g~"] = "Toggle case",
+  ["<Space>"] = "Move right",
 }
 
 for k, v in pairs(normal_mappings) do

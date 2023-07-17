@@ -129,20 +129,43 @@ end
 
 ---Get the keycaps at the current node
 ---@return table<KeyCapTreeNode>
-function Keymaps:get_current_keycaps(modifiers)
+function Keymaps:get_current_keycaps(modifiers, opts)
   vim.validate({ modifiers = { modifiers, "table", true } })
   modifiers = vim.tbl_deep_extend(
     "force",
     { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
     modifiers or {}
   )
+  opts = vim.tbl_deep_extend(
+    "force",
+    { ["add_modifiers"] = false, ["match_modifiers"] = true },
+    opts or {}
+  )
+
   local ret = {}
   for modifier, pressed in pairs(modifiers) do
     if pressed then
       ret[modifier] = "KeySeerKeycapKeymap"
     end
   end
-  for k, v in pairs(self.current_node.children) do
+
+  local matching_keypresses = {}
+  -- find matching keypresses
+  for keypress, node in pairs(self.current_node.children) do
+    local add_keypress = true
+    if opts.match_modifiers then
+      for modifier, state in pairs(modifiers) do
+        if vim.F.if_nil(node.modifiers[modifier], false) ~= state then
+          add_keypress = false
+        end
+      end
+    end
+    if add_keypress then
+      matching_keypresses[keypress] = node
+    end
+  end
+
+  for k, v in pairs(matching_keypresses) do
     -- empty children means it has a keymap
     if vim.tbl_isempty(v.children) then
       ret[k] = "KeySeerKeycapKeymap"

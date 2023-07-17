@@ -17,6 +17,7 @@ local T = MiniTest.new_set({
       -- Restart child process with custom 'init.lua' script
       child.restart({ "-u", "scripts/minimal_init.lua" })
       child.lua([[Keymaps = require("keyseer.keymaps")]])
+      child.lua([[Keymaps = require("keyseer.keymaps")]])
       child.lua([[Keypress = require("keyseer.keymaps.keypress")]])
     end,
     -- This will be executed one after all tests from this set are finished
@@ -155,6 +156,13 @@ T["keymaps"]["gets current keycaps"] = function()
   child.lua("ret:add_keymaps({{lhs='<C-g>', rhs='g_action'}})")
   eq_global(child, "ret:get_current_keycaps()", {
     g = "KeySeerKeycapKeymap",
+  })
+  eq_global(child, "ret:get_current_keycaps({}, {match_modifiers=false})", {
+    g = "KeySeerKeycapKeymap",
+    ["<C-g>"] = "KeySeerKeycapKeymap",
+  })
+  eq_global(child, "ret:get_current_keycaps({['<Ctrl>'] = true}, {match_modifiers=true})", {
+    ["<Ctrl>"] = "KeySeerKeycapKeymap",
     ["<C-g>"] = "KeySeerKeycapKeymap",
   })
 end
@@ -165,6 +173,8 @@ T["keypress"]["parses unmodified lowercase"] = function()
 end
 T["keypress"]["parses unmodified uppercase"] = function()
   eq_global(child, "Keypress.get_modifiers('G')", { ["<Shift>"] = true })
+  eq_global(child, "Keypress.get_modifiers('L')", { ["<Shift>"] = true })
+  eq_global(child, "Keypress.get_modifiers('$')", { ["<Shift>"] = true })
 end
 T["keypress"]["parses modified lowercase"] = function()
   eq_global(child, "Keypress.get_modifiers('<C-g>')", { ["<Ctrl>"] = true })
