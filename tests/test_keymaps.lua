@@ -179,5 +179,9 @@ end
 T["keypress"]["parses modified lowercase"] = function()
   eq_global(child, "Keypress.get_modifiers('<C-g>')", { ["<Ctrl>"] = true })
 end
+T["keypress"]["parses modified uppercase"] = function()
+  eq_global(child, "Keypress.get_modifiers('<C-G>')", { ["<Ctrl>"] = true, ["<Shift>"] = true })
+  eq_global(child, "Keypress.get_modifiers('<C-R>')", { ["<Ctrl>"] = true, ["<Shift>"] = true })
+end
 
 return T
