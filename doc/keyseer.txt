@@ -26,11 +26,21 @@ Default values:
     -- Initial neovim mode to display keybindings
     initial_mode = "n",
 
+    include_modifiers = true,
+    -- Boolean to include built in keymaps in display
+    include_builtin_keymaps = false,
+    -- Boolean to include global keymaps in display
+    include_global_keymaps = true,
+    -- Boolean to include buffer keymaps in display
+    include_buffer_keymaps = true,
     -- TODO: Represent modifier toggling in highlights
-    include_modifiers = false,
+    -- Boolean to include modified keys (e.g. <C-x> or <A-y> or C) in display
+    include_modified_keypresses = false,
+    -- TODO: Support ignoring whichkey conflicts when showing builtin keymaps
+    -- Boolean to ignore whichkey keymaps
+    ignore_whichkey_conflicts = true,
 
     -- Configuration for ui:
-    -- - `height` and `width` are maximum dimensions.
     -- - `border` defines border (as in `nvim_open_win()`).
     ui = {
       border = "double", -- none, single, double, shadow
@@ -38,11 +48,12 @@ Default values:
       winblend = 0, -- value between 0-100 0 for fully opaque and 100 for fully transparent
       size = {
         width = 65,
-        height = 14,
+        height = 10,
       },
       icons = {
         keyseer = "",
       },
+      show_header = true, -- boolean if the header should be shown
     },
 
     -- Keyboard options
@@ -55,6 +66,21 @@ Default values:
       highlight_padding = { 0, 0, 0, 0 },
       -- override the label used to display some keys.
       key_labels = {
+        ["Up"] = "↑",
+        ["Down"] = "↓",
+        ["Left"] = "←",
+        ["Right"] = "→",
+        ["<F1>"] = "F1",
+        ["<F2>"] = "F2",
+        ["<F3>"] = "F3",
+        ["<F4>"] = "F4",
+        ["<F5>"] = "F5",
+        ["<F6>"] = "F6",
+        ["<F7>"] = "F7",
+        ["<F8>"] = "F8",
+        ["<F9>"] = "F9",
+        ["<F10>"] = "F10",
+
         -- For example:
         -- ["<space>"] = "SPC",
         -- ["<cr>"] = "RET",
@@ -65,80 +91,15 @@ Default values:
 
   -- KeySeer functionality ========================================
   --
-
-  -- Helper data ================================================================
-  -- Module default config
-  H.default_config = KeySeer.config
-
-  -- Helper functionality ========================================
-  -- Settings
-  H.setup_config = function(config)
-    -- General idea: if some table elements are not present in user-supplied
-    -- `config`, take them from default config
-    vim.validate({ config = { config, "table", true } })
-    config = vim.tbl_deep_extend("force", H.default_config, config or {})
-
-    -- Validate per nesting level to produce correct error message
-    vim.validate({
-      keyboard = { config.keyboard, "table" },
-      ui = { config.ui, "table" },
-      debug = { config.debug, "boolean" },
-      include_modifiers = { config.include_modifiers, "boolean" },
-      initial_mode = { config.initial_mode, "string" },
-    })
-
-    local is_string_or_array = function(x)
-      return type(x) == "string" or vim.tbl_islist(x)
-    end
-
-    -- TODO: Add more validations
-    vim.validate({
-      ["ui.border"] = {
-        config.ui.border,
-        is_string_or_array,
-        "(keyseer) `config.ui.border` can be either string or array.",
-      },
-      ["ui.size"] = { config.ui.size, "table" },
-    })
-    vim.validate({
-      ["ui.size.height"] = { config.ui.size.height, "number" },
-      ["ui.size.width"] = { config.ui.size.width, "number" },
-    })
-
-    return config
-  end
-
-  H.apply_config = function(config)
-    KeySeer.config = config
-  end
-
-  H.show_window = function()
-    H.ensure_buffer()
-
-    -- Compute floating window options
-    local opts = H.window_options()
-    H.open_window(opts)
-  end
-
-  -- Helpers for floating window
-  H.ensure_buffer = function()
-    if H.bufnr then
-      return
-    end
-
-    H.bufnr = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_name(H.bufnr, "KeySeer")
-
-    vim.api.nvim_buf_set_option(H.bufnr, "bufhidden", "wipe")
-    -- buffer is not backed by a file
-    vim.api.nvim_buf_set_option(H.bufnr, "buftype", "nofile")
-    -- filetype is keyseer
-    vim.api.nvim_buf_set_option(H.bufnr, "filetype", "keyseer")
-  end
-
-  return KeySeer
-
 <
+
+------------------------------------------------------------------------------
+                                                                *KeySeer.show()*
+                        `KeySeer.show`({mode}, {bufnr})
+the keyseer ui
+Parameters~
+{mode} `(optional)` `(string)` the neovim mode to show keymaps for
+{bufnr} `(optional)` buffer the buffer for buffer specific keymaps
 
 
 ==============================================================================
@@ -197,49 +158,6 @@ Open the main display window
 
 ==============================================================================
 ------------------------------------------------------------------------------
-                                                                             *D*
-                                      `D`
-This file contains the code for parsing keymaps
-
-------------------------------------------------------------------------------
-A function that takes a list of keymaps as input and creates a table with the specified structure.
-
-------------------------------------------------------------------------------
-Class~
-{KeymapLayer}
-Fields~
-{normal} `(table)` The neovim keymaps with no modifiers
-{shifted} `(table)` The neovim keymaps with the shift key held down
-{meta} `(table)` The neovim keymaps with the meta key held down
-{ctrl} `(table)` The neovim keymaps with the ctrl key held down
-
-------------------------------------------------------------------------------
-Class~
-{KeymapTreeNode}
-Fields~
-{children} KeymapTreeNode[] The list of child keymaps
-{layers} KeymapLayer Information about the keymap layers
-
-------------------------------------------------------------------------------
-                                                                       *Keymaps*
-                                   `Keymaps`
-Class~
-{Keymaps}
-Fields~
-{mode} `(string)` The neovim mode for keymappings
-{prefix} `(table)` The table of prefix characters
-{current_node} KeymapTree The current node in the keymap tree
-
-------------------------------------------------------------------------------
-                                                                 *Keymaps:new()*
-                             `Keymaps:new`({opts})
-a new keymaps instance
-Parameters~
-{opts} `(table)` options
-
-
-==============================================================================
-------------------------------------------------------------------------------
                                                                *Utils.justify()*
                        `Utils.justify`({width}, {words})
 a list of strings
@@ -251,8 +169,11 @@ Return~
 
 ------------------------------------------------------------------------------
                                                        *Utils.parse_keystring()*
-                       `Utils.parse_keystring`({keystr})
+             `Utils.parse_keystring`({keystr}, {split_keypresses})
 function to parse a keystring into a table of keycodes
+Parameters~
+{keystr} `(string)` The key string to be split
+{split_keypresses} `(boolean?)` control if key presses are returned as a keypress or a table of keycaps
 Return~
 `(table)` Keycodes in the key string
 
@@ -280,7 +201,7 @@ Parameters~
 ------------------------------------------------------------------------------
                                                          *Utils.get_str_bytes()*
                   `Utils.get_str_bytes`({line}, {from}, {to})
-the start column and end column
+the start column and end column in bytes
 Parameters~
 {line} `(string)` The string of characters to find byte positions
 {from} `(number)` The start column
@@ -309,11 +230,9 @@ Fields~
 {private} _shifted_buttons Button[] A mapping `(table)` from keycode to button when shift is pressed
 {private} _normal_lines `(string[])` The string representation of the keyboard without shift pressed
 {private} _shifted_lines `(string[])` The string representation of the keyboard with shift pressed
-{private} _locations Button[] A `(table)` of button positions
+{private} _locations Button[] A `(table)` of buttons for their position
 
 ------------------------------------------------------------------------------
-                                              *default_keyboard_display_options*
-                       `default_keyboard_display_options`
 Class~
 {KeyboardDisplayOptions}
 Fields~
@@ -383,13 +302,20 @@ button at coordinates
 Parameters~
 {row} `(integer)`
 {col} `(integer)`
+Return~
+Button ret the button at the position
 
 ------------------------------------------------------------------------------
                                                      *Keyboard:populate_lines()*
-                        `Keyboard:populate_lines`({ui})
+                   `Keyboard:populate_lines`({ui}, {keycaps})
 lines in a display
 Parameters~
-{ui} KeySeerUI
+{ui} KeySeerUI The UI to display to
+{keycaps} KeyMapTreeNode The keycaps to display
+Return~
+`(number)` height The height of the window
+Return~
+`(number)` width The width of the window
 
 
 ==============================================================================
@@ -490,6 +416,13 @@ Parameters~
 {col} `(number)` The column for the button to start
 
 ------------------------------------------------------------------------------
+                                                 *Button:set_button_start_col()*
+                      `Button:set_button_start_col`({col})
+the start column for the button
+Parameters~
+{col} `(integer)` The start column
+
+------------------------------------------------------------------------------
                                                             *Button:highlight()*
    `Button:highlight`({bufnr}, {namespace}, {highlight_group}, {row_offset})
 a buffer
@@ -502,14 +435,162 @@ Parameters~
 
 ==============================================================================
 ------------------------------------------------------------------------------
+                                                                *BuiltInKeyMaps*
+                                `BuiltInKeyMaps`
+This file contains the code for parsing keymaps
+
+------------------------------------------------------------------------------
+                                                                       *Keymaps*
+                                   `Keymaps`
+Class~
+{Keymaps}
+Fields~
+{root} KeyMapTreeNode The root of the keymap treenode
+{current_node} KeyMapTreeNode The current node of the keymap tree
+{stack} `(table<KeyMapTreeNode>)` The previous node of the keymap tree
+
+------------------------------------------------------------------------------
+                                                                 *Keymaps:new()*
+                                `Keymaps:new`()
+a new keymaps instance
+
+------------------------------------------------------------------------------
+                                                     *Keymaps:process_keymaps()*
+                   `Keymaps:process_keymaps`({bufnr}, {mode})
+a tree of keymaps
+Parameters~
+{bufnr} buffer? The buffer for which to get keymaps
+{mode} `(string?)` Optional mode for which to get keymaps
+table
+
+------------------------------------------------------------------------------
+Class~
+{KeySeerKeyMap}
+Fields~
+{lhs} `(string)` The full lhs of the keymap
+{rhs} `(string)` The rhs of the keymap
+{desc} `(string?)` The description of the keymap
+{noremap} `(boolean)` If the rhs is remappable
+{silent} `(boolean)` If the keymap is silent
+{nowait} `(boolean)` If the keymap waits for other, longer mappings
+
+------------------------------------------------------------------------------
+Class~
+{KeyMapTreeNode}
+Fields~
+{keymaps} `(table<KeySeerKeyMap>)`
+{modifiers} `(table<string,boolean>)`
+{children} `(table<KeyMapTreeNode>)`
+
+------------------------------------------------------------------------------
+Class~
+{KeyCapTreeNode}
+Fields~
+{keymaps} `(table<KeySeerKeyMap>)`
+{modifiers} `(table<string,boolean>)`
+{children} `(table<KeyCapTreeNode>)`
+
+------------------------------------------------------------------------------
+                                                         *Keymaps:add_keymaps()*
+                        `Keymaps:add_keymaps`({keymaps})
+A function that takes a list of keymaps as input and creates a table with the specified structure.
+Convert a keymap from lhs = rhs to a KeyMapTreeNode true
+Parameters~
+{keymaps} `(table[]:)` A list of keymaps.
+
+------------------------------------------------------------------------------
+                                                   *Keymaps.matching_keypress()*
+                `Keymaps.matching_keypress`({node}, {modifiers})
+a boolean for whether or not the keypress matches the modifiers
+Parameters~
+{node} KeyMapTreeNode
+{modifiers} `(table<string,boolean>)`
+
+------------------------------------------------------------------------------
+                                                 *Keymaps:get_current_keycaps()*
+               `Keymaps:get_current_keycaps`({modifiers}, {opts})
+the keycaps at the current node
+Return~
+`(table<KeyCapTreeNode>)`
+
+------------------------------------------------------------------------------
+                                              *Keymaps:get_current_keypresses()*
+                       `Keymaps:get_current_keypresses`()
+the key presses for the current node
+Return~
+`(table<KeyCapTreeNode>)`
+
+------------------------------------------------------------------------------
+                                                                *Keymaps:push()*
+                           `Keymaps:push`({keypress})
+the current node
+
+------------------------------------------------------------------------------
+                                                           *Keymaps:add_stats()*
+                           `Keymaps:add_stats`({ui})
+keymap statistics in a display
+Parameters~
+{ui} KeySeerUI The UI to display to
+
+------------------------------------------------------------------------------
+                                                         *Keymaps:get_keymaps()*
+                 `Keymaps:get_keymaps`({keycode}, {modifiers})
+the list of keymaps for the keycode provided
+Parameters~
+{keycode} `(string)` The keycode of the button
+{modifiers} `(table<string,boolean>)` The modifier states
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                      *Keypress*
+                                   `Keypress`
+Class~
+{Keypress}
+Fields~
+{keystring} `(string)` The string of keys for a key press
+{modifiers} `(table<string,boolean>)` The table of modifiers
+
+------------------------------------------------------------------------------
+                                                                *Keypress.new()*
+                          `Keypress.new`({keystring})
+Parameters~
+{keystring} `(string)` The keystring to be parsed
+Return~
+Keypress
+
+------------------------------------------------------------------------------
+                                                      *Keypress.get_modifiers()*
+                     `Keypress.get_modifiers`({keystring})
+Parameters~
+{keystring} `(string)` The keystring to extract modifiers from
+Return~
+`(table<string,boolean>)`
+
+------------------------------------------------------------------------------
+                                                        *Keypress.get_keycode()*
+                      `Keypress.get_keycode`({keystring})
+Parameters~
+{keystring} `(string)` The keystring to find the keycode
+Return~
+`(string)` keycode The found keycode or empty string if none found.
+
+
+==============================================================================
+------------------------------------------------------------------------------
                                                                  *default_state*
                                 `default_state`
 Class~
 {KeySeerUIState}
 Fields~
-{pane} `(string)`
-{button} Button
-{modifiers} `(table{string,boolean})`
+{pane} `(string)` Which pane to show
+{prev_pane} `(string)` The previous pane shown
+{keyboard} Keyboard The keyboard object
+{keymaps} Keymaps The keymaps
+{current_keymaps} `(table<string>)` The keymaps that have been added
+{mode} `(string)` The mode for displaying keymaps
+{modifiers} `(table{string,boolean})` What modifier buttons are considered pressed
+{bufnr} `(buffer|nil)` The buffer
 
 ------------------------------------------------------------------------------
                                                                              *M*
@@ -534,15 +615,27 @@ Return~
 
 ------------------------------------------------------------------------------
                                                                       *M.show()*
-                                `M.show`({pane})
+                       `M.show`({pane}, {mode}, {bufnr})
 Parameters~
-{pane} `(optional)` `(string)`
+{pane} `(optional)` `(string)` The starting pane
+{mode} `(optional)` `(string)` The neovim mode for keymaps
+{bufnr} `(optional)` `(integer)` The buffer for keymaps
 
 ------------------------------------------------------------------------------
                                                                     *M.create()*
-                                  `M.create`()
+                              `M.create`({bufnr})
 Return~
 KeySeerUI
+Parameters~
+{bufnr} `(optional)` buffer The buffer to retrieve keymaps
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                               *M.keycap_colors*
+                               `M.keycap_colors`
+Type~
+`(table<string,table>)`
 
 
 ==============================================================================
@@ -634,7 +727,6 @@ Class~
 {KeySeerRender:} Text
 Fields~
 {ui} KeySeerUI
-{keyboard} Keyboard
 
 ------------------------------------------------------------------------------
                                                                        *M.new()*
@@ -652,7 +744,7 @@ Parameters~
 Class~
 {Text}
 Fields~
-{_lines} {str: `(string,)` hl?:string|Extmark}[][]
+{_lines} {str: `(string,)` hl?:string|{hl_group?:string, col?:number, end_col?:number}}[][]
 {padding} `(number)`
 
 ------------------------------------------------------------------------------
@@ -668,6 +760,18 @@ Parameters~
                           `Text:highlight`({patterns})
 Parameters~
 {patterns} `(table<string,string>)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                  *M.on_enter()*
+                               `M.on_enter`({ui})
+keymaps when entering the pane
+
+------------------------------------------------------------------------------
+                                                                   *M.on_exit()*
+                               `M.on_exit`({ui})
+keymaps when exiting the pane
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:
