@@ -5,6 +5,7 @@
 -- Each button on the keyboard can be highlighted
 local Button = require("keyseer.keyboard.button")
 local Utils = require("keyseer.utils")
+local Config = require("keyseer").config
 local D = require("keyseer.util.debug")
 
 -- Border characters for buttons
@@ -82,11 +83,6 @@ Keyboard.__index = Keyboard
 ---@field highlight_padding PaddingBox the extra highlights around a keycap
 ---@field key_labels string[] A mapping table to replace a keycap with another label when output
 ---@field layout? PhysicalLayout The layout of buttons on the keyboard
-local default_keyboard_display_options = {
-  keycap_padding = { 0, 1, 0, 1 }, -- padding around keycap labels [top, right, bottom, left]
-  highlight_padding = { 0, 0, 0, 0 }, -- how much of the label to highlight
-  key_labels = {}, -- keycap overrides
-}
 
 ---@class PhysicalKey
 ---@field normal string
@@ -99,7 +95,7 @@ local default_keyboard_display_options = {
 ---@param options? KeyboardDisplayOptions
 ---@return Keyboard
 function Keyboard:new(options)
-  options = vim.tbl_deep_extend("force", {}, default_keyboard_display_options, options or {})
+  options = vim.tbl_deep_extend("force", {}, Config.keyboard, options or {})
   local this = {
     shift_pressed = false,
     _normal_buttons = default_table(),

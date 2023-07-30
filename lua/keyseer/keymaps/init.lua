@@ -108,7 +108,8 @@ function Keymaps:add_keymaps(keymaps)
         end
 
         if not current_node[key] then
-          current_node[key] = { modifiers = {}, children = {}, keymaps = {} }
+          current_node[key] =
+            { modifiers = {}, children = {}, keymaps = {}, keycode = Keypress.get_keycode(key) }
         end
         -- If this is the last key in the sequence, add it to the keymaps entry
         if depth == #key_presses then
@@ -125,6 +126,57 @@ function Keymaps:add_keymaps(keymaps)
       current_node = next_node
     end
   end
+end
+
+---Return a boolean for whether or not the keypress matches the modifiers
+---@param node KeyMapTreeNode
+---@param modifiers table<string,boolean>
+function Keymaps.matching_keypress(node, modifiers)
+  vim.validate({ modifiers = { modifiers, "table", true } })
+  modifiers = vim.tbl_deep_extend(
+    "force",
+    { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
+    modifiers or {}
+  )
+  local node_modifiers = vim.tbl_deep_extend(
+    "force",
+    { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
+    node.modifiers
+  )
+
+  -- only ctrl, shift, meta, ctrl+meta, meta+shift are valid modifiers
+  -- therefore if ctrl doesn't match or meta doesn't match then it can't match
+  if modifiers["<Ctrl>"] then
+    if not node_modifiers["<Ctrl>"] then
+      -- ctrl doesn't match, false
+      return false
+    elseif node_modifiers["<Meta>"] == modifiers["<Meta>"] then
+      -- meta and ctrl match, return true
+      return true
+    else
+      -- meta doesn't match, false
+      return false
+    end
+  end
+  if modifiers["<Meta>"] then
+    if not node_modifiers["<Meta>"] then
+      -- meta doesn't match, false
+      return false
+    elseif node_modifiers["<Shift>"] == modifiers["<Shift>"] then
+      -- meta and shift match, return true
+      return true
+    else
+      -- shift doesn't match, false
+      return false
+    end
+  end
+
+  if node_modifiers["<Shift>"] == modifiers["<Shift>"] then
+    -- shift matches, return true
+    return true
+  end
+
+  return false
 end
 
 ---Get the keycaps at the current node
@@ -154,14 +206,14 @@ function Keymaps:get_current_keycaps(modifiers, opts)
   for keypress, node in pairs(self.current_node.children) do
     local add_keypress = true
     if opts.match_modifiers then
-      for modifier, state in pairs(modifiers) do
-        if vim.F.if_nil(node.modifiers[modifier], false) ~= state then
-          add_keypress = false
-        end
-      end
+      add_keypress = Keymaps.matching_keypress(node, modifiers)
     end
     if add_keypress then
-      matching_keypresses[keypress] = node
+      D.log("Keymaps", "Adding highlight for %s", keypress)
+      if not node.keycode then
+        Utils.notify(string.format("No keycode found for %s", keypress), { level = vim.log.WARN })
+      end
+      matching_keypresses[node.keycode or keypress] = node
     end
   end
 
@@ -211,11 +263,10 @@ function Keymaps:push(keypress)
       "Received a keypress that isn't valid: " .. keypress,
       { level = vim.log.levels.ERROR }
     )
-    vim.print(self.current_node.children[keypress])
   end
 end
 
 function Keymaps:pop()
-  self.current_node = vim.F.if_nil(table.remove(self.stack), self.root)
+  self.current_node = if_nil(table.remove(self.stack), self.root)
 end
 return Keymaps

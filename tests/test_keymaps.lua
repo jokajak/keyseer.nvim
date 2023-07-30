@@ -53,6 +53,7 @@ T["keymaps"]["parses simple keymap"] = function()
         },
         modifiers = {},
         children = {},
+        keycode = "g",
       },
     },
   })
@@ -73,6 +74,7 @@ T["keymaps"]["parses shifted keymap"] = function()
           ["<Shift>"] = true,
         },
         children = {},
+        keycode = "G",
       },
     },
   })
@@ -86,6 +88,7 @@ T["keymaps"]["parses nested keymap"] = function()
     modifiers = {},
     children = {
       g = {
+        keycode = "g",
         keymaps = {},
         modifiers = {},
         children = {
@@ -95,6 +98,7 @@ T["keymaps"]["parses nested keymap"] = function()
             },
             modifiers = {},
             children = {},
+            keycode = "g",
           },
         },
       },
@@ -115,6 +119,7 @@ T["keymaps"]["parses multiple keymaps"] = function()
         },
         modifiers = {},
         children = {},
+        keycode = "b",
       },
       g = {
         keymaps = {
@@ -122,6 +127,7 @@ T["keymaps"]["parses multiple keymaps"] = function()
         },
         modifiers = {},
         children = {},
+        keycode = "g",
       },
     },
   })
@@ -142,6 +148,7 @@ T["keymaps"]["parses modified keymap"] = function()
           ["<Ctrl>"] = true,
         },
         children = {},
+        keycode = "g",
       },
     },
   })
@@ -159,12 +166,15 @@ T["keymaps"]["gets current keycaps"] = function()
   })
   eq_global(child, "ret:get_current_keycaps({}, {match_modifiers=false})", {
     g = "KeySeerKeycapKeymap",
-    ["<C-g>"] = "KeySeerKeycapKeymap",
   })
   eq_global(child, "ret:get_current_keycaps({['<Ctrl>'] = true}, {match_modifiers=true})", {
+    g = "KeySeerKeycapKeymap",
     ["<Ctrl>"] = "KeySeerKeycapKeymap",
-    ["<C-g>"] = "KeySeerKeycapKeymap",
   })
+end
+
+T["keymaps"]["matches modifiers"] = function()
+  eq_global(child, "Keymaps.matching_keypress({modifiers = {}}, {['<Ctrl>'] = true})", false)
 end
 
 T["keypress"] = MiniTest.new_set()
@@ -182,6 +192,12 @@ end
 T["keypress"]["parses modified uppercase"] = function()
   eq_global(child, "Keypress.get_modifiers('<C-G>')", { ["<Ctrl>"] = true, ["<Shift>"] = true })
   eq_global(child, "Keypress.get_modifiers('<C-R>')", { ["<Ctrl>"] = true, ["<Shift>"] = true })
+end
+
+T["keypress"]["finds keycodes"] = function()
+  eq_global(child, "Keypress.get_keycode('<C-G>')", "G")
+  eq_global(child, "Keypress.get_keycode('<C-R>')", "R")
+  eq_global(child, "Keypress.get_keycode('R')", "R")
 end
 
 return T

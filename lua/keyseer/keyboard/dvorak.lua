@@ -69,6 +69,10 @@ return Keyboard:new({
       [3] = { normal = "<Space>", shifted = "<Space>" },
       [4] = { normal = "<Meta>", shifted = "<Meta>" },
       [5] = { normal = "<Ctrl>", shifted = "<Ctrl>" },
+      [6] = { normal = "Left", shifted = "Left" },
+      [7] = { normal = "Up", shifted = "Up" },
+      [8] = { normal = "Down", shifted = "Down" },
+      [9] = { normal = "Right", shifted = "Right" },
     },
   },
 })

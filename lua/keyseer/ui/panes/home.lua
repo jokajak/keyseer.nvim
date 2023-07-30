@@ -21,7 +21,6 @@ local M = {
 }
 
 function M.render(ui)
-  D.log("UI", "Current Ctrl state: %s", ui.state.modifiers.Ctrl)
   local current_keycaps = ui.state.keymaps:get_current_keycaps(ui.state.modifiers)
   local height, width = ui.state.keyboard:populate_lines(ui, current_keycaps)
   D.log("UI", string.format("Resizing to %dx%d (HxW)", height, width))
@@ -77,9 +76,7 @@ function M.on_enter(ui)
     local button = get_button_under_cursor(ui)
     if button then
       if button.is_modifier then
-        D.log("UI", "Clicked on a modifier")
         ui.state.modifiers[button.keycode] = not ui.state.modifiers[button.keycode]
-        vim.print(ui.state.modifiers)
       else
         ui.state.button = button
         ui.state.prev_pane = ui.state.pane

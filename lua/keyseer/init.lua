@@ -64,7 +64,7 @@ KeySeer.config = {
   -- Initial neovim mode to display keybindings
   initial_mode = "n",
 
-  include_modifiers = false,
+  include_modifiers = true,
   -- Boolean to include built in keymaps in display
   include_builtin_keymaps = false,
   -- Boolean to include global keymaps in display
@@ -101,6 +101,10 @@ KeySeer.config = {
     highlight_padding = { 0, 0, 0, 0 },
     -- override the label used to display some keys.
     key_labels = {
+      ["Up"] = "↑",
+      ["Down"] = "↓",
+      ["Left"] = "←",
+      ["Right"] = "→",
       -- For example:
       -- ["<space>"] = "SPC",
       -- ["<cr>"] = "RET",

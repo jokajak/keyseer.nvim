@@ -92,3 +92,22 @@ local keypresses = {
 * Navigating from the current keypress to the next is accomplished with `g<keypress>`
 
 It would be neat if I could somehow integrate with hydra.nvim
+
+## Notes
+
+OMG, `<Ctrl>` modified keypresses trigger whether using shift or not.
+
+Also, `<C-M>` and `<C>` are valid modifier combinations. I think it's just the `<Shift>` that isn't integrated. Nope, I
+was wrong, testing combinations are:
+
+* `<Ctrl>`
+* `<Shift>`
+* `<Meta>`
+* `<Ctrl>+<Meta>`
+* `<Shift>+<Meta>`
+
+Given this information, I think:
+
+* foreground color can be used for coloring a key based on keymaps
+* background color can be used for coloring a key based on modified presses
+  * Valid modifications are as above.
