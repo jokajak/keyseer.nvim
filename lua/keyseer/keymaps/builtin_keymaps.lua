@@ -67,6 +67,7 @@ local normal_mappings = {
   ["gu"] = "Lowercase",
   ["g~"] = "Toggle case",
   ["<Space>"] = "Move right",
+  ["<F1>"] = "Open Help",
 }
 
 for k, v in pairs(normal_mappings) do

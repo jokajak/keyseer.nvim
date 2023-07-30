@@ -222,19 +222,19 @@ function Keymaps:get_current_keycaps(modifiers, opts)
       add_keypress = Keymaps.matching_keypress(node, modifiers)
     end
     if add_keypress then
-      D.log("Keymaps", "Adding highlight for %s", keypress)
       if not node.keycode then
         Utils.notify(string.format("No keycode found for %s", keypress), { level = vim.log.WARN })
       end
+      D.log("Keymaps", "Adding highlight for %s (%s)", keypress, node.keycode or "?")
       if
         modifiers["<Ctrl>"]
         and not modifiers["<Shift>"]
-        and Buttons.shifted_keys:find(node.keycode or keypress, 0, true)
+        and Buttons.shifted_keys:find(node.keycode, 0, true)
       then
-        local keycap = Buttons[node.keycode or keypress]
+        local keycap = Buttons[node.keycode] or node.keycode
         matching_keypresses[keycap] = node
       else
-        matching_keypresses[node.keycode or keypress] = node
+        matching_keypresses[node.keycode] = node
       end
     end
   end
@@ -310,6 +310,26 @@ function Keymaps:add_stats(ui)
 
   display:append("Shift+Meta+Key: ")
   display:append("X/Y"):nl()
+end
+
+---Return the list of keymaps for the keycode provided
+---@param keycode string The keycode of the button
+---@param modifiers table<string,boolean> The modifier states
+function Keymaps:get_keymaps(keycode, modifiers)
+  vim.validate({ modifiers = { modifiers, "table", true } })
+  modifiers = vim.tbl_deep_extend(
+    "force",
+    { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
+    modifiers or {}
+  )
+
+  local ret = {}
+  for keypress, node in pairs(self.current_node.children) do
+    if node.keycode == keycode and Keymaps.matching_keypress(node, modifiers) then
+      table.insert(ret, node)
+    end
+  end
+  return ret
 end
 
 return Keymaps

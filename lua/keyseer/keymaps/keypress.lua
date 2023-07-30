@@ -51,13 +51,30 @@ end
 ---@return string keycode The found keycode or empty string if none found.
 function Keypress.get_keycode(keystring)
   local keycode = ""
-  local modifiers = {}
+  -- local modifiers = {}
   local key_presses = Utils.parse_keystring(keystring, true)
   if string.match(keystring, "Þ") or string.match(keystring, "<plug>") then
     return keycode
   end
 
-  local long_keycodes = { "Up", "Down", "Left", "Right", "<Space>", "<Esc>" }
+  local long_keycodes = {
+    "Up",
+    "Down",
+    "Left",
+    "Right",
+    "<Space>",
+    "<Esc>",
+    "<F1>",
+    "<F2>",
+    "<F3>",
+    "<F4>",
+    "<F5>",
+    "<F6>",
+    "<F7>",
+    "<F8>",
+    "<F9>",
+    "<F10>",
+  }
 
   if #key_presses > 1 then
     Utils.notify("Too many keypresses: " .. keystring)
@@ -83,26 +100,26 @@ function Keypress.get_keycode(keystring)
         found_keycode = key
       end
     end
-    if Buttons.shifted_keys:find(key, 0, true) then
-      -- shift button is currently pressed
-      modifiers["<Shift>"] = true
-    end
-    if key == "<Ctrl>" or key == "<Meta>" then
-      modifiers[key] = true
-    end
+    -- if Buttons.shifted_keys:find(key, 0, true) then
+    --   -- shift button is currently pressed
+    --   modifiers["<Shift>"] = true
+    -- end
+    -- if key == "<Ctrl>" or key == "<Meta>" then
+    --   modifiers[key] = true
+    -- end
   end
 
-  if found_keycode then
-    if modifiers["<Ctrl>"] then
-      -- if ctrl is pressed the case of the key doesn't matter
-      if
-        Buttons.shifted_keys:find(found_keycode, 0, true)
-        or Buttons.unshifted_keys:find(found_keycode, 0, true)
-      then
-        return found_keycode
-      end
-    end
-  end
+  -- if found_keycode then
+  --   if modifiers["<Ctrl>"] then
+  --     -- if ctrl is pressed the case of the key doesn't matter
+  --     if
+  --       Buttons.shifted_keys:find(found_keycode, 0, true)
+  --       or Buttons.unshifted_keys:find(found_keycode, 0, true)
+  --     then
+  --       return found_keycode
+  --     end
+  --   end
+  -- end
 
   return found_keycode
 end
