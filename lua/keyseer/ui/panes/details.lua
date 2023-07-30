@@ -15,12 +15,12 @@ function M.render(ui)
 
   if ui.state.button then
     ui.render:append("Details for ", "KeySeerH2")
-    ui.render:append(tostring(ui.state.button), "KeySeerH2"):nl()
+    ui.render:append(tostring(ui.state.button), "KeySeerH2"):nl():nl()
 
     local keymaps = ui.state.keymaps:get_keymaps(ui.state.button.keycode) or {}
     for _, keymap in pairs(keymaps) do
-      if keymap.description then
-        ui.render:append(keymap.description)
+      if keymap.desc then
+        ui.render:append(keymap.desc):append(": ")
       end
       if keymap.rhs then
         ui.render:append(keymap.rhs)
@@ -29,6 +29,7 @@ function M.render(ui)
       else
         vim.print(keymap)
       end
+      ui.render:nl():nl()
     end
   else
     ui.render:append("No button currently under cursor."):nl()

@@ -74,6 +74,9 @@ KeySeer.config = {
   -- TODO: Represent modifier toggling in highlights
   -- Boolean to include modified keys (e.g. <C-x> or <A-y> or C) in display
   include_modified_keypresses = false,
+  -- TODO: Support ignoring whichkey conflicts when showing builtin keymaps
+  -- Boolean to ignore whichkey keymaps
+  ignore_whichkey_conflicts = true,
 
   -- Configuration for ui:
   -- - `border` defines border (as in `nvim_open_win()`).

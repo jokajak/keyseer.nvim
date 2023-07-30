@@ -49,6 +49,7 @@ local normal_mappings = {
   ["P"] = "Put (paste) after",
   ["q"] = "Complex repeats, aka macro",
   ["s"] = "Substitute",
+  ["S"] = "Synonym for cc",
   ["t"] = "Move before next char",
   ["u"] = "Undo",
   ["v"] = "Visual Character Mode",
@@ -66,8 +67,12 @@ local normal_mappings = {
   ["gg"] = "First line",
   ["gu"] = "Lowercase",
   ["g~"] = "Toggle case",
+  ["g`"] = "Jump to mark",
+  ["g'"] = "Jump to mark",
   ["<Space>"] = "Move right",
   ["<F1>"] = "Open Help",
+  ["`"] = "Jump to mark",
+  ["~"] = "Switch case of character under cursor and move to the right.",
 }
 
 for k, v in pairs(normal_mappings) do

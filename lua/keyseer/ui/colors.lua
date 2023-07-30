@@ -16,21 +16,18 @@ M.colors = {
 
 ---@type table<string,table>
 M.keycap_colors = {
-  -- KeycapKeymap = { link = "CursorLine", default = true },
-  -- KeycapMultipleKeymaps = { link = "Conceal", default = true },
-  -- KeycapKeymapAndPrefix = { link = "Visual", default = true },
-  -- KeycapKeymapsAndPrefix = { link = "IncSearch", default = true },
-  -- KeycapPrefix = { link = "NormalFloat", default = true },
-  -- KeycapKeymap = { default = true, fg = "#d65d0e", ctermfg = "White" },
-  -- KeycapMultipleKeymaps = { default = true, fg = "#d79921", ctermfg = "Yellow" },
-  -- KeycapKeymapAndPrefix = { default = true, fg = "#a89984", ctermfg = "Cyan" },
-  -- KeycapKeymapsAndPrefix = { default = true, fg = "#cc241d", ctermfg = "Red" },
-  -- KeycapPrefix = { default = true, fg = "#458588", ctermfg = "Blue" },
-  KeycapKeymap = { default = true, bg = "#d65d0e", ctermbg = "White" },
-  KeycapMultipleKeymaps = { default = true, bg = "#d79921", ctermbg = "Yellow" },
-  KeycapKeymapAndPrefix = { default = true, bg = "#a89984", ctermbg = "Cyan" },
-  KeycapKeymapsAndPrefix = { default = true, bg = "#cc241d", ctermbg = "Red" },
-  KeycapPrefix = { default = true, bg = "#458588", ctermbg = "Blue" },
+  -- Linked colors
+  KeycapKeymap = { link = "CursorLine", default = true },
+  KeycapMultipleKeymaps = { link = "DiffDelete", default = true },
+  KeycapKeymapAndPrefix = { link = "Visual", default = true },
+  KeycapKeymapsAndPrefix = { link = "IncSearch", default = true },
+  KeyCapPrefix = { link = "NormalFloat", default = true },
+  -- Static colors
+  -- KeycapKeymap = { default = true, bg = "#d65d0e", ctermbg = "White" },
+  -- KeycapMultipleKeymaps = { default = true, bg = "#d79921", ctermbg = "Yellow" },
+  -- KeycapKeymapAndPrefix = { default = true, bg = "#a89984", ctermbg = "Cyan" },
+  -- KeycapKeymapsAndPrefix = { default = true, bg = "#cc241d", ctermbg = "Red" },
+  -- KeycapPrefix = { default = true, bg = "#458588", ctermbg = "Blue" },
 }
 
 M.did_setup = false
