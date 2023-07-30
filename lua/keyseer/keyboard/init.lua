@@ -104,7 +104,7 @@ function Keyboard:new(options)
     highlight_padding = options.highlight_padding,
     key_labels = options.key_labels,
   }
-  if options.layout and options.layout ~= false then
+  if options.layout and type(options.layout) == "table" then
     this.layout = options.layout
   end
   setmetatable(this, self)

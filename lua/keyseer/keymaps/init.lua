@@ -1,9 +1,10 @@
 --- This file contains the code for parsing keymaps
-local D = require("keyseer.util.debug")
-local Utils = require("keyseer.utils")
-local Config = require("keyseer").config
 local BuiltInKeyMaps = require("keyseer.keymaps.builtin_keymaps")
+local Buttons = require("keyseer.util.buttons")
+local Config = require("keyseer").config
+local D = require("keyseer.util.debug")
 local Keypress = require("keyseer.keymaps.keypress")
+local Utils = require("keyseer.utils")
 
 local if_nil = vim.F.if_nil
 
@@ -108,8 +109,12 @@ function Keymaps:add_keymaps(keymaps)
         end
 
         if not current_node[key] then
-          current_node[key] =
-            { modifiers = {}, children = {}, keymaps = {}, keycode = Keypress.get_keycode(key) }
+          current_node[key] = {
+            modifiers = {},
+            children = {},
+            keymaps = {},
+            keycode = Keypress.get_keycode(key),
+          }
         end
         -- If this is the last key in the sequence, add it to the keymaps entry
         if depth == #key_presses then
@@ -201,6 +206,14 @@ function Keymaps:get_current_keycaps(modifiers, opts)
     end
   end
 
+  if modifiers["<Ctrl>"] and modifiers["<Meta>"] then
+    Utils.notify(
+      "Ctrl and Meta cannot be used in the same keymap, please deselect a modifier.",
+      { level = vim.log.WARN }
+    )
+    return ret
+  end
+
   local matching_keypresses = {}
   -- find matching keypresses
   for keypress, node in pairs(self.current_node.children) do
@@ -213,7 +226,16 @@ function Keymaps:get_current_keycaps(modifiers, opts)
       if not node.keycode then
         Utils.notify(string.format("No keycode found for %s", keypress), { level = vim.log.WARN })
       end
-      matching_keypresses[node.keycode or keypress] = node
+      if
+        modifiers["<Ctrl>"]
+        and not modifiers["<Shift>"]
+        and Buttons.shifted_keys:find(node.keycode or keypress, 0, true)
+      then
+        local keycap = Buttons[node.keycode or keypress]
+        matching_keypresses[keycap] = node
+      else
+        matching_keypresses[node.keycode or keypress] = node
+      end
     end
   end
 

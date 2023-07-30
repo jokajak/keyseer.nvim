@@ -198,6 +198,8 @@ T["keypress"]["finds keycodes"] = function()
   eq_global(child, "Keypress.get_keycode('<C-G>')", "G")
   eq_global(child, "Keypress.get_keycode('<C-R>')", "R")
   eq_global(child, "Keypress.get_keycode('R')", "R")
+  eq_global(child, "Keypress.get_keycode('<C-Up>')", "Up")
+  eq_global(child, "Keypress.get_keycode('<lt>')", "<")
 end
 
 return T

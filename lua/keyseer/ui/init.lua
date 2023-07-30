@@ -24,9 +24,9 @@ local default_state = {
   mode = "n",
   current_keymaps = {},
   modifiers = {
-    ctrl = false,
-    shift = false,
-    alt = false,
+    ["<Ctrl>"] = false,
+    ["<Shift>"] = false,
+    ["<Alt>"] = false,
   },
   bufnr = nil,
 }

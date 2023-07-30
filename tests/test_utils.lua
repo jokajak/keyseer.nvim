@@ -48,6 +48,7 @@ T["utils"]["parses keystrings"] = function()
     { { "<Space>" }, { "<Ctrl>", "-" }, { "<Space>" } }
   )
   eq_global(child, "utils.parse_keystring('C')", { { "C" } })
+  eq_global(child, "utils.parse_keystring('<lt>')", { { "<lt>" } })
 end
 
 T["buttons"] = MiniTest.new_set()
@@ -69,7 +70,7 @@ T["buttons"]["describes shifted"] = function()
   eq_global(child, "buttons.shifted_keys:find('A', 0, true)", 11)
   eq_global(child, "buttons.shifted_keys:find('a', 0, true)", vim.NIL)
   eq_global(child, "buttons.shifted_keys:find('`', 0, true)", vim.NIL)
-  eq_global(child, "buttons.shifted_keys:find('\"', 0, true)", 43)
+  eq_global(child, "buttons.shifted_keys:find('\"', 0, true)", 42)
 end
 
 T["utils"]["parse_keystring supports split_keypresses"] = function()

@@ -1,7 +1,7 @@
 -- Simple table of buttons and their inverse
 local Buttons = setmetatable({
-  unshifted_keys = "1234567890abcdefghijklmnopqrstuvwxyz-=[]\\;',./`",
-  shifted_keys = '!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ_+{}|:"<>?~',
+  unshifted_keys = "1234567890abcdefghijklmnopqrstuvwxyz-=[];',./`\\",
+  shifted_keys = '!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ_+{}:"<>?~|',
 }, {
   __newindex = function(t, key, value)
     rawset(t, key, value)

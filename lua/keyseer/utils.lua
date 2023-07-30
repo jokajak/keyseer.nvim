@@ -71,8 +71,9 @@ function Utils.parse_keystring(keystr, split_keypresses)
   split_keypresses = vim.F.if_nil(split_keypresses, true)
 
   local key_lookup = setmetatable({
-    Space = "<Space>",
-    BS = "<BS>",
+    ["Space"] = "<Space>",
+    ["BS"] = "<BS>",
+    ["lt"] = "<lt>", -- re-add the <>
     [" "] = "<Space>",
     [""] = "-", -- this gets added because of splitting on -
   }, {

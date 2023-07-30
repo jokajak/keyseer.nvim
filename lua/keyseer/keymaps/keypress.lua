@@ -109,6 +109,8 @@ function Keypress.get_keycode(keystring)
     return keycode
   end
 
+  local long_keycodes = { "Up", "Down", "Left", "Right", "<Space>", "<Esc>" }
+
   if #key_presses > 1 then
     Utils.notify("Too many keypresses: " .. keystring)
     return keycode
@@ -116,6 +118,13 @@ function Keypress.get_keycode(keystring)
 
   local found_keycode = nil
   for _, key in pairs(key_presses[1]) do
+    if key == "<lt>" then
+      key = "<"
+    end
+    if vim.tbl_contains(long_keycodes, key) then
+      found_keycode = key
+    end
+
     if Buttons.shifted_keys:find(key, 0, true) or Buttons.unshifted_keys:find(key, 0, true) then
       if found_keycode then
         Utils.notify(
