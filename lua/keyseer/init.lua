@@ -76,7 +76,6 @@ KeySeer.config = {
   include_modified_keypresses = false,
 
   -- Configuration for ui:
-  -- - `height` and `width` are maximum dimensions.
   -- - `border` defines border (as in `nvim_open_win()`).
   ui = {
     border = "double", -- none, single, double, shadow
@@ -84,11 +83,12 @@ KeySeer.config = {
     winblend = 0, -- value between 0-100 0 for fully opaque and 100 for fully transparent
     size = {
       width = 65,
-      height = 14,
+      height = 10,
     },
     icons = {
       keyseer = "",
     },
+    show_header = true, -- boolean if the header should be shown
   },
 
   -- Keyboard options

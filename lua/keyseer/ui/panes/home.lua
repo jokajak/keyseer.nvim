@@ -23,7 +23,9 @@ local M = {
 function M.render(ui)
   local current_keycaps = ui.state.keymaps:get_current_keycaps(ui.state.modifiers)
   local height, width = ui.state.keyboard:populate_lines(ui, current_keycaps)
-  D.log("UI", string.format("Resizing to %dx%d (HxW)", height, width))
+
+  -- ui.state.keymaps:add_stats(ui)
+
   ui.win_opts.height = height - 1
   ui.opts.size.height = height - 1
   if width ~= 0 then

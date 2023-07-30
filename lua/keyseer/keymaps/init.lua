@@ -291,4 +291,25 @@ end
 function Keymaps:pop()
   self.current_node = if_nil(table.remove(self.stack), self.root)
 end
+
+---Populate keymap statistics in a display
+---@param ui KeySeerUI The UI to display to
+function Keymaps:add_stats(ui)
+  local display = ui.render
+  display:append("Keys: ", "", { indent = 2 })
+  display:append("X/Y")
+
+  display:append("Shift+Key: ", "", { indent = 2 })
+  display:append("X/Y")
+
+  display:append("Ctrl+Key: ", "", { indent = 2 })
+  display:append("X/Y")
+
+  display:append("Meta+Key: ", "", { indent = 2 })
+  display:append("X/Y"):nl()
+
+  display:append("Shift+Meta+Key: ")
+  display:append("X/Y"):nl()
+end
+
 return Keymaps

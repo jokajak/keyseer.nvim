@@ -246,7 +246,7 @@ function Keyboard:_layout_buttons(shift_pressed)
 
   -- resize space button
   do
-    local row_length_delta = longest_row_length - row_lengths[5]
+    local row_length_delta = longest_row_length - row_lengths[#self.layout]
     -- Get the <Space> button from the layout
     -- At this point there should be at least one
     local button = button_lookup["<Space>"][1]
@@ -439,7 +439,7 @@ function Keyboard:populate_lines(ui, keycaps)
 
   -- resize space button
   do
-    local row_length_delta = longest_row_length - row_lengths[5]
+    local row_length_delta = longest_row_length - row_lengths[#self.layout]
     -- Get the <Space> button from the layout
     -- At this point there should be at least one
     local button = button_lookup["<Space>"][1]
@@ -528,7 +528,6 @@ function Keyboard:populate_lines(ui, keycaps)
     end
     display:nl()
   end
-  D.log("Keyboard", string.format("Columns: %d", display:col()))
   return display:row(), display:col()
 end
 return Keyboard

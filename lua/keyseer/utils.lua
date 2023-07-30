@@ -71,11 +71,13 @@ function Utils.parse_keystring(keystr, split_keypresses)
   split_keypresses = vim.F.if_nil(split_keypresses, true)
 
   local key_lookup = setmetatable({
+    -- add the <> back
     ["Space"] = "<Space>",
+    ["Esc"] = "<Esc>",
     ["BS"] = "<BS>",
-    ["lt"] = "<lt>", -- re-add the <>
+    ["lt"] = "<lt>",
     [" "] = "<Space>",
-    [""] = "-", -- this gets added because of splitting on -
+    [""] = "-", -- this gets added because of splitting on `-`
   }, {
     __index = function(_, k)
       return k

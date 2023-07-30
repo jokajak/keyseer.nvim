@@ -3,6 +3,19 @@ local Keyboard = require("keyseer.keyboard")
 return Keyboard:new({
   layout = {
     [1] = {
+      [1] = { normal = "<Esc>", shifted = "<Esc>" },
+      [2] = { normal = "F1", shifted = "F1" },
+      [3] = { normal = "F2", shifted = "F2" },
+      [4] = { normal = "F3", shifted = "F3" },
+      [5] = { normal = "F4", shifted = "F4" },
+      [6] = { normal = "F5", shifted = "F5" },
+      [7] = { normal = "F6", shifted = "F6" },
+      [8] = { normal = "F7", shifted = "F7" },
+      [9] = { normal = "F8", shifted = "F8" },
+      [10] = { normal = "F9", shifted = "F9" },
+      [11] = { normal = "F10", shifted = "F10" },
+    },
+    [2] = {
       [1] = { normal = "`", shifted = "~" },
       [2] = { normal = "1", shifted = "!" },
       [3] = { normal = "2", shifted = "@" },
@@ -18,7 +31,7 @@ return Keyboard:new({
       [13] = { normal = "=", shifted = "+" },
       [14] = { normal = "<BS>", shifted = "<BS>" },
     },
-    [2] = {
+    [3] = {
       [1] = { normal = "<Tab>", shifted = "<Tab>" }, -- tab
       [2] = { normal = "q", shifted = "Q" },
       [3] = { normal = "w", shifted = "W" },
@@ -34,7 +47,7 @@ return Keyboard:new({
       [13] = { normal = "]", shifted = "}" },
       [14] = { normal = "\\", shifted = "|" },
     },
-    [3] = {
+    [4] = {
       [1] = { normal = "<Caps>", shifted = "<Caps>" },
       [2] = { normal = "a", shifted = "A" },
       [3] = { normal = "s", shifted = "S" },
@@ -49,7 +62,7 @@ return Keyboard:new({
       [12] = { normal = "'", shifted = '"' },
       [13] = { normal = "<Enter>", shifted = "<Enter>" },
     },
-    [4] = {
+    [5] = {
       [1] = { normal = "<Shift>", shifted = "<Shift>" },
       [2] = { normal = "z", shifted = "Z" },
       [3] = { normal = "x", shifted = "X" },
@@ -63,7 +76,7 @@ return Keyboard:new({
       [11] = { normal = "/", shifted = "?" },
       [12] = { normal = "<Shift>", shifted = "<Shift>" },
     },
-    [5] = {
+    [6] = {
       [1] = { normal = "<Ctrl>", shifted = "<Ctrl>" },
       [2] = { normal = "<Meta>", shifted = "<Meta>" },
       [3] = { normal = "<Space>", shifted = "<Space>" },

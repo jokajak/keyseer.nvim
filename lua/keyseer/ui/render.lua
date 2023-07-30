@@ -1,7 +1,7 @@
 -- Copied from https://github.com/folke/lazy.nvim/blob/b7043f2983d7aead78ca902f3f2053907081859a/lua/lazy/view/render.lua
 local Text = require("keyseer.ui.text")
 local UIConfig = require("keyseer.ui.config")
-local config = require("keyseer").config
+local Config = require("keyseer").config
 
 ---@class KeySeerRender: Text
 ---@field ui KeySeerUI
@@ -21,7 +21,9 @@ function M:update()
   self._lines = {}
   self.buttons = {}
 
-  self:title()
+  if Config.ui.show_header then
+    self:header()
+  end
 
   local pane = self.ui.state.pane
 
@@ -34,7 +36,7 @@ function M:update()
   self:render(self.ui.buf)
 end
 
-function M:title()
+function M:header()
   self:nl():nl()
   local panes = vim.tbl_filter(function(c)
     return c.button
@@ -44,7 +46,7 @@ function M:title()
     local title = " " .. pane.name:sub(1, 1):upper() .. pane.name:sub(2) .. " (" .. pane.key .. ") "
     if pane.name == "home" then
       if self.ui.state.pane == "home" then
-        title = " keyseer.nvim  " .. config.ui.icons.keyseer .. "  "
+        title = " keyseer.nvim  " .. Config.ui.icons.keyseer .. "  "
       else
         title = " keyseer.nvim (H) "
       end

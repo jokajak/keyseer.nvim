@@ -82,10 +82,42 @@ end
 function M.create(bufnr)
   local self = setmetatable({}, { __index = setmetatable(M, { __index = Popup }) })
   bufnr = vim.F.if_nil(bufnr, vim.api.nvim_get_current_buf())
-  ---@cast self KeySeerUI
-  Popup.init(self, {})
 
   self.state = vim.deepcopy(default_state)
+
+  local keyboard = self.state.keyboard
+  if not keyboard then
+    local keyboard_opts = Config.keyboard
+    local keyboard_options = vim.deepcopy(keyboard_opts)
+    keyboard_options.layout = nil
+
+    if type(keyboard_opts.layout) == "string" then
+      keyboard = require("keyseer.keyboard." .. keyboard_opts.layout):new(keyboard_options)
+    else
+      ---@type Keyboard
+      local layout = keyboard_opts.layout
+      keyboard = layout:new(keyboard_options)
+    end
+
+    keyboard:get_lines(false)
+    self.state.keyboard = keyboard
+  end
+  if not self.state.keymaps then
+    self.state.keymaps = Keymaps:new()
+    self.state.keymaps:process_keymaps(self.state.bufnr)
+  end
+
+  local width = math.max(Config.ui.size.width, keyboard.width)
+  local header_height = 0
+  if Config.ui.show_header then
+    header_height = 3
+  else
+    width = keyboard.width
+  end
+  local height = math.max(Config.ui.size.height, keyboard.height + header_height)
+
+  ---@cast self KeySeerUI
+  Popup.init(self, { size = { width = width, height = height } })
 
   self.render = Render.new(self)
 
@@ -101,27 +133,6 @@ function M.create(bufnr)
       self.state.pane = k
       self:update()
     end, v["desc"])
-
-    if not self.state.keyboard then
-      local keyboard_opts = Config.keyboard
-      local keyboard
-      local keyboard_options = vim.deepcopy(keyboard_opts)
-      keyboard_options.layout = nil
-
-      if type(keyboard_opts.layout) == "string" then
-        keyboard = require("keyseer.keyboard." .. keyboard_opts.layout):new(keyboard_options)
-      else
-        ---@type Keyboard
-        local layout = keyboard_opts.layout
-        keyboard = layout:new(keyboard_options)
-      end
-
-      self.state.keyboard = keyboard
-    end
-    if not self.state.keymaps then
-      self.state.keymaps = Keymaps:new()
-      self.state.keymaps:process_keymaps(self.state.bufnr)
-    end
   end
 
   return self

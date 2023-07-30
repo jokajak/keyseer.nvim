@@ -1,7 +1,7 @@
 -- This module is responsible for managing the floating window that gets shown
 -- Copied from https://github.com/folke/lazy.nvim/blob/b7043f2983d7aead78ca902f3f2053907081859a/lua/lazy/view/float.lua
 local D = require("keyseer.util.debug")
-local config = require("keyseer").config
+local Config = require("keyseer").config
 local UIConfig = require("keyseer.ui.config")
 local Utils = require("keyseer.utils")
 
@@ -43,9 +43,9 @@ end
 function Popup:init(opts)
   require("keyseer.ui.colors").setup()
   self.opts = vim.tbl_deep_extend("force", {
-    border = config.ui.border or "none",
-    size = config.ui.size,
-    style = config.ui.style or "minimal",
+    border = Config.ui.border or "none",
+    size = Config.ui.size,
+    style = Config.ui.style or "minimal",
   }, opts or {})
 
   ---@class KeySeerWinOpts
