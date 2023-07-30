@@ -323,10 +323,30 @@ function Keymaps:get_keymaps(keycode, modifiers)
     modifiers or {}
   )
 
-  local ret = {}
-  for keypress, node in pairs(self.current_node.children) do
-    if node.keycode == keycode and Keymaps.matching_keypress(node, modifiers) then
-      table.insert(ret, node)
+  local ret = nil
+  for _, node in pairs(self.current_node.children) do
+    local node_modifiers = vim.tbl_deep_extend(
+      "force",
+      { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
+      node.modifiers
+    )
+
+    local matches = node.keycode == keycode
+    for modifier, state in pairs(node_modifiers) do
+      if matches and modifiers[modifier] ~= state then
+        matches = false
+      end
+    end
+
+    if matches then
+      if not ret then
+        ret = node.keymaps
+      else
+        Utils.notify(
+          string.format("Found more than one keymap node for %s", keycode),
+          { level = vim.log.levels.ERROR }
+        )
+      end
     end
   end
   return ret
