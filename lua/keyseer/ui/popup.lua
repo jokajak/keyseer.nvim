@@ -1,6 +1,5 @@
 -- This module is responsible for managing the floating window that gets shown
 -- Copied from https://github.com/folke/lazy.nvim/blob/b7043f2983d7aead78ca902f3f2053907081859a/lua/lazy/view/float.lua
-local D = require("keyseer.util.debug")
 local Config = require("keyseer").config
 local UIConfig = require("keyseer.ui.config")
 local Utils = require("keyseer.utils")

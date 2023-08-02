@@ -7,9 +7,9 @@
 -- Number of prefixed actions: N
 
 -- Render details
+---@private
 local M = {}
 
--- TODO: Populate details
 function M.render(ui)
   ui.render:append("Details", "KeySeerH2"):nl():nl()
 

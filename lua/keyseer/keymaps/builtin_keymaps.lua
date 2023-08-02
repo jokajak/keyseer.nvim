@@ -1,4 +1,5 @@
 -- Built in keymaps-- preset key allocations in vim
+---@private
 local M = {
   n = {},
   v = {},

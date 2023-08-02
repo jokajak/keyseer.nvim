@@ -30,18 +30,21 @@ local default_state = {
   },
   bufnr = nil,
 }
---
+
 ---@class KeySeerUI: KeySeerPopup
 ---@field render KeySeerRender
 ---@field state KeySeerUIState
-local M = {}
+local KeySeerUI = {}
 
 ---@type KeySeerUI
-M.ui = nil
+---@private
+KeySeerUI.ui = nil
 
+---Returns if the ui visible
 ---@return boolean
-function M.visible()
-  return M.ui and M.ui.win and vim.api.nvim_win_is_valid(M.ui.win)
+---@private
+function KeySeerUI.visible()
+  return KeySeerUI.ui and KeySeerUI.ui.win and vim.api.nvim_win_is_valid(KeySeerUI.ui.win)
 end
 
 local function get_button_under_cursor(ui)
@@ -56,31 +59,35 @@ local function get_button_under_cursor(ui)
   return button
 end
 
+---Show the KeySeer UI
 ---@param pane? string The starting pane
 ---@param mode? string The neovim mode for keymaps
 ---@param bufnr? integer The buffer for keymaps
-function M.show(pane, mode, bufnr)
+function KeySeerUI.show(pane, mode, bufnr)
   bufnr = vim.F.if_nil(bufnr, vim.api.nvim_get_current_buf())
-  M.ui = M.visible() and M.ui or M.create(bufnr)
+  KeySeerUI.ui = KeySeerUI.visible() and KeySeerUI.ui or KeySeerUI.create(bufnr)
 
   if pane then
-    M.ui.state.pane = pane
+    KeySeerUI.ui.state.pane = pane
   end
 
   if mode then
-    M.ui.state.mode = mode
+    KeySeerUI.ui.state.mode = mode
   end
 
   D.log("UI", "Setting bufnr to " .. bufnr)
-  M.ui.state.bufnr = bufnr
+  KeySeerUI.ui.state.bufnr = bufnr
 
-  M.ui:update()
+  KeySeerUI.ui:update()
 end
 
+---Create the KeySeer UI
 ---@return KeySeerUI
 ---@param bufnr? buffer The buffer to retrieve keymaps
-function M.create(bufnr)
-  local self = setmetatable({}, { __index = setmetatable(M, { __index = Popup }) })
+---@private
+function KeySeerUI.create(bufnr)
+  ---@type KeySeerUI|KeySeerPopup
+  local self = setmetatable({}, { __index = setmetatable(KeySeerUI, { __index = Popup }) })
   bufnr = vim.F.if_nil(bufnr, vim.api.nvim_get_current_buf())
 
   self.state = vim.deepcopy(default_state)
@@ -138,7 +145,9 @@ function M.create(bufnr)
   return self
 end
 
-function M:update()
+---Update the KeySeer UI
+---@private
+function KeySeerUI:update()
   if self.buf and vim.api.nvim_buf_is_valid(self.buf) then
     if self.state.pane ~= self.state.prev_pane then
       local pane_available, pane = pcall(require, "keyseer.ui.panes." .. self.state.prev_pane)
@@ -157,4 +166,5 @@ function M:update()
   end
 end
 
-return M
+---@type KeySeerUI
+return KeySeerUI

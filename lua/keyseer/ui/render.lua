@@ -5,19 +5,21 @@ local Config = require("keyseer").config
 
 ---@class KeySeerRender: Text
 ---@field ui KeySeerUI
-local M = {}
+---@private
+local KeySeerRender = {}
 
 ---@return KeySeerRender
 ---@param ui KeySeerUI
-function M.new(ui)
-  ---@type KeySeerRender
-  local self = setmetatable({}, { __index = setmetatable(M, { __index = Text }) })
+function KeySeerRender.new(ui)
+  ---@type KeySeerRender|Text
+  local self = setmetatable({}, { __index = setmetatable(KeySeerRender, { __index = Text }) })
   self.ui = ui
   self.padding = 0
+  ---@cast self -Text
   return self
 end
 
-function M:update()
+function KeySeerRender:update()
   self._lines = {}
   self.buttons = {}
 
@@ -36,7 +38,7 @@ function M:update()
   self:render(self.ui.buf)
 end
 
-function M:header()
+function KeySeerRender:header()
   self:nl():nl()
   local panes = vim.tbl_filter(function(c)
     return c.button
@@ -71,4 +73,4 @@ function M:header()
   self:nl():nl()
 end
 
-return M
+return KeySeerRender

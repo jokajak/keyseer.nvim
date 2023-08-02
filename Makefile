@@ -1,7 +1,7 @@
 # we disable the `all` command because some external tool might run it automatically
 .SUFFIXES:
 
-all:
+all: test documentation
 
 # runs all the test files.
 test:

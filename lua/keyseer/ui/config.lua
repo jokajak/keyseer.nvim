@@ -1,4 +1,4 @@
--- UI Configuration
+--- UI Configuration
 
 ---@class KeySeerUIPane
 ---@field id number
@@ -6,6 +6,7 @@
 ---@field desc? string
 ---@field key? string
 ---@field toggle? boolean
+
 local M = {}
 
 function M.get_panes()
@@ -25,6 +26,7 @@ M.keys = {
   back = "<bs>",
   close = "q",
   details = "<cr>",
+  go = "g",
 }
 
 ---@type table<string,KeySeerUIPane>

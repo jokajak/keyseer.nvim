@@ -15,7 +15,9 @@ M.colors = {
 }
 
 ---@type table<string,table>
+--minidoc_replace_start {
 M.keycap_colors = {
+  --minidoc_replace_end
   -- Linked colors
   KeycapKeymap = { link = "CursorLine", default = true },
   KeycapMultipleKeymaps = { link = "DiffDelete", default = true },

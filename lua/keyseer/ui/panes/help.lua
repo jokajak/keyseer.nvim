@@ -13,9 +13,9 @@
 local UIConfig = require("keyseer.ui.config")
 
 -- Render help
+---@private
 local M = {}
 
--- TODO: Populate colors on help
 function M.render(ui)
   local display = ui.render
   display:append("Help", "KeySeerH2"):nl():nl()

@@ -593,8 +593,8 @@ Fields~
 {bufnr} `(buffer|nil)` The buffer
 
 ------------------------------------------------------------------------------
-                                                                             *M*
-                                      `M`
+                                                                     *KeySeerUI*
+                                  `KeySeerUI`
 Class~
 {KeySeerUI:} KeySeerPopup
 Fields~
@@ -602,46 +602,30 @@ Fields~
 {state} KeySeerUIState
 
 ------------------------------------------------------------------------------
-                                                                          *M.ui*
-                                     `M.ui`
-Type~
-KeySeerUI
-
-------------------------------------------------------------------------------
-                                                                   *M.visible()*
-                                 `M.visible`()
-Return~
-`(boolean)`
-
-------------------------------------------------------------------------------
-                                                                      *M.show()*
-                       `M.show`({pane}, {mode}, {bufnr})
+                                                              *KeySeerUI.show()*
+                   `KeySeerUI.show`({pane}, {mode}, {bufnr})
+the KeySeer UI
 Parameters~
 {pane} `(optional)` `(string)` The starting pane
 {mode} `(optional)` `(string)` The neovim mode for keymaps
 {bufnr} `(optional)` `(integer)` The buffer for keymaps
 
 ------------------------------------------------------------------------------
-                                                                    *M.create()*
-                              `M.create`({bufnr})
-Return~
+Type~
 KeySeerUI
-Parameters~
-{bufnr} `(optional)` buffer The buffer to retrieve keymaps
 
 
 ==============================================================================
 ------------------------------------------------------------------------------
-                                                               *M.keycap_colors*
-                               `M.keycap_colors`
 Type~
 `(table<string,table>)`
 
 
 ==============================================================================
 ------------------------------------------------------------------------------
-                                                                             *M*
-                                      `M`
+UI Configuration
+
+------------------------------------------------------------------------------
 Class~
 {KeySeerUIPane}
 Fields~
@@ -721,16 +705,8 @@ Parameters~
 
 ==============================================================================
 ------------------------------------------------------------------------------
-                                                                             *M*
-                                      `M`
-Class~
-{KeySeerRender:} Text
-Fields~
-{ui} KeySeerUI
-
-------------------------------------------------------------------------------
-                                                                       *M.new()*
-                                 `M.new`({ui})
+                                                           *KeySeerRender.new()*
+                           `KeySeerRender.new`({ui})
 Return~
 KeySeerRender
 Parameters~
