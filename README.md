@@ -1,8 +1,11 @@
 # KeySeer.nvim
 
-[![Integration][integration-badge]][integration-runs]
+<!-- badges: start -->
+[![GitHub license](https://badgen.net/github/license/jokajak/keyseer.nvim)](https://github.com/jokajak/keyseer.nvim/blob/main/LICENSE)
+[![main](https://github.com/jokajak/keyseer.nvim/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/jokajak/keyseer.nvim/actions/workflows/main.yml)
+<!-- badges: end -->
 
-A Neovim plugin that renders a keyboard displaying which keys have assigned actions.
+A [Neovim][neovim] plugin that renders a keyboard displaying which keys have assigned actions.
 
 ![keyseer light example](https://user-images.githubusercontent.com/460913/204164433-e320d74f-d63c-4130-b397-87dc3c5f1bd1.png#gh-light-mode-only)
 ![keyseer dark example](https://user-images.githubusercontent.com/460913/204164495-7d749ccf-4b6f-4992-a2a4-310a65fa4e6e.png#gh-dark-mode-only)
@@ -26,15 +29,15 @@ Here are code snippets for some common installation methods:
 
 | Branch | Code snippet                                         |
 |--------|------------------------------------------------------|
-| Main   | `{ 'jokajak/keyseer.nvim', version = false },`      |
-| Stable | `{ 'jokajak/keyseer.nvim', version = '*' },`        |
+| Main   | `{ 'jokajak/keyseer.nvim', version = false },`       |
+| Stable | `{ 'jokajak/keyseer.nvim', version = '*' },`         |
 
 * With [wbthomason/packer.nvim](https://github.com/wbthomason/packer.nvim):
 
 | Branch | Code snippet                                         |
 |--------|------------------------------------------------------|
-| Main   | `use 'jokajak/keyseer.nvim'`                        |
-| Stable | `use { 'jokajak/keyseer.nvim', branch = 'stable' }` |
+| Main   | `use 'jokajak/keyseer.nvim'`                         |
+| Stable | `use { 'jokajak/keyseer.nvim', branch = 'stable' }`  |
 
 ## 🧰 Commands
 
@@ -140,3 +143,7 @@ You can find guides and showcase of the plugin on [the Wiki](https://github.com/
 
 * WhichKey is super nice for discovering keymaps
 * Legend.nvim is super nice for managing keymaps
+
+## Links
+
+[Neovim]: <https://neovim.io/>
