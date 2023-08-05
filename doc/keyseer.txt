@@ -720,7 +720,7 @@ Parameters~
 Class~
 {Text}
 Fields~
-{_lines} {str: `(string,)` hl?:string|{hl_group?:string, col?:number, end_col?:number}}[][]
+{_lines} {str: `(string,)` hl?:string|Extmark}[][]
 {padding} `(number)`
 
 ------------------------------------------------------------------------------
