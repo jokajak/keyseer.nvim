@@ -7,8 +7,11 @@
 
 A [Neovim][neovim] plugin that renders a keyboard displaying which keys have assigned actions.
 
-![keyseer light example](https://user-images.githubusercontent.com/460913/204164433-e320d74f-d63c-4130-b397-87dc3c5f1bd1.png#gh-light-mode-only)
-![keyseer dark example](https://user-images.githubusercontent.com/460913/204164495-7d749ccf-4b6f-4992-a2a4-310a65fa4e6e.png#gh-dark-mode-only)
+<picture>
+ <source media="(prefers-color-scheme: dark)" srcset="https://github.com/jokajak/keyseer.nvim/assets/460913/83438d24-2887-44b5-be1a-9400a6a904dd">
+ <source media="(prefers-color-scheme: light)" srcset="https://github.com/jokajak/keyseer.nvim/assets/460913/a099c73e-4bc2-4d2c-bbb6-3f0213075139">
+ <img alt="main keyseer view showing a keyboard in neovim" src="https://github.com/jokajak/keyseer.nvim/assets/460913/a099c73e-4bc2-4d2c-bbb6-3f0213075139">
+</picture>
 
 * Colorscheme: [Tokyonight](https://github.com/folke/tokyonight.nvim)
 
