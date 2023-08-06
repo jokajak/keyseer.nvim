@@ -74,6 +74,10 @@ local normal_mappings = {
   ["<F1>"] = "Open Help",
   ["`"] = "Jump to mark",
   ["~"] = "Switch case of character under cursor and move to the right.",
+  ["Up"] = "Up",
+  ["Down"] = "Down",
+  ["Left"] = "Left",
+  ["Right"] = "Right",
 }
 
 for k, v in pairs(normal_mappings) do

@@ -175,6 +175,11 @@ end
 
 T["keymaps"]["matches modifiers"] = function()
   eq_global(child, "Keymaps.matching_keypress({modifiers = {}}, {['<Ctrl>'] = true})", false)
+  eq_global(
+    child,
+    "Keymaps.matching_keypress({modifiers = {['<Ctrl>'] = true}}, {['<Ctrl>'] = false})",
+    false
+  )
 end
 
 T["keypress"] = MiniTest.new_set()
