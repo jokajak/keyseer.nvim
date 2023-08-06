@@ -100,5 +100,10 @@ Parameters~
 {mode} `(optional)` `(string)` the neovim mode to show keymaps for
 {bufnr} `(optional)` buffer the buffer for buffer specific keymaps
 
+------------------------------------------------------------------------------
+                                                               *KeySeer.close()*
+                               `KeySeer.close`()
+the keyseer ui
+
 
  vim:tw=78:ts=8:noet:ft=help:norl:

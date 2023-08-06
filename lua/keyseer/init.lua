@@ -20,23 +20,17 @@ KeySeer.setup = function(config)
 
   KeySeer.ns = vim.api.nvim_create_namespace("keyseer")
 
-  ---@return string, string[]
-  local function parse(args)
-    local parts = vim.split(vim.trim(args), "%s+")
-    if parts[1]:find("KeySeer") then
-      table.remove(parts, 1)
-    end
-    if args:sub(-1) == " " then
-      parts[#parts + 1] = ""
-    end
-    return table.remove(parts, 1) or "", parts
-  end
-
   vim.api.nvim_create_user_command("KeySeer", function(cmd)
-    local prefix, args = parse(cmd.args)
+    local args = vim.split(vim.trim(cmd.args), "%s+")
     local mode
-    if #args == 1 and args[1] == "n" then
-      mode = "n"
+    local valid_modes = { "n", "i", "v", "o", "x", "s", "l", "c", "t", "ic" }
+    if #args == 1 then
+      if vim.tbl_contains(valid_modes, args[1]) then
+        mode = args[1]
+      else
+        error("Invalid mode specified. See map")
+        return
+      end
     end
     if vim.fn.win_gettype() == "command" then
       error("Can't open keyseer from command-line window. See E11")
@@ -139,6 +133,7 @@ KeySeer.show = function(mode, bufnr)
   UI.show("home", mode, bufnr)
 end
 
+---Close the keyseer ui
 KeySeer.close = function()
   local UI = require("keyseer.ui")
   UI:close()

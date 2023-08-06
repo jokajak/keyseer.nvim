@@ -67,16 +67,12 @@ function KeySeerUI.show(pane, mode, bufnr)
   bufnr = vim.F.if_nil(bufnr, vim.api.nvim_get_current_buf())
   KeySeerUI.ui = KeySeerUI.visible() and KeySeerUI.ui or KeySeerUI.create(bufnr)
 
-  if pane then
-    KeySeerUI.ui.state.pane = pane
-  end
+  KeySeerUI.ui.state.mode = mode or KeySeerUI.ui.state.mode
+  KeySeerUI.ui.state.pane = pane or KeySeerUI.ui.state.pane
 
-  if mode then
-    KeySeerUI.ui.state.mode = mode
-  end
-
-  D.log("UI", "Setting bufnr to " .. bufnr)
   KeySeerUI.ui.state.bufnr = bufnr
+
+  KeySeerUI.ui.state.keymaps:process_keymaps(bufnr, KeySeerUI.ui.state.mode)
 
   KeySeerUI.ui:update()
 end
@@ -111,7 +107,6 @@ function KeySeerUI.create(bufnr)
   end
   if not self.state.keymaps then
     self.state.keymaps = Keymaps:new()
-    self.state.keymaps:process_keymaps(self.state.bufnr)
   end
 
   local width = math.max(Config.ui.size.width, keyboard.width)

@@ -1,4 +1,5 @@
 KeySeer	keyseer.txt	/*KeySeer*
+KeySeer.close()	keyseer.txt	/*KeySeer.close()*
 KeySeer.config	keyseer.txt	/*KeySeer.config*
 KeySeer.setup()	keyseer.txt	/*KeySeer.setup()*
 KeySeer.show()	keyseer.txt	/*KeySeer.show()*
