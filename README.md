@@ -8,9 +8,9 @@
 A [Neovim][neovim] plugin that renders a keyboard displaying which keys have assigned actions.
 
 <picture>
- <source media="(prefers-color-scheme: dark)" srcset="https://github.com/jokajak/keyseer.nvim/assets/460913/83438d24-2887-44b5-be1a-9400a6a904dd">
- <source media="(prefers-color-scheme: light)" srcset="https://github.com/jokajak/keyseer.nvim/assets/460913/a099c73e-4bc2-4d2c-bbb6-3f0213075139">
- <img alt="main keyseer view showing a keyboard in neovim" src="https://github.com/jokajak/keyseer.nvim/assets/460913/a099c73e-4bc2-4d2c-bbb6-3f0213075139">
+ <source media="(prefers-color-scheme: dark)" srcset="https://github.com/jokajak/keyseer.nvim/assets/460913/eef5b8f6-5d55-498b-9b77-39b8c4139744">
+ <source media="(prefers-color-scheme: light)" srcset="https://github.com/jokajak/keyseer.nvim/assets/460913/ee1b4355-dc96-4655-8091-270eb2e2bec7">
+ <img alt="main keyseer view showing a keyboard in neovim" src="https://github.com/jokajak/keyseer.nvim/assets/460913/ee1b4355-dc96-4655-8091-270eb2e2bec7">
 </picture>
 
 * Colorscheme: [Tokyonight](https://github.com/folke/tokyonight.nvim)
@@ -127,12 +127,6 @@ KeySeer.config = {
 
 </details>
 
-## Planned features
-
-* It would be nice if the location of the keymap definition could be displayed
-* It would be nice if the location of the keymap definition could be opened
-  * Using `gd` by default
-
 ## ⌨ Contributing
 
 PRs and issues are always welcome. Make sure to provide as much context as possible when opening one.
@@ -146,6 +140,7 @@ You can find guides and showcase of the plugin on [the Wiki](https://github.com/
 * WhichKey is super nice for discovering keymaps
 * Legend.nvim is super nice for managing keymaps
 
-## Links
+## 󰌷 Links
 
 [Neovim]: <https://neovim.io/>
+<https://neovim.io>
