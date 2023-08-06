@@ -64,7 +64,6 @@ KeySeer.config = {
   -- Initial neovim mode to display keybindings
   initial_mode = "n",
 
-  include_modifiers = true,
   -- Boolean to include built in keymaps in display
   include_builtin_keymaps = false,
   -- Boolean to include global keymaps in display
@@ -162,7 +161,6 @@ H.setup_config = function(config)
     keyboard = { config.keyboard, "table" },
     ui = { config.ui, "table" },
     debug = { config.debug, "boolean" },
-    include_modifiers = { config.include_modifiers, "boolean" },
     initial_mode = { config.initial_mode, "string" },
   })
 

@@ -15,11 +15,11 @@ if [[ -z "$REPOSITORY_NAME" ]]; then
     read -rp $'\t> No REPOSITORY_NAME provided, is \033[1;32m'"$REPOSITORY_NAME"$'\033[0m good? [Y/n]\n' yn
     case $yn in
         [Yy]* );;
-        [Nn]* ) 
+        [Nn]* )
             echo -e "\t> Enter your repository name"
             read REPOSITORY_NAME
             ;;
-        * ) 
+        * )
             echo -e $USAGE
             exit 1;;
     esac
@@ -32,11 +32,11 @@ if [[ -z "$PLUGIN_NAME" ]]; then
         [Yy]* )
             PLUGIN_NAME=$DEFAULT_REPOSITORY_NAME
             ;;
-        [Nn]* ) 
+        [Nn]* )
             echo -e "\t> Enter your plugin name"
             read PLUGIN_NAME
             ;;
-        * ) 
+        * )
             echo -e $USAGE
             exit 1;;
     esac
@@ -47,7 +47,7 @@ echo -e "Username:    \033[1;32m$USERNAME\033[0m\nRepository:  \033[1;32m$REPOSI
 rm -rf doc
 mv plugin/your-plugin-name.lua plugin/$PLUGIN_NAME.lua
 mv lua/your-plugin-name lua/$PLUGIN_NAME
-mv README_TEMPLATE.md README.md 
+mv README_TEMPLATE.md README.md
 
 echo -e "\tReplacing placeholder names..."
 

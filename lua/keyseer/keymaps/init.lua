@@ -162,6 +162,9 @@ function Keymaps.matching_keypress(node, modifiers)
       -- meta doesn't match, false
       return false
     end
+  elseif node_modifiers["<Ctrl>"] then
+    -- ctrl doesn't match, false
+    return false
   end
   if modifiers["<Meta>"] then
     if not node_modifiers["<Meta>"] then
@@ -174,6 +177,9 @@ function Keymaps.matching_keypress(node, modifiers)
       -- shift doesn't match, false
       return false
     end
+  elseif node_modifiers["<Meta>"] then
+    -- meta doesn't match, false
+    return false
   end
 
   if node_modifiers["<Shift>"] == modifiers["<Shift>"] then
