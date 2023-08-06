@@ -79,21 +79,10 @@ jobs:
     needs:
       - tests
     runs-on: ubuntu-latest
-    # From https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
+    # From https://github.com/google-github-actions/release-please-action#workflow-permissions
     permissions:
-      actions: read
-      checks: write
       contents: write
-      deployments: none
-      id-token: none
-      issues: write
-      discussions: write
-      packages: write
-      pages: write
       pull-requests: write
-      repository-projects: write
-      security-events: write
-      statuses: write
 
     steps:
       - uses: actions/checkout@v3
