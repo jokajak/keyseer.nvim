@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/jokajak/keyseer.nvim/compare/v1.0.0...v1.1.0) (2023-08-06)
+
+
+### Features
+
+* allow specifying the mode at the command ([28c5b82](https://github.com/jokajak/keyseer.nvim/commit/28c5b82cafbb65cc880bd0842c1c5718185af31e))
+* refactor builtin keymaps ([186e656](https://github.com/jokajak/keyseer.nvim/commit/186e656c9e10344a3b04ea230e2ac0c574a0c5cf))
+
 ## 1.0.0 (2023-08-06)
 
 
