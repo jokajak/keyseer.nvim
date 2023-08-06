@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/jokajak/keyseer.nvim/compare/v1.1.0...v1.1.1) (2023-08-06)
+
+
+### Bug Fixes
+
+* handle CR keypresses ([8ed5d54](https://github.com/jokajak/keyseer.nvim/commit/8ed5d54a98f2f055478c769539a5a2e2726cdf22))
+
 ## [1.1.0](https://github.com/jokajak/keyseer.nvim/compare/v1.0.0...v1.1.0) (2023-08-06)
 
 
