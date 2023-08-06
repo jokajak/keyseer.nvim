@@ -11,3 +11,10 @@ repos:
   hooks:
   - name: Run stylua
     id: stylua-github
+- repo: local
+  hooks:
+      - id: check-documentation
+        name: Ensure documentation has been updated
+        language: system
+        types: [lua]
+        entry: make documentation-ci

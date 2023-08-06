@@ -8,8 +8,8 @@ local modules = {
   "ui",
 }
 
-MiniDoc.generate({ "lua/keyseer/init.lua" }, "doc/keyseer.txt")
+minidoc.generate({ "lua/keyseer/init.lua" }, "doc/keyseer.txt")
 
 for _, m in ipairs(modules) do
-  MiniDoc.generate({ "lua/keyseer/" .. m .. ".lua" }, "doc/keyseer-" .. m .. ".txt")
+  minidoc.generate({ "lua/keyseer/" .. m .. ".lua" }, "doc/keyseer-" .. m .. ".txt")
 end
