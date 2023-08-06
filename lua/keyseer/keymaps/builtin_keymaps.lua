@@ -1,91 +1,109 @@
 -- Built in keymaps-- preset key allocations in vim
 ---@private
-local M = {
-  n = {},
-  v = {},
-}
-
-local normal_mappings = {
-  ["!"] = "Filter though external program",
-  ["$"] = "End of line",
-  ["%"] = "Matching character: '()', '{}', '[]'",
-  ["'"] = "Jump to mark",
-  [","] = "Repeat latest f, t, F or T [count] times in opposite direction",
-  ["."] = "Repeat last operation",
-  ["/"] = "Search",
-  ["0"] = "Start of line",
-  [";"] = "Repeat latest f, t, F or T [count] times",
-  ["<C-R>"] = "Redo",
-  ["<lt>"] = "Indent left",
-  [">"] = "Indent right",
-  ["a"] = "Append",
-  ["A"] = "Append to end if line",
-  ["F"] = "Move to previous char",
-  ["G"] = "Last line",
-  ["i"] = "Insert",
-  ["I"] = "Insert at start of line",
-  ["n"] = "Next search result",
-  ["N"] = "Repeat last search in opposite direction",
-  ["o"] = "Insert on line below",
-  ["O"] = "Insert on line above",
-  ["r"] = "Replace current character",
-  ["R"] = "Enter Replace mode",
-  ["T"] = "Move before previous char",
-  ["^"] = "Start of line (non-blank)",
-  ["b"] = "Previous word",
-  ["c"] = "Change",
-  ["cc"] = "Change the whole line",
-  ["C"] = "Change to end of line",
-  ["d"] = "Delete",
-  ["D"] = "Delete to end of line",
-  ["e"] = "forward to the end of word [count] |inclusive|.",
-  ["E"] = "Forward to the end of WORD [count] |inclusive|.",
-  ["f"] = "Move to next char",
-  ["h"] = "Left",
-  ["j"] = "Down",
-  ["k"] = "Up",
-  ["l"] = "Right",
-  ["m"] = "Mark",
-  ["p"] = "Put (paste) before",
-  ["P"] = "Put (paste) after",
-  ["q"] = "Complex repeats, aka macro",
-  ["s"] = "Substitute",
-  ["S"] = "Synonym for cc",
-  ["t"] = "Move before next char",
-  ["u"] = "Undo",
-  ["v"] = "Visual Character Mode",
-  ["V"] = "Visual Line Mode",
-  ["<C-V>"] = "Visual Block Mode",
-  ["w"] = "Next word",
-  ["W"] = "Next word on whitespace",
-  ["x"] = "Cut character under cursor",
-  ["y"] = "Yank (copy)",
-  ["zf"] = "Create fold",
-  ["{"] = "Previous empty line",
-  ["}"] = "Next empty line",
-  ["gU"] = "Uppercase",
-  ["ge"] = "Previous end of word",
-  ["gg"] = "First line",
-  ["gu"] = "Lowercase",
-  ["g~"] = "Toggle case",
-  ["g`"] = "Jump to mark",
-  ["g'"] = "Jump to mark",
-  ["<Space>"] = "Move right",
-  ["<F1>"] = "Open Help",
-  ["`"] = "Jump to mark",
-  ["~"] = "Switch case of character under cursor and move to the right.",
-  ["Up"] = "Up",
-  ["Down"] = "Down",
-  ["Left"] = "Left",
-  ["Right"] = "Right",
-}
-
-for k, v in pairs(normal_mappings) do
-  table.insert(M.n, {
-    lhs = k,
-    rhs = k,
-    desc = v,
-  })
+local function keymapLike(t)
+  local mt = {
+    __newindex = function(tbl, key, value)
+      rawset(tbl, key, {
+        lhs = key,
+        rhs = key,
+        desc = value,
+      })
+    end,
+  }
+  setmetatable(t, mt)
+  return t
 end
+
+local M = setmetatable({}, {
+  __index = function(tbl, key)
+    rawset(tbl, key, keymapLike({}))
+    return tbl[key]
+  end,
+})
+
+M.n["!"] = "Filter though external program"
+M.n["&"] = ":&&<CR>"
+M.n["$"] = "End of line"
+M.n["%"] = "Matching character: '()', '{}', '[]'"
+M.n["'"] = "Jump to mark"
+M.n[","] = "Repeat latest f, t, F or T [count] times in opposite direction"
+M.n["."] = "Repeat last operation"
+M.n["/"] = "Search"
+M.n["0"] = "Start of line"
+M.n[";"] = "Repeat latest f, t, F or T [count] times"
+M.n["<C-R>"] = "Redo"
+M.n["<lt>"] = "Indent left"
+M.n[">"] = "Indent right"
+M.n["a"] = "Append"
+M.n["A"] = "Append to end if line"
+M.n["F"] = "Move to previous char"
+M.n["G"] = "Last line"
+M.n["i"] = "Insert"
+M.n["I"] = "Insert at start of line"
+M.n["n"] = "Next search result"
+M.n["N"] = "Repeat last search in opposite direction"
+M.n["o"] = "Insert on line below"
+M.n["O"] = "Insert on line above"
+M.n["r"] = "Replace current character"
+M.n["R"] = "Enter Replace mode"
+M.n["T"] = "Move before previous char"
+M.n["^"] = "Start of line (non-blank)"
+M.n["b"] = "Previous word"
+M.n["c"] = "Change"
+M.n["cc"] = "Change the whole line"
+M.n["C"] = "Change to end of line"
+M.n["d"] = "Delete"
+M.n["D"] = "Delete to end of line"
+M.n["e"] = "forward to the end of word [count] |inclusive|."
+M.n["E"] = "Forward to the end of WORD [count] |inclusive|."
+M.n["f"] = "Move to next char"
+M.n["<C-L>"] = "* <Cmd>nohlsearch|diffupdate|normal! <C-L><CR>"
+M.n["h"] = "Left"
+M.n["j"] = "Down"
+M.n["k"] = "Up"
+M.n["l"] = "Right"
+M.n["m"] = "Mark"
+M.n["p"] = "Put (paste) before"
+M.n["P"] = "Put (paste) after"
+M.n["q"] = "Complex repeats, aka macro"
+M.n["s"] = "Substitute"
+M.n["S"] = "Synonym for cc"
+M.n["t"] = "Move before next char"
+M.n["u"] = "Undo"
+M.n["v"] = "Visual Character Mode"
+M.n["V"] = "Visual Line Mode"
+M.n["<C-V>"] = "Visual Block Mode"
+M.n["w"] = "Next word"
+M.n["W"] = "Next word on whitespace"
+M.n["x"] = "Cut character under cursor"
+M.n["y"] = "Yank (copy)"
+M.n["Y"] = "Yank (copy) to end of line"
+M.n["zf"] = "Create fold"
+M.n["{"] = "Previous empty line"
+M.n["}"] = "Next empty line"
+M.n["gU"] = "Uppercase"
+M.n["ge"] = "Previous end of word"
+M.n["gg"] = "First line"
+M.n["gu"] = "Lowercase"
+M.n["g~"] = "Toggle case"
+M.n["g`"] = "Jump to mark"
+M.n["g'"] = "Jump to mark"
+M.n["<Space>"] = "Move right"
+M.n["<F1>"] = "Open Help"
+M.n["`"] = "Jump to mark"
+M.n["~"] = "Switch case of character under cursor and move to the right."
+M.n["Up"] = "Up"
+M.n["Down"] = "Down"
+M.n["Left"] = "Left"
+M.n["Right"] = "Right"
+
+M.v["#"] = '* y?\\V<C-R>"<CR>'
+M.v["*"] = '* y?\\V<C-R>"<CR>'
+
+M.x["#"] = '* y?\\V<C-R>"<CR>'
+M.x["*"] = '* y?\\V<C-R>"<CR>'
+
+M.i["<C-U>"] = "* <C-G>u<C-U>"
+M.i["<C-W>"] = "* <C-G>u<C-W>"
 
 return M
