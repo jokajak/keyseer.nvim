@@ -47,5 +47,3 @@
 * missing README.md mention ([97b16e0](https://github.com/jokajak/keyseer.nvim/commit/97b16e028283cc7a47421da518cd51c3db206427))
 * missing steps in README.md ([6ac7c6f](https://github.com/jokajak/keyseer.nvim/commit/6ac7c6fab61fd9af968ad476161b06406692ca87))
 * test helpers ([d65dd73](https://github.com/jokajak/keyseer.nvim/commit/d65dd73119ec466bdd99d9833f27c4f6a936fe1e))
-
-## Changelog
