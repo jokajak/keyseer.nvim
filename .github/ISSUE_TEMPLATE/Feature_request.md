@@ -10,4 +10,3 @@ about: Suggest anything that would make your life easier, or the plugin better.
 ## Describe the solution
 
 <!-- Explain what your solution would look like. -->
-
