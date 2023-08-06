@@ -60,7 +60,7 @@ return Keyboard:new({
       [10] = { normal = "n", shifted = "N" },
       [11] = { normal = "s", shifted = "S" },
       [12] = { normal = "-", shifted = "_" },
-      [13] = { normal = "<Enter>", shifted = "<Enter>" },
+      [13] = { normal = "<CR>", shifted = "<CR>" },
     },
     [5] = {
       [1] = { normal = "<Shift>", shifted = "<Shift>" },

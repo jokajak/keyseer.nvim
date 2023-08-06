@@ -75,6 +75,7 @@ function Utils.parse_keystring(keystr, split_keypresses)
     ["Space"] = "<Space>",
     ["Esc"] = "<Esc>",
     ["BS"] = "<BS>",
+    ["CR"] = "<CR>",
     ["lt"] = "<lt>",
     ["F1"] = "<F1>",
     ["F2"] = "<F2>",

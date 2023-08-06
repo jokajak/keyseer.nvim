@@ -97,6 +97,7 @@ KeySeer.config = {
     highlight_padding = { 0, 0, 0, 0 },
     -- override the label used to display some keys.
     key_labels = {
+      ["<CR>"] = "<Enter>",
       ["Up"] = "↑",
       ["Down"] = "↓",
       ["Left"] = "←",
