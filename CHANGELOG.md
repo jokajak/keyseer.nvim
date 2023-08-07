@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/jokajak/keyseer.nvim/compare/v1.1.1...v1.2.0) (2023-08-07)
+
+
+### Features
+
+* show builtin keymaps by default ([f69a1d5](https://github.com/jokajak/keyseer.nvim/commit/f69a1d577dc04f60690a40e27eda474863c62366))
+
+
+### Bug Fixes
+
+* Add support for S-Up keymaps ([3ccea43](https://github.com/jokajak/keyseer.nvim/commit/3ccea430eebfa153da896ba7afcc999809f9685f))
+* fix tab keycode support ([d9e59f9](https://github.com/jokajak/keyseer.nvim/commit/d9e59f92ca382f42b03c63d6dce43d917f314ffb))
+
 ## [1.1.1](https://github.com/jokajak/keyseer.nvim/compare/v1.1.0...v1.1.1) (2023-08-06)
 
 
