@@ -133,7 +133,7 @@ PRs and issues are always welcome. Make sure to provide as much context as possi
 
 ## 🗞 Wiki
 
-You can find guides and showcase of the plugin on [the Wiki](https://github.com/josh/keyseer.nvim/wiki)
+You can find guides and showcase of the plugin on [the Wiki](https://github.com/jokajak/keyseer.nvim/wiki)
 
 ## 🎭 Motivations
 
