@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.1](https://github.com/jokajak/keyseer.nvim/compare/v1.3.0...v1.3.1) (2023-08-07)
+
+
+### Bug Fixes
+
+* fix details when ctrl is pressed ([cc82cff](https://github.com/jokajak/keyseer.nvim/commit/cc82cff77ec089e58655188ad66230461e373e54))
+* fix details when shift is held down ([7608c60](https://github.com/jokajak/keyseer.nvim/commit/7608c6051f0ba3f0d5dc8a135f073ae89d2d4003))
+* fix support for BS keycode ([49e3ac7](https://github.com/jokajak/keyseer.nvim/commit/49e3ac74c13a1cfdc2955543400d35dc2bedcdb9)), closes [#20](https://github.com/jokajak/keyseer.nvim/issues/20)
+* handle missing keycodes better ([6953a55](https://github.com/jokajak/keyseer.nvim/commit/6953a5588a9388243f8547ef90533a9724e4b610))
+
 ## [1.3.0](https://github.com/jokajak/keyseer.nvim/compare/v1.2.0...v1.3.0) (2023-08-07)
 
 
