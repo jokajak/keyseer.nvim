@@ -20,7 +20,7 @@ function M.render(ui)
     ui.render:append("Details for ", "KeySeerH2")
     ui.render:append(tostring(ui.state.button), "KeySeerH2"):nl():nl()
 
-    local keymaps = ui.state.keymaps:get_keymaps(ui.state.button.keycode) or {}
+    local keymaps = ui.state.keymaps:get_keymaps(ui.state.button.keycode, ui.state.modifiers) or {}
     for _, keymap in pairs(keymaps) do
       if keymap.desc then
         ui.render:append(keymap.desc):append(": ")
