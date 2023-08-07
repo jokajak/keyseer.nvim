@@ -75,6 +75,7 @@ function Keypress.get_keycode(keystring)
     "<F9>",
     "<F10>",
     "<CR>",
+    "<Tab>",
   }
 
   if #key_presses > 1 then

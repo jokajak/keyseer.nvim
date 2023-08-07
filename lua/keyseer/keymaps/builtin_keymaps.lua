@@ -3,11 +3,12 @@
 local function keymapLike(t)
   local mt = {
     __newindex = function(tbl, key, value)
-      rawset(tbl, key, {
+      local keymap = {
         lhs = key,
         rhs = key,
         desc = value,
-      })
+      }
+      rawset(tbl, #tbl + 1, keymap)
     end,
   }
   setmetatable(t, mt)
@@ -57,7 +58,7 @@ M.n["D"] = "Delete to end of line"
 M.n["e"] = "forward to the end of word [count] |inclusive|."
 M.n["E"] = "Forward to the end of WORD [count] |inclusive|."
 M.n["f"] = "Move to next char"
-M.n["<C-L>"] = "* <Cmd>nohlsearch|diffupdate|normal! <C-L><CR>"
+M.n["<C-L>"] = "See :help <C-L>"
 M.n["h"] = "Left"
 M.n["j"] = "Down"
 M.n["k"] = "Up"
@@ -96,6 +97,7 @@ M.n["Up"] = "Up"
 M.n["Down"] = "Down"
 M.n["Left"] = "Left"
 M.n["Right"] = "Right"
+M.n["<Tab>"] = "See :help <Tab>"
 
 M.v["#"] = '* y?\\V<C-R>"<CR>'
 M.v["*"] = '* y?\\V<C-R>"<CR>'

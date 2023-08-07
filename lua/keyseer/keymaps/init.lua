@@ -38,7 +38,6 @@ end
 ---@returns table
 function Keymaps:process_keymaps(bufnr, mode)
   mode = mode or Config.initial_mode
-  D.log("Keymaps", "Getting keymaps for %s", mode)
   if Config.include_builtin_keymaps then
     local preset_keymaps = BuiltInKeyMaps[mode]
     self:add_keymaps(preset_keymaps)

@@ -2,6 +2,7 @@
 
 local KeySeer = {}
 local H = {}
+local if_nil = vim.F.if_nil
 
 --- Plugin setup
 ---
@@ -24,11 +25,14 @@ KeySeer.setup = function(config)
     local args = vim.split(vim.trim(cmd.args), "%s+")
     local mode
     local valid_modes = { "n", "i", "v", "o", "x", "s", "l", "c", "t", "ic" }
-    if #args == 1 then
+    if #args == 1 and args[1] ~= nil and args[1] ~= "" then
       if vim.tbl_contains(valid_modes, args[1]) then
         mode = args[1]
       else
-        error("Invalid mode specified. See map")
+        local Utils = require("keyseer.utils")
+        local D = require("keyseer.util.debug")
+        D.tprint(args)
+        Utils.error("Invalid mode specified. See map")
         return
       end
     end
@@ -37,6 +41,7 @@ KeySeer.setup = function(config)
       return
     end
     local bufnr = vim.api.nvim_get_current_buf()
+    mode = if_nil(mode, config.initial_mode)
 
     local UI = require("keyseer.ui")
     UI.show("home", mode, bufnr)
