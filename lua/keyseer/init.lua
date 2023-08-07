@@ -59,7 +59,7 @@ KeySeer.config = {
   initial_mode = "n",
 
   -- Boolean to include built in keymaps in display
-  include_builtin_keymaps = false,
+  include_builtin_keymaps = true,
   -- Boolean to include global keymaps in display
   include_global_keymaps = true,
   -- Boolean to include buffer keymaps in display
