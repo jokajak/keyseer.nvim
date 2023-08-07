@@ -237,17 +237,18 @@ function Keymaps:get_current_keycaps(modifiers, opts)
     if add_keypress then
       if not node.keycode then
         Utils.notify(string.format("No keycode found for %s", keypress), { level = vim.log.WARN })
-      end
-      D.log("Keymaps", "Adding highlight for %s (%s)", keypress, node.keycode or "?")
-      if
-        modifiers["<Ctrl>"]
-        and not modifiers["<Shift>"]
-        and Buttons.shifted_keys:find(node.keycode, 0, true)
-      then
-        local keycap = Buttons[node.keycode] or node.keycode
-        matching_keypresses[keycap] = node
       else
-        matching_keypresses[node.keycode] = node
+        D.log("Keymaps", "Adding highlight for %s (%s)", keypress, node.keycode or "?")
+        if
+          modifiers["<Ctrl>"]
+          and not modifiers["<Shift>"]
+          and Buttons.shifted_keys:find(node.keycode, 0, true)
+        then
+          local keycap = Buttons[node.keycode] or node.keycode
+          matching_keypresses[keycap] = node
+        else
+          matching_keypresses[node.keycode] = node
+        end
       end
     end
   end
