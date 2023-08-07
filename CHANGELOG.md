@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/jokajak/keyseer.nvim/compare/v1.2.0...v1.3.0) (2023-08-07)
+
+
+### Features
+
+* add iso layout ([31876f2](https://github.com/jokajak/keyseer.nvim/commit/31876f2302fd87bb82d5cdd57ecab25742e7a415))
+
 ## [1.2.0](https://github.com/jokajak/keyseer.nvim/compare/v1.1.1...v1.2.0) (2023-08-07)
 
 
