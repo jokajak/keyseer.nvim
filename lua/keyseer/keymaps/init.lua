@@ -133,6 +133,51 @@ function Keymaps:add_keymaps(keymaps)
   end
 end
 
+---Return a boolean for whether or not the modifiers match
+---@param left table[string,boolean]
+---@param right table[tring,boolean]
+local function modifiers_match(left, right)
+  -- only ctrl, shift, meta, ctrl+meta, meta+shift are valid modifiers
+  -- therefore if ctrl doesn't match or meta doesn't match then it can't match
+  if left["<Ctrl>"] then
+    if not right["<Ctrl>"] then
+      -- ctrl doesn't match, false
+      return false
+    elseif left["<Meta>"] == right["<Meta>"] then
+      -- meta and ctrl match, return true
+      return true
+    else
+      -- meta doesn't match, false
+      return false
+    end
+  elseif right["<Ctrl>"] then
+    -- ctrl doesn't match, false
+    return false
+  end
+  if left["<Meta>"] then
+    if not right["<Meta>"] then
+      -- meta doesn't match, false
+      return false
+    elseif left["<Shift>"] == right["<Shift>"] then
+      -- meta and shift match, return true
+      return true
+    else
+      -- shift doesn't match, false
+      return false
+    end
+  elseif right["<Meta>"] then
+    -- meta doesn't match, false
+    return false
+  end
+
+  if left["<Shift>"] == right["<Shift>"] then
+    -- shift matches, return true
+    return true
+  end
+
+  return false
+end
+
 ---Return a boolean for whether or not the keypress matches the modifiers
 ---@param node KeyMapTreeNode
 ---@param modifiers table<string,boolean>
@@ -149,45 +194,7 @@ function Keymaps.matching_keypress(node, modifiers)
     node.modifiers
   )
 
-  -- only ctrl, shift, meta, ctrl+meta, meta+shift are valid modifiers
-  -- therefore if ctrl doesn't match or meta doesn't match then it can't match
-  if modifiers["<Ctrl>"] then
-    if not node_modifiers["<Ctrl>"] then
-      -- ctrl doesn't match, false
-      return false
-    elseif node_modifiers["<Meta>"] == modifiers["<Meta>"] then
-      -- meta and ctrl match, return true
-      return true
-    else
-      -- meta doesn't match, false
-      return false
-    end
-  elseif node_modifiers["<Ctrl>"] then
-    -- ctrl doesn't match, false
-    return false
-  end
-  if modifiers["<Meta>"] then
-    if not node_modifiers["<Meta>"] then
-      -- meta doesn't match, false
-      return false
-    elseif node_modifiers["<Shift>"] == modifiers["<Shift>"] then
-      -- meta and shift match, return true
-      return true
-    else
-      -- shift doesn't match, false
-      return false
-    end
-  elseif node_modifiers["<Meta>"] then
-    -- meta doesn't match, false
-    return false
-  end
-
-  if node_modifiers["<Shift>"] == modifiers["<Shift>"] then
-    -- shift matches, return true
-    return true
-  end
-
-  return false
+  return modifiers_match(modifiers, node_modifiers)
 end
 
 ---Get the keycaps at the current node
@@ -338,10 +345,17 @@ function Keymaps:get_keymaps(keycode, modifiers)
     )
 
     local matches = node.keycode == keycode
-    for modifier, state in pairs(node_modifiers) do
-      if matches and modifiers[modifier] ~= state then
-        matches = false
+    if modifiers["<Ctrl>"] and not matches then
+      -- search for shifted keys too
+      if Buttons.shifted_keys:find(node.keycode, 0, true) then
+        -- shift button must be pressed, so look up the button associated with the shifted button
+        local unshifted_keycode = Buttons[node.keycode]
+        matches = keycode == unshifted_keycode
       end
+    end
+
+    if matches then
+      matches = modifiers_match(modifiers, node_modifiers)
     end
 
     if matches then

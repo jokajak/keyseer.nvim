@@ -102,26 +102,7 @@ function Keypress.get_keycode(keystring)
         found_keycode = key
       end
     end
-    -- if Buttons.shifted_keys:find(key, 0, true) then
-    --   -- shift button is currently pressed
-    --   modifiers["<Shift>"] = true
-    -- end
-    -- if key == "<Ctrl>" or key == "<Meta>" then
-    --   modifiers[key] = true
-    -- end
   end
-
-  -- if found_keycode then
-  --   if modifiers["<Ctrl>"] then
-  --     -- if ctrl is pressed the case of the key doesn't matter
-  --     if
-  --       Buttons.shifted_keys:find(found_keycode, 0, true)
-  --       or Buttons.unshifted_keys:find(found_keycode, 0, true)
-  --     then
-  --       return found_keycode
-  --     end
-  --   end
-  -- end
 
   return found_keycode
 end
