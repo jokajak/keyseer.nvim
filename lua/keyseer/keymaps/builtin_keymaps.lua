@@ -103,7 +103,19 @@ M.v["*"] = '* y?\\V<C-R>"<CR>'
 M.x["#"] = '* y?\\V<C-R>"<CR>'
 M.x["*"] = '* y?\\V<C-R>"<CR>'
 
-M.i["<C-U>"] = "* <C-G>u<C-U>"
-M.i["<C-W>"] = "* <C-G>u<C-W>"
+M.i["<C-U>"] = "See :help i_CTRL-U"
+M.i["<C-W>"] = "See :help i_CTRL-W"
+M.i["<C-O>"] = "see :help i_CTRL-O"
+M.i["<C-c>"] = "See :help i_CTRL-c"
+M.i["<Esc>"] = "See :help i_<Esc>"
+M.i["<C-@>"] = "See :help i_CTRL-@"
+M.i["<C-A>"] = "See :help i_CTRL-A"
+M.i["<C-N>"] = "See :help i_CTRL-N"
+M.i["<C-P>"] = "See :help i_CTRL-P"
+M.i["<C-R>"] = "See :help i_CTRL-R"
+M.i["<C-R><C-R>"] = "See :help i_CTRL-R_CTRL-R"
+M.i["<C-R><C-O>"] = "See :help i_CTRL-R_CTRL-O"
+M.i["<C-R><C-P>"] = "See :help i_CTRL-R_CTRL-P"
+M.i["<S-Up>"] = "See :help i_<S-Up>"
 
 return M

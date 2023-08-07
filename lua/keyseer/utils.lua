@@ -97,6 +97,7 @@ function Utils.parse_keystring(keystr, split_keypresses)
   local modifier_lookup = setmetatable({
     C = "<Ctrl>",
     M = "<Meta>",
+    S = "<Shift>",
   }, {
     __index = function(_, k)
       return key_lookup[k]
@@ -119,15 +120,15 @@ function Utils.parse_keystring(keystr, split_keypresses)
             -- get a table for storing the keys
             -- iterate over the keys
             for j, special_key in ipairs(special_keys) do
-              if special_key == "" then
-                if j % 2 ~= 0 then
-                  local key_symbol = modifier_lookup[special_key]
-                  table.insert(key_symbols, key_symbol)
-                end
-              else
+              if j < #special_keys and special_key ~= "" then
                 -- map the symbol to a standard key
                 local key_symbol = modifier_lookup[special_key]
                 table.insert(key_symbols, key_symbol)
+              elseif special_key ~= "" then
+                table.insert(key_symbols, key_lookup[special_key])
+              elseif j % 2 ~= 0 then
+                -- handle - as a special key, like C--
+                table.insert(key_symbols, key_lookup[special_key])
               end
             end
           else

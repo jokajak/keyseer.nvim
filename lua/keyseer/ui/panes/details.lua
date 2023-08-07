@@ -10,6 +10,9 @@
 ---@private
 local M = {}
 
+local Utils = require("keyseer.utils")
+local D = require("keyseer.util.debug")
+
 function M.render(ui)
   ui.render:append("Details", "KeySeerH2"):nl():nl()
 
@@ -27,7 +30,8 @@ function M.render(ui)
       elseif keymap.callback then
         ui.render:append("Lua function")
       else
-        vim.print(keymap)
+        Utils.error("Unexpected keymap found in keymaps.")
+        D.tprint(keymap)
       end
       ui.render:nl():nl()
     end
