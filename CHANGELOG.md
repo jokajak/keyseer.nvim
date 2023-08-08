@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/jokajak/keyseer.nvim/compare/v1.3.1...v1.4.0) (2023-08-08)
+
+
+### Features
+
+* adding qwertz layout ([84e2c08](https://github.com/jokajak/keyseer.nvim/commit/84e2c08f5c0805c9d04380d831d2e944da21fee1))
+
 ## [1.3.1](https://github.com/jokajak/keyseer.nvim/compare/v1.3.0...v1.3.1) (2023-08-07)
 
 
