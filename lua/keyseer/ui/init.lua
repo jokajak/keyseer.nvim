@@ -102,7 +102,7 @@ function KeySeerUI.create(bufnr)
       keyboard = layout:new(keyboard_options)
     end
 
-    keyboard:get_lines(false)
+    keyboard:_layout_buttons(false)
     self.state.keyboard = keyboard
   end
   if not self.state.keymaps then

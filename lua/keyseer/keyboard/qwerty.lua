@@ -29,10 +29,10 @@ return Keyboard:new({
       [11] = { normal = "0", shifted = ")" },
       [12] = { normal = "-", shifted = "_" },
       [13] = { normal = "=", shifted = "+" },
-      [14] = { normal = "<BS>", shifted = "<BS>" },
+      [14] = { normal = "<BS>", shifted = "<BS>", resizable = true },
     },
     [3] = {
-      [1] = { normal = "<Tab>", shifted = "<Tab>" }, -- tab
+      [1] = { normal = "<Tab>", shifted = "<Tab>", resizable = true }, -- tab
       [2] = { normal = "q", shifted = "Q" },
       [3] = { normal = "w", shifted = "W" },
       [4] = { normal = "e", shifted = "E" },
@@ -48,7 +48,7 @@ return Keyboard:new({
       [14] = { normal = "\\", shifted = "|" },
     },
     [4] = {
-      [1] = { normal = "<Caps>", shifted = "<Caps>" },
+      [1] = { normal = "<Caps>", shifted = "<Caps>", resizable = true },
       [2] = { normal = "a", shifted = "A" },
       [3] = { normal = "s", shifted = "S" },
       [4] = { normal = "d", shifted = "D" },
@@ -60,10 +60,10 @@ return Keyboard:new({
       [10] = { normal = "l", shifted = "L" },
       [11] = { normal = ";", shifted = ":" },
       [12] = { normal = "'", shifted = '"' },
-      [13] = { normal = "<CR>", shifted = "<CR>" },
+      [13] = { normal = "<CR>", shifted = "<CR>", resizable = true },
     },
     [5] = {
-      [1] = { normal = "<Shift>", shifted = "<Shift>" },
+      [1] = { normal = "<Shift>", shifted = "<Shift>", resizable = true },
       [2] = { normal = "z", shifted = "Z" },
       [3] = { normal = "x", shifted = "X" },
       [4] = { normal = "c", shifted = "C" },
@@ -74,12 +74,12 @@ return Keyboard:new({
       [9] = { normal = ",", shifted = "<" },
       [10] = { normal = ".", shifted = ">" },
       [11] = { normal = "/", shifted = "?" },
-      [12] = { normal = "<Shift>", shifted = "<Shift>" },
+      [12] = { normal = "<Shift>", shifted = "<Shift>", resizable = true },
     },
     [6] = {
       [1] = { normal = "<Ctrl>", shifted = "<Ctrl>" },
       [2] = { normal = "<Meta>", shifted = "<Meta>" },
-      [3] = { normal = "<Space>", shifted = "<Space>" },
+      [3] = { normal = "<Space>", shifted = "<Space>", resizable = true },
       [4] = { normal = "<Meta>", shifted = "<Meta>" },
       [5] = { normal = "<Ctrl>", shifted = "<Ctrl>" },
       [6] = { normal = "Left", shifted = "Left" },

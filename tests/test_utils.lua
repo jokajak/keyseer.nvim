@@ -57,6 +57,7 @@ T["utils"]["parses keystrings"] = function()
   eq_global(child, "utils.parse_keystring('<Tab>')", { { "<Tab>" } })
   eq_global(child, "utils.parse_keystring('<BS>')", { { "<BS>" } })
   eq_global(child, "utils.parse_keystring('<S-BS>')", { { "<Shift>", "<BS>" } })
+  eq_global(child, "utils.parse_keystring('<M-S-BS>')", { { "<Meta>", "<Shift>", "<BS>" } })
 end
 
 T["buttons"] = MiniTest.new_set()

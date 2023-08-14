@@ -41,6 +41,7 @@ local modifiers = {
 ---@field highlight_box HighlightBox The highlight box for the button
 ---@field width number The width of the entire button
 ---@field is_modifier boolean Whether or not a button is a modifier
+---@field resizable boolean Whether or not the button can be resized
 ---@field private _keycap_width number The width of the keycap string
 ---@field private _highlights BoundingBox the highlight padding around the keycap
 ---@field private _padding BoundingBox the display padding around the keycap
@@ -53,8 +54,9 @@ Button.__index = Button
 ---@param row_index number The row for the button
 ---@param padding_box PaddingBox the padding around the keycap
 ---@param highlight_box PaddingBox the highlight padding around the keycap
+---@param resizable boolean whether or not the button is resizable
 ---@return Button
-function Button:new(keycap, keycode, row_index, padding_box, highlight_box)
+function Button:new(keycap, keycode, row_index, padding_box, highlight_box, resizable)
   local top_pad, left_pad, bottom_pad, right_pad =
     padding_box[1], padding_box[2], padding_box[3], padding_box[4]
   local hl_top, hl_left, hl_bottom, hl_right =
@@ -105,6 +107,7 @@ function Button:new(keycap, keycode, row_index, padding_box, highlight_box)
     },
     left_byte_col = 0,
     right_byte_col = left_pad + keycap_width + right_pad,
+    resizable = false or resizable,
   }
   setmetatable(this, self)
   return this
@@ -120,22 +123,38 @@ end
 
 ---Add padding to a button
 ---@param padding number The amount of padding to add
-function Button:add_padding(padding, shift_left)
+---@param shift_left boolean Whether or not to add padding to the right
+---@param center boolean Whether or not to add padding on both sides
+---@param shift_right boolean Whether or not to add padding to the left
+function Button:add_padding(padding, shift_left, center, shift_right)
   local total_padding = self.left_pad + self.right_pad + padding
   local small_pad = math.floor(total_padding / 2)
   local big_pad = math.ceil(total_padding / 2)
-  if shift_left then
-    self.left_pad = small_pad
-    self.right_pad = big_pad
-    self._padding.left = small_pad
-    self._padding.right = big_pad
-  else
-    self.left_pad = big_pad
-    self.right_pad = small_pad
-    self._padding.left = big_pad
-    self._padding.right = small_pad
+  center = center or true
+  shift_left = shift_left or false
+  shift_right = shift_right or false
+  if center then
+    if shift_left then
+      self.left_pad = small_pad
+      self.right_pad = big_pad
+      self._padding.left = small_pad
+      self._padding.right = big_pad
+    else
+      self.left_pad = big_pad
+      self.right_pad = small_pad
+      self._padding.left = big_pad
+      self._padding.right = small_pad
+    end
+    self.width = small_pad + self._keycap_width + big_pad
+  elseif shift_left then
+    self.right_pad = total_padding
+    self._padding.right = total_padding
+    self.width = self._keycap_width + total_padding
+  elseif shift_right then
+    self.left_pad = total_padding
+    self._padding.left = total_padding
+    self.width = self._keycap_width + total_padding
   end
-  self.width = small_pad + self._keycap_width + big_pad
 end
 
 ---Get highlight details

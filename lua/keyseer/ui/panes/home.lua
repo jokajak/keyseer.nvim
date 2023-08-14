@@ -25,8 +25,6 @@ function M.render(ui)
   local current_keycaps = ui.state.keymaps:get_current_keycaps(ui.state.modifiers)
   local height, width = ui.state.keyboard:populate_lines(ui, current_keycaps)
 
-  -- ui.state.keymaps:add_stats(ui)
-
   ui.win_opts.height = height - 1
   ui.opts.size.height = height - 1
   if width ~= 0 then
@@ -39,7 +37,6 @@ function M.render(ui)
   end
   ui.state.current_keymaps = {}
   for _, keypress in pairs(ui.state.keymaps:get_current_keypresses()) do
-    -- D.log("UI", "adding keymap for %s", keypress)
     table.insert(ui.state.current_keymaps, keypress)
     vim.keymap.set("n", UIConfig.keys.go .. keypress, function()
       ui.state.keymaps:push(keypress)

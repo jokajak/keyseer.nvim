@@ -38,6 +38,10 @@ end
 ---@param indent number?: the default indent value, starts at 0.
 ---@private
 function D.tprint(table, indent)
+  if _G.KeySeer == nil then
+    return
+  end
+
   if _G.KeySeer.config ~= nil and not _G.KeySeer.config.debug then
     return
   end

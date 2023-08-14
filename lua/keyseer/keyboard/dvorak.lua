@@ -79,7 +79,7 @@ return Keyboard:new({
     [6] = {
       [1] = { normal = "<Ctrl>", shifted = "<Ctrl>" },
       [2] = { normal = "<Meta>", shifted = "<Meta>" },
-      [3] = { normal = "<Space>", shifted = "<Space>" },
+      [3] = { normal = "<Space>", shifted = "<Space>", resizable = true },
       [4] = { normal = "<Meta>", shifted = "<Meta>" },
       [5] = { normal = "<Ctrl>", shifted = "<Ctrl>" },
       [6] = { normal = "Left", shifted = "Left" },
