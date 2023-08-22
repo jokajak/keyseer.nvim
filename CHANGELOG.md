@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/jokajak/keyseer.nvim/compare/v1.4.0...v1.5.0) (2023-08-22)
+
+
+### Features
+
+* add kinesis layout ([1d872db](https://github.com/jokajak/keyseer.nvim/commit/1d872db0139ccc143eb0f16373dfde571d44320e))
+
 ## [1.4.0](https://github.com/jokajak/keyseer.nvim/compare/v1.3.1...v1.4.0) (2023-08-08)
 
 
