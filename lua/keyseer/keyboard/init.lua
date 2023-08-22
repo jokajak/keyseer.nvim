@@ -294,6 +294,7 @@ function Keyboard:_layout_buttons(shift_pressed)
     local row_text = _borders["ss  "]
     keycap_separator_columns[row_index] = {}
     for _, button in ipairs(row) do
+      button:set_button_start_col(row_length + 1)
       row_text = row_text .. tostring(button) .. _borders["ss  "]
       local start_col, _ = Utils.get_str_bytes(row_text, row_length + 1, row_length + button.width)
       button:set_button_byte_position(start_col)
