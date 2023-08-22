@@ -268,7 +268,8 @@ function Keyboard:_layout_buttons(shift_pressed)
         row_index,
         padding,
         highlight_padding,
-        key_entry["resizable"] or false
+        key_entry["resizable"] or false,
+        key_entry["width"] or 0
       )
       table.insert(buttons, button)
       row_len = row_len + button.width + separator_width

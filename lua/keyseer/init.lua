@@ -117,6 +117,7 @@ KeySeer.config = {
       ["<F8>"] = "F8",
       ["<F9>"] = "F9",
       ["<F10>"] = "F10",
+      ["<Blank>"] = " ",
 
       -- For example:
       -- ["<space>"] = "SPC",

@@ -42,6 +42,7 @@ local modifiers = {
 ---@field width number The width of the entire button
 ---@field is_modifier boolean Whether or not a button is a modifier
 ---@field resizable boolean Whether or not the button can be resized
+---@field fixed_width number A minimum size for a button
 ---@field private _keycap_width number The width of the keycap string
 ---@field private _highlights BoundingBox the highlight padding around the keycap
 ---@field private _padding BoundingBox the display padding around the keycap
@@ -55,8 +56,9 @@ Button.__index = Button
 ---@param padding_box PaddingBox the padding around the keycap
 ---@param highlight_box PaddingBox the highlight padding around the keycap
 ---@param resizable boolean whether or not the button is resizable
+---@param width number the size of the button
 ---@return Button
-function Button:new(keycap, keycode, row_index, padding_box, highlight_box, resizable)
+function Button:new(keycap, keycode, row_index, padding_box, highlight_box, resizable, width)
   local top_pad, left_pad, bottom_pad, right_pad =
     padding_box[1], padding_box[2], padding_box[3], padding_box[4]
   local hl_top, hl_left, hl_bottom, hl_right =
@@ -91,6 +93,7 @@ function Button:new(keycap, keycode, row_index, padding_box, highlight_box, resi
     row = row,
     bottom_row = row + bottom_pad,
     width = left_pad + keycap_width + right_pad,
+    fixed_width = width or 0,
     is_modifier = modifiers[keycode] or false,
     _keycap_width = keycap_width,
     _highlights = {
@@ -109,6 +112,7 @@ function Button:new(keycap, keycode, row_index, padding_box, highlight_box, resi
     right_byte_col = left_pad + keycap_width + right_pad,
     resizable = false or resizable,
   }
+  this.width = math.max(this.width, this.fixed_width)
   setmetatable(this, self)
   return this
 end
@@ -116,8 +120,18 @@ end
 ---Get string representation of a button
 ---@return string
 function Button:__tostring()
+  local total_pad = self.left_pad + self.right_pad
+  local padding_shortage = self.width - total_pad - self._keycap_width
   local left_pad = strrep(" ", self.left_pad)
   local right_pad = strrep(" ", self.right_pad)
+  if padding_shortage > 0 then
+    left_pad = strrep(" ", self.left_pad + math.floor(padding_shortage / 2))
+    if padding_shortage % 2 == 0 then
+      right_pad = strrep(" ", self.right_pad + math.floor(padding_shortage / 2))
+    else
+      right_pad = strrep(" ", self.right_pad + math.ceil(padding_shortage / 2))
+    end
+  end
   return left_pad .. self.keycap .. right_pad
 end
 
@@ -155,6 +169,7 @@ function Button:add_padding(padding, shift_left, center, shift_right)
     self._padding.left = total_padding
     self.width = self._keycap_width + total_padding
   end
+  self.width = math.max(self.width, self.fixed_width)
 end
 
 ---Get highlight details
