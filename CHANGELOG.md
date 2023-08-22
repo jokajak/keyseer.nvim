@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/jokajak/keyseer.nvim/compare/v1.5.0...v1.5.1) (2023-08-22)
+
+
+### Bug Fixes
+
+* **keyboard:** Readd button start calculation ([38df463](https://github.com/jokajak/keyseer.nvim/commit/38df463e27a0276d41ab6262f4d38face5b1631b))
+
 ## [1.5.0](https://github.com/jokajak/keyseer.nvim/compare/v1.4.0...v1.5.0) (2023-08-22)
 
 
