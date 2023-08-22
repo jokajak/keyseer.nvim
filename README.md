@@ -37,10 +37,10 @@ Here are code snippets for some common installation methods:
 
 * With [wbthomason/packer.nvim](https://github.com/wbthomason/packer.nvim):
 
-| Branch | Code snippet                                         |
-|--------|------------------------------------------------------|
-| Main   | `use 'jokajak/keyseer.nvim'`                         |
-| Stable | `use { 'jokajak/keyseer.nvim', branch = 'stable' }`  |
+| Branch | Code snippet                                                                        |
+|--------|-------------------------------------------------------------------------------------|
+| Main   | `use {'jokajak/keyseer.nvim', config = function() require('keyseer').setup() end }` |
+| Stable | `use { 'jokajak/keyseer.nvim', branch = 'stable' }`                                 |
 
 ## 🧰 Commands
 
