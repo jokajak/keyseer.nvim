@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/jokajak/keyseer.nvim/compare/v1.5.1...v1.6.0) (2023-12-01)
+
+
+### Features
+
+* remove setup requirement ([cf9f8cb](https://github.com/jokajak/keyseer.nvim/commit/cf9f8cbdf1c8b780df8cfaf87c6cf05d99a820a5))
+
 ## [1.5.1](https://github.com/jokajak/keyseer.nvim/compare/v1.5.0...v1.5.1) (2023-08-22)
 
 
