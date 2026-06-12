@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.0](https://github.com/jokajak/keyseer.nvim/compare/v1.5.1...v1.6.0) (2026-06-12)
+
+
+### Features
+
+* remove setup requirement ([cf9f8cb](https://github.com/jokajak/keyseer.nvim/commit/cf9f8cbdf1c8b780df8cfaf87c6cf05d99a820a5))
+
+
+### Bug Fixes
+
+* keypress state tracking when the UI is shown again ([4b6d283](https://github.com/jokajak/keyseer.nvim/commit/4b6d2834435c3bf923fb564a3cbec60689a917f3))
+
 ## [1.5.1](https://github.com/jokajak/keyseer.nvim/compare/v1.5.0...v1.5.1) (2023-08-22)
 
 
