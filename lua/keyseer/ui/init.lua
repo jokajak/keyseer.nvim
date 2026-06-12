@@ -19,7 +19,8 @@ local Keymaps = require("keyseer.keymaps")
 ---@field modifiers table{string,boolean} What modifier buttons are considered pressed
 ---@field bufnr buffer|nil The buffer
 local default_state = {
-  pane = "home",
+  -- empty until set_pane enters the first pane
+  pane = "",
   prev_pane = "",
   mode = "n",
   current_keymaps = {},
@@ -59,6 +60,32 @@ local function get_button_under_cursor(ui)
   return button
 end
 
+---Run a lifecycle hook for a pane if the pane defines it
+---@param pane string The pane name
+---@param hook string The hook name ("on_enter" or "on_exit")
+---@param ui KeySeerUI The UI
+local function pane_hook(pane, hook, ui)
+  local pane_available, pane_module = pcall(require, "keyseer.ui.panes." .. pane)
+  if pane_available and pane_module and vim.is_callable(pane_module[hook]) then
+    pane_module[hook](ui)
+  end
+end
+
+---Change the active pane
+---This is the only place that writes state.pane and state.prev_pane so
+---that the pane lifecycle hooks run exactly once for every pane change,
+---no matter where the change comes from.
+---@param pane string The pane to show
+function KeySeerUI:set_pane(pane)
+  if pane == self.state.pane then
+    return
+  end
+  pane_hook(self.state.pane, "on_exit", self)
+  self.state.prev_pane = self.state.pane
+  self.state.pane = pane
+  pane_hook(pane, "on_enter", self)
+end
+
 ---Show the KeySeer UI
 ---@param pane? string The starting pane
 ---@param mode? string The neovim mode for keymaps
@@ -68,11 +95,16 @@ function KeySeerUI.show(pane, mode, bufnr)
   KeySeerUI.ui = KeySeerUI.visible() and KeySeerUI.ui or KeySeerUI.create(bufnr)
 
   KeySeerUI.ui.state.mode = mode or KeySeerUI.ui.state.mode
-  KeySeerUI.ui.state.pane = pane or KeySeerUI.ui.state.pane
-
   KeySeerUI.ui.state.bufnr = bufnr
 
   KeySeerUI.ui.state.keymaps:process_keymaps(bufnr, KeySeerUI.ui.state.mode)
+
+  -- keep the current pane unless a pane was requested or no pane is shown yet
+  local target = pane or KeySeerUI.ui.state.pane
+  if target == "" then
+    target = "home"
+  end
+  KeySeerUI.ui:set_pane(target)
 
   KeySeerUI.ui:update()
 end
@@ -131,8 +163,7 @@ function KeySeerUI.create(bufnr)
           self.state.button = button
         end
       end
-      self.state.prev_pane = self.state.pane
-      self.state.pane = k
+      self:set_pane(k)
       self:update()
     end, v["desc"])
   end
@@ -141,25 +172,10 @@ function KeySeerUI.create(bufnr)
 end
 
 ---Update the KeySeer UI
+---Rendering only; pane transitions are handled by set_pane
 ---@private
 function KeySeerUI:update()
   if self.buf and vim.api.nvim_buf_is_valid(self.buf) then
-    if self.state.pane ~= self.state.prev_pane then
-      local pane_available, pane = pcall(require, "keyseer.ui.panes." .. self.state.prev_pane)
-      if pane_available and pane and vim.is_callable(pane.on_exit) then
-        pane.on_exit(self)
-      end
-      pane_available, pane = pcall(require, "keyseer.ui.panes." .. self.state.pane)
-      if pane_available and pane and vim.is_callable(pane.on_enter) then
-        pane.on_enter(self)
-      end
-      -- Track the pane that was entered so that the next update only
-      -- triggers on_exit/on_enter when the pane actually changes.
-      -- Without this, updates that change the pane outside of the pane
-      -- keymaps (like KeySeerUI.show) are not detected as transitions
-      -- and the pane keymaps are never registered.
-      self.state.prev_pane = self.state.pane
-    end
     vim.bo[self.buf].modifiable = true
     self.render:update()
     vim.bo[self.buf].modifiable = false
