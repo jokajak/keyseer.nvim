@@ -73,8 +73,7 @@ function M.on_enter(ui)
         ui.state.modifiers[button.keycode] = not ui.state.modifiers[button.keycode]
       else
         ui.state.button = button
-        ui.state.prev_pane = ui.state.pane
-        ui.state.pane = "details"
+        ui:set_pane("details")
       end
       ui:update()
     end
