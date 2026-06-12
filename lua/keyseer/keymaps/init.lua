@@ -38,6 +38,16 @@ end
 ---@returns table
 function Keymaps:process_keymaps(bufnr, mode)
   mode = mode or Config.initial_mode
+  -- Rebuild the tree from scratch so that processing keymaps again
+  -- (e.g. running :KeySeer while the UI is open) does not insert
+  -- duplicate keymaps or leave the current node in a stale tree
+  self.root = {
+    keymaps = {},
+    modifiers = {},
+    children = {},
+  }
+  self.stack = {}
+  self.current_node = self.root
   if Config.include_builtin_keymaps then
     local preset_keymaps = BuiltInKeyMaps[mode]
     self:add_keymaps(preset_keymaps)

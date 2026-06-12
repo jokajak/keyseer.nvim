@@ -26,7 +26,7 @@ local default_state = {
   modifiers = {
     ["<Ctrl>"] = false,
     ["<Shift>"] = false,
-    ["<Alt>"] = false,
+    ["<Meta>"] = false,
   },
   bufnr = nil,
 }
@@ -153,6 +153,12 @@ function KeySeerUI:update()
       if pane_available and pane and vim.is_callable(pane.on_enter) then
         pane.on_enter(self)
       end
+      -- Track the pane that was entered so that the next update only
+      -- triggers on_exit/on_enter when the pane actually changes.
+      -- Without this, updates that change the pane outside of the pane
+      -- keymaps (like KeySeerUI.show) are not detected as transitions
+      -- and the pane keymaps are never registered.
+      self.state.prev_pane = self.state.pane
     end
     vim.bo[self.buf].modifiable = true
     self.render:update()
