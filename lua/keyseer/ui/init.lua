@@ -48,16 +48,41 @@ function KeySeerUI.visible()
   return KeySeerUI.ui and KeySeerUI.ui.win and vim.api.nvim_win_is_valid(KeySeerUI.ui.win)
 end
 
-local function get_button_under_cursor(ui)
-  local cursorposition = vim.fn.getcursorcharpos(ui.win)
+---Get the number of buffer rows above the keyboard
+---@return number
+function KeySeerUI:header_offset()
+  -- the keyboard's top border is one row above the first keycap row
+  local border_offset = 1
+  if Config.ui.show_header then
+    -- the header is a blank line, the pane buttons, and a blank line
+    return 3 + border_offset
+  end
+  return border_offset
+end
+
+---Get the button under the cursor
+---@return Button? button The button under the cursor, if any
+function KeySeerUI:get_button_under_cursor()
+  local cursorposition = vim.fn.getcursorcharpos(self.win)
   local row, col = cursorposition[2], cursorposition[3]
-  -- size of the title is statically calculated
-  local row_offset = 4
+  local row_offset = self:header_offset()
   D.log("UI", "Button row, col: " .. row - row_offset .. ", " .. col)
   ---@type Keyboard
-  local keyboard = ui.state.keyboard
-  local button = keyboard:get_keycap_at_position(row - row_offset, col)
-  return button
+  local keyboard = self.state.keyboard
+  return keyboard:get_keycap_at_position(row - row_offset, col)
+end
+
+---Toggle a modifier button
+---This is the only place that writes state.modifiers so that the
+---"Ctrl and Meta are mutually exclusive" invariant always holds
+---@param keycode string The keycode of the modifier button to toggle
+function KeySeerUI:toggle_modifier(keycode)
+  local modifiers = self.state.modifiers
+  modifiers[keycode] = not modifiers[keycode]
+  -- Ctrl and Meta cannot be part of the same keymap; pressing one releases the other
+  if modifiers["<Ctrl>"] and modifiers["<Meta>"] then
+    modifiers[keycode == "<Ctrl>" and "<Meta>" or "<Ctrl>"] = false
+  end
 end
 
 ---Run a lifecycle hook for a pane if the pane defines it
@@ -92,7 +117,7 @@ end
 ---@param bufnr? integer The buffer for keymaps
 function KeySeerUI.show(pane, mode, bufnr)
   bufnr = vim.F.if_nil(bufnr, vim.api.nvim_get_current_buf())
-  KeySeerUI.ui = KeySeerUI.visible() and KeySeerUI.ui or KeySeerUI.create(bufnr)
+  KeySeerUI.ui = KeySeerUI.visible() and KeySeerUI.ui or KeySeerUI.create()
 
   KeySeerUI.ui.state.mode = mode or KeySeerUI.ui.state.mode
   KeySeerUI.ui.state.bufnr = bufnr
@@ -111,12 +136,10 @@ end
 
 ---Create the KeySeer UI
 ---@return KeySeerUI
----@param bufnr? buffer The buffer to retrieve keymaps
 ---@private
-function KeySeerUI.create(bufnr)
+function KeySeerUI.create()
   ---@type KeySeerUI|KeySeerPopup
   local self = setmetatable({}, { __index = setmetatable(KeySeerUI, { __index = Popup }) })
-  bufnr = vim.F.if_nil(bufnr, vim.api.nvim_get_current_buf())
 
   self.state = vim.deepcopy(default_state)
 
@@ -158,7 +181,7 @@ function KeySeerUI.create(bufnr)
   for k, v in pairs(UIConfig.panes) do
     self:on_key(v["key"], function()
       if self.state.pane == "home" then
-        local button = get_button_under_cursor(self)
+        local button = self:get_button_under_cursor()
         if button then
           self.state.button = button
         end

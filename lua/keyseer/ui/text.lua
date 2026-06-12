@@ -1,6 +1,5 @@
 local Utils = require("keyseer.utils")
 local KeySeer = require("keyseer")
-local D = require("keyseer.util.debug")
 
 -- Copied from https://github.com/folke/lazy.nvim/blob/b7043f2983d7aead78ca902f3f2053907081859a/lua/lazy/view/text.lua
 

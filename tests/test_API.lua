@@ -3,12 +3,9 @@ local helpers = dofile("tests/helpers.lua")
 -- See https://github.com/echasnovski/mini.nvim/blob/main/lua/mini/test.lua for more documentation
 
 local child = helpers.new_child_neovim()
-local eq_global, eq_config, eq_state =
-  helpers.expect.global_equality, helpers.expect.config_equality, helpers.expect.state_equality
-local eq_type_global, eq_type_config, eq_type_state =
-  helpers.expect.global_type_equality,
-  helpers.expect.config_type_equality,
-  helpers.expect.state_type_equality
+local eq_config = helpers.expect.config_equality
+local eq_type_global = helpers.expect.global_type_equality
+local eq_type_config = helpers.expect.config_type_equality
 
 local T = MiniTest.new_set({
   hooks = {
