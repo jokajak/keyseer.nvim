@@ -173,6 +173,34 @@ T["keymaps"]["gets current keycaps"] = function()
   })
 end
 
+T["keymaps"]["processing keymaps again does not duplicate them"] = function()
+  child.lua([[require("keyseer").config.include_builtin_keymaps = false]])
+  child.lua([[require("keyseer").config.include_global_keymaps = true]])
+  child.lua([[require("keyseer").config.include_buffer_keymaps = false]])
+  child.lua([[vim.keymap.set("n", "gxa", "<cmd>echo 'a'<cr>", { desc = "test keymap" })]])
+  child.lua([[ret = Keymaps:new()]])
+  child.lua([[ret:process_keymaps(nil, "n")]])
+  child.lua([[ret:process_keymaps(nil, "n")]])
+  eq_global(child, [[#ret.root.children["g"].children["x"].children["a"].keymaps]], 1)
+  -- the keycap should not be reported as having multiple keymaps
+  child.lua([[ret:push("g")]])
+  child.lua([[ret:push("x")]])
+  eq_global(child, [=[ret:get_current_keycaps()["a"]]=], "KeySeerKeycapKeymap")
+end
+
+T["keymaps"]["processing keymaps again resets the current node"] = function()
+  child.lua([[require("keyseer").config.include_builtin_keymaps = false]])
+  child.lua([[require("keyseer").config.include_global_keymaps = true]])
+  child.lua([[require("keyseer").config.include_buffer_keymaps = false]])
+  child.lua([[vim.keymap.set("n", "gxa", "<cmd>echo 'a'<cr>", { desc = "test keymap" })]])
+  child.lua([[ret = Keymaps:new()]])
+  child.lua([[ret:process_keymaps(nil, "n")]])
+  child.lua([[ret:push("g")]])
+  child.lua([[ret:process_keymaps(nil, "n")]])
+  eq_global(child, [[ret.current_node == ret.root]], true)
+  eq_global(child, [[#ret.stack]], 0)
+end
+
 T["keymaps"]["matches modifiers"] = function()
   eq_global(child, "Keymaps.matching_keypress({modifiers = {}}, {['<Ctrl>'] = true})", false)
   eq_global(
