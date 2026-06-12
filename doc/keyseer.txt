@@ -1,5 +1,3 @@
-==============================================================================
-------------------------------------------------------------------------------
 *KeySeer* See your keys and their keymaps
 
 ------------------------------------------------------------------------------
@@ -7,10 +5,10 @@
                            `KeySeer.setup`({config})
 Plugin setup
 
-Parameters~
+Parameters ~
 {config} `(table|nil)` Module config table. See |KeySeer.config|.
 
-Usage~
+Usage ~
 `require('keyseer').setup({})` (replace `{}` with your `config` table)
 
 ------------------------------------------------------------------------------
@@ -19,7 +17,7 @@ Usage~
 KeySeer Config
 
 Default values:
->
+>lua
   KeySeer.config = {
     -- Prints useful logs about what event are triggered, and reasons actions are executed.
     debug = false,
@@ -93,14 +91,13 @@ Default values:
   -- KeySeer functionality ========================================
   --
 <
-
 ------------------------------------------------------------------------------
                                                                 *KeySeer.show()*
                         `KeySeer.show`({mode}, {bufnr})
 the keyseer ui
-Parameters~
+Parameters ~
 {mode} `(optional)` `(string)` the neovim mode to show keymaps for
-{bufnr} `(optional)` buffer the buffer for buffer specific keymaps
+{bufnr} `(optional)` `(buffer)` the buffer for buffer specific keymaps
 
 ------------------------------------------------------------------------------
                                                                *KeySeer.close()*
