@@ -30,37 +30,7 @@ local function get_line(opts)
   return _borders[table.concat(opts, "")]
 end
 
--- From https://hiphish.github.io/blog/2022/03/15/lua-metatables-for-neovim-plugin-settings/
-local function make_mt(default)
-  return {
-    __index = function(t, k)
-      local original = default[k]
-      if type(original) ~= "table" then
-        return original
-      end
-      rawset(t, k, {})
-      setmetatable(t[k], make_mt(original))
-    end,
-    __newindex = function(t, k, v)
-      rawset(t, k, v)
-      if type(v) ~= "table" then
-        return
-      end
-      setmetatable(v, make_mt(default[k]))
-    end,
-  }
-end
-
-local function default_table()
-  return setmetatable({}, {
-    -- ensure every entry in the table is a table
-    __index = function(tbl, key)
-      local new_tbl = {}
-      rawset(tbl, key, new_tbl)
-      return new_tbl
-    end,
-  })
-end
+local default_table = Utils.default_table
 
 ---@class Keyboard
 ---@field padding PaddingBox The spacing around each button keycap
@@ -229,17 +199,15 @@ function Keyboard:_layout_buttons(shift_pressed)
   --  ├────────┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─┬─┴─────────┤
   --  │ <SHIFT>  │ z │ x │ c │ v │ b │ n │ m │ , │ . │ / │  <SHIFT>  │
   --  └──────────┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───────────┘
-  -- Reset button mapping tables
+  -- Reset the button mapping table that is about to be rebuilt so that
+  -- laying out the keyboard again does not accumulate duplicate buttons
   if shift_pressed then
-    self._normal_buttons = default_table()
-  else
     self._shifted_buttons = default_table()
+  else
+    self._normal_buttons = default_table()
   end
-  local button_lookup = self._normal_buttons
+  local button_lookup = shift_pressed and self._shifted_buttons or self._normal_buttons
   self._locations = button_lookup
-  if shift_pressed then
-    button_lookup = self._shifted_buttons
-  end
 
   self._rows = {}
   self._keycap_separator_colomns = {}

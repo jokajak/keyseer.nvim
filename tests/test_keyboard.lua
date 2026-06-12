@@ -2,12 +2,8 @@
 local helpers = dofile("tests/helpers.lua")
 
 local child = helpers.new_child_neovim()
-local eq_global, eq_config, eq_state =
-  helpers.expect.global_equality, helpers.expect.config_equality, helpers.expect.state_equality
-local eq_type_global, eq_type_config, eq_type_state =
-  helpers.expect.global_type_equality,
-  helpers.expect.config_type_equality,
-  helpers.expect.state_type_equality
+local eq_global = helpers.expect.global_equality
+local eq_type_global = helpers.expect.global_type_equality
 
 local T = MiniTest.new_set({
   hooks = {
@@ -133,6 +129,20 @@ end
 
 T["dvorak"]["calculates shift pressed layout"] = function()
   eq_global(child, "dvorak:get_lines(true)", dvorak_shift_pressed_layout)
+end
+
+T["qwerty"]["laying out buttons again does not duplicate them"] = function()
+  child.lua([[keyboard = qwerty:new()]])
+  child.lua([[keyboard:_layout_buttons(false)]])
+  child.lua([[keyboard:_layout_buttons(false)]])
+  eq_global(child, [=[#keyboard._normal_buttons["q"]]=], 1)
+end
+
+T["qwerty"]["looks up buttons from the shifted layout when shift is pressed"] = function()
+  child.lua([[keyboard = qwerty:new()]])
+  child.lua([[keyboard:_layout_buttons(true)]])
+  eq_global(child, [=[#keyboard._shifted_buttons["Q"]]=], 1)
+  eq_global(child, [=[keyboard._locations == keyboard._shifted_buttons]=], true)
 end
 
 return T

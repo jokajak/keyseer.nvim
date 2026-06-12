@@ -12,14 +12,10 @@
 -- ├────────┬──┴───┴──┬┴───┴──┬┴───┴───┴───┴───┴─┬─┴───┴─┬────────┤
 -- │ <CTRL> │ <SUPER> │ <ALT> │      <SPACE>     │ <ALT> │ <CTRL> │
 -- └────────┴─────────┴───────┴──────────────────┴───────┴────────┘
-local D = require("keyseer.util.debug")
 local UIConfig = require("keyseer.ui.config")
 -- Render help
 ---@private
-local M = {
-  count = 0,
-  modifiers = {},
-}
+local M = {}
 
 function M.render(ui)
   local current_keycaps = ui.state.keymaps:get_current_keycaps(ui.state.modifiers)
@@ -45,17 +41,6 @@ function M.render(ui)
   end
 end
 
-local function get_button_under_cursor(ui)
-  local cursorposition = vim.fn.getcursorcharpos(ui.win)
-  local row, col = cursorposition[2], cursorposition[3]
-  -- size of the title is statically calculated
-  local row_offset = 4
-  ---@type Keyboard
-  local keyboard = ui.state.keyboard
-  local button = keyboard:get_keycap_at_position(row - row_offset, col)
-  return button
-end
-
 ---Update keymaps when entering the pane
 function M.on_enter(ui)
   -- go backwards in the key press tree
@@ -67,10 +52,10 @@ function M.on_enter(ui)
 
   -- open details for the keycap under the cursor
   vim.keymap.set("n", UIConfig.keys.details, function()
-    local button = get_button_under_cursor(ui)
+    local button = ui:get_button_under_cursor()
     if button then
       if button.is_modifier then
-        ui.state.modifiers[button.keycode] = not ui.state.modifiers[button.keycode]
+        ui:toggle_modifier(button.keycode)
       else
         ui.state.button = button
         ui:set_pane("details")

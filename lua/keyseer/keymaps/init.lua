@@ -8,6 +8,19 @@ local Utils = require("keyseer.utils")
 
 local if_nil = vim.F.if_nil
 
+---@alias KeySeerModifier "<Ctrl>"|"<Shift>"|"<Meta>"
+
+---Fill in missing modifier keys as not pressed
+---@param modifiers table<KeySeerModifier,boolean>|nil
+---@return table<KeySeerModifier,boolean>
+local function with_default_modifiers(modifiers)
+  return vim.tbl_deep_extend(
+    "force",
+    { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
+    modifiers or {}
+  )
+end
+
 -- The Keymaps class does the work of converting the neovim keymaps to keymap layers
 ---@class Keymaps
 ---@field root KeyMapTreeNode The root of the keymap treenode
@@ -143,49 +156,23 @@ function Keymaps:add_keymaps(keymaps)
   end
 end
 
+---Reduce a modifier table to its canonical form
+---Shift is dropped when Ctrl is held because a Ctrl chord cannot
+---distinguish shifted from unshifted keys (<C-a> and <C-A> are the same)
+---@param modifiers table<KeySeerModifier,boolean>
+---@return string
+local function canonical_modifiers(modifiers)
+  local shift = modifiers["<Shift>"] and not modifiers["<Ctrl>"]
+  return (modifiers["<Ctrl>"] and "C" or "")
+    .. (modifiers["<Meta>"] and "M" or "")
+    .. (shift and "S" or "")
+end
+
 ---Return a boolean for whether or not the modifiers match
----@param left table[string,boolean]
----@param right table[tring,boolean]
+---@param left table<KeySeerModifier,boolean>
+---@param right table<KeySeerModifier,boolean>
 local function modifiers_match(left, right)
-  -- only ctrl, shift, meta, ctrl+meta, meta+shift are valid modifiers
-  -- therefore if ctrl doesn't match or meta doesn't match then it can't match
-  if left["<Ctrl>"] then
-    if not right["<Ctrl>"] then
-      -- ctrl doesn't match, false
-      return false
-    elseif left["<Meta>"] == right["<Meta>"] then
-      -- meta and ctrl match, return true
-      return true
-    else
-      -- meta doesn't match, false
-      return false
-    end
-  elseif right["<Ctrl>"] then
-    -- ctrl doesn't match, false
-    return false
-  end
-  if left["<Meta>"] then
-    if not right["<Meta>"] then
-      -- meta doesn't match, false
-      return false
-    elseif left["<Shift>"] == right["<Shift>"] then
-      -- meta and shift match, return true
-      return true
-    else
-      -- shift doesn't match, false
-      return false
-    end
-  elseif right["<Meta>"] then
-    -- meta doesn't match, false
-    return false
-  end
-
-  if left["<Shift>"] == right["<Shift>"] then
-    -- shift matches, return true
-    return true
-  end
-
-  return false
+  return canonical_modifiers(left) == canonical_modifiers(right)
 end
 
 ---Return a boolean for whether or not the keypress matches the modifiers
@@ -193,29 +180,15 @@ end
 ---@param modifiers table<string,boolean>
 function Keymaps.matching_keypress(node, modifiers)
   vim.validate({ modifiers = { modifiers, "table", true } })
-  modifiers = vim.tbl_deep_extend(
-    "force",
-    { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
-    modifiers or {}
-  )
-  local node_modifiers = vim.tbl_deep_extend(
-    "force",
-    { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
-    node.modifiers
-  )
 
-  return modifiers_match(modifiers, node_modifiers)
+  return modifiers_match(with_default_modifiers(modifiers), with_default_modifiers(node.modifiers))
 end
 
 ---Get the keycaps at the current node
 ---@return table<KeyCapTreeNode>
 function Keymaps:get_current_keycaps(modifiers, opts)
   vim.validate({ modifiers = { modifiers, "table", true } })
-  modifiers = vim.tbl_deep_extend(
-    "force",
-    { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
-    modifiers or {}
-  )
+  modifiers = with_default_modifiers(modifiers)
   opts = vim.tbl_deep_extend(
     "force",
     { ["add_modifiers"] = false, ["match_modifiers"] = true },
@@ -227,14 +200,6 @@ function Keymaps:get_current_keycaps(modifiers, opts)
     if pressed then
       ret[modifier] = "KeySeerKeycapKeymap"
     end
-  end
-
-  if modifiers["<Ctrl>"] and modifiers["<Meta>"] then
-    Utils.notify(
-      "Ctrl and Meta cannot be used in the same keymap, please deselect a modifier.",
-      { level = vim.log.WARN }
-    )
-    return ret
   end
 
   local matching_keypresses = {}
@@ -341,19 +306,11 @@ end
 ---@param modifiers table<string,boolean> The modifier states
 function Keymaps:get_keymaps(keycode, modifiers)
   vim.validate({ modifiers = { modifiers, "table", true } })
-  modifiers = vim.tbl_deep_extend(
-    "force",
-    { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
-    modifiers or {}
-  )
+  modifiers = with_default_modifiers(modifiers)
 
   local ret = nil
   for _, node in pairs(self.current_node.children) do
-    local node_modifiers = vim.tbl_deep_extend(
-      "force",
-      { ["<Ctrl>"] = false, ["<Shift>"] = false, ["<Meta>"] = false },
-      node.modifiers
-    )
+    local node_modifiers = with_default_modifiers(node.modifiers)
 
     local matches = node.keycode == keycode
     if modifiers["<Ctrl>"] and not matches then
