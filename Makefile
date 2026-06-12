@@ -29,6 +29,10 @@ documentation-ci: deps documentation
 lint:
 	stylua .
 
+# performs a static analysis check, following the config in `.luacheckrc`.
+luacheck:
+	luacheck lua/ tests/ scripts/ plugin/
+
 # setup
 setup:
 	./scripts/setup.sh

@@ -23,6 +23,10 @@ jobs:
           version: latest
           args: --check .
 
+      - uses: lunarmodules/luacheck@v1
+        with:
+          args: lua/ tests/ scripts/ plugin/
+
   documentation:
     runs-on: ubuntu-latest
     name: documentation
